@@ -115,6 +115,34 @@ export type TeamActivity = {
   timeAgo: string;
 };
 
+export type MatchTab = 'team' | 'solo';
+
+export type MatchRunner = {
+  id: string;
+  name: string;
+  level: number;
+  role?: TeamRole;
+  avatarUrl?: string;
+  seasonAvg: string;
+  totalMiles: string;
+};
+
+export type MatchType = {
+  title: string;
+  description: string;
+  icon: string;
+};
+
+export type Matchmaking = {
+  teamName: string;
+  powerRating: number;
+  teamLevel: number;
+  matchType: MatchType;
+  maxLineup: number;
+  lineup: MatchRunner[];
+  available: MatchRunner[];
+};
+
 export type Team = {
   id: string;
   name: string;

@@ -8,8 +8,9 @@ import {
   ProfileAvatarButton,
   TabAppHeader,
 } from '../components/header';
-import type { FeedTab } from '../mock';
+import type { FeedTab, MatchTab } from '../mock';
 import { FeedScreen } from '../screens/FeedScreen';
+import { MatchScreen } from '../screens/MatchScreen';
 import { RunScreen } from '../screens/RunScreen';
 import { colors } from '../theme';
 import { isAppRoute, ROUTES, type AppRoute } from './routes';
@@ -20,11 +21,18 @@ const FEED_TABS = [
   { key: 'team', label: 'TEAM' },
 ] as const;
 
+const MATCH_TABS = [
+  { key: 'team', label: 'Team' },
+  { key: 'solo', label: 'Solo' },
+] as const;
+
 export function AppShell() {
   const [activeRoute, setActiveRoute] = useState<AppRoute>('feed');
   const [activeFeedTab, setActiveFeedTab] = useState<FeedTab>('community');
+  const [activeMatchTab, setActiveMatchTab] = useState<MatchTab>('team');
 
-  const { title, screen: RouteScreen, showFeedTabs, hideChrome } = ROUTES[activeRoute];
+  const { title, screen: RouteScreen, showFeedTabs, showMatchTabs, hideChrome } =
+    ROUTES[activeRoute];
 
   function handleNavPress(key: string) {
     if (isAppRoute(key)) {
@@ -41,7 +49,60 @@ export function AppShell() {
       return <RunScreen onBack={() => setActiveRoute('feed')} />;
     }
 
+    if (activeRoute === 'match') {
+      return <MatchScreen activeTab={activeMatchTab} />;
+    }
+
     return RouteScreen ? <RouteScreen /> : null;
+  }
+
+  function renderHeaderLeft() {
+    if (activeRoute === 'match') {
+      return (
+        <HeaderIconButton
+          accessibilityLabel="Go back"
+          icon="chevron-back"
+          onPress={() => setActiveRoute('feed')}
+        />
+      );
+    }
+
+    if (activeRoute === 'me' || activeRoute === 'team') {
+      return undefined;
+    }
+
+    return (
+      <HeaderIconButton
+        accessibilityLabel="Notifications"
+        icon="notifications-outline"
+        onPress={() => {}}
+        showBadge
+      />
+    );
+  }
+
+  function renderHeaderRight() {
+    if (activeRoute === 'match') {
+      return (
+        <HeaderIconButton
+          accessibilityLabel="Help"
+          icon="help-circle-outline"
+          onPress={() => {}}
+        />
+      );
+    }
+
+    if (activeRoute === 'me' || activeRoute === 'team') {
+      return (
+        <HeaderIconButton
+          accessibilityLabel="Settings"
+          icon="settings-outline"
+          onPress={() => {}}
+        />
+      );
+    }
+
+    return <ProfileAvatarButton initials="AK" onPress={() => {}} />;
   }
 
   return (
@@ -50,28 +111,9 @@ export function AppShell() {
         {!hideChrome ? (
           <>
             <AppHeader
-              left={
-                activeRoute === 'me' || activeRoute === 'team' ? undefined : (
-                  <HeaderIconButton
-                    accessibilityLabel="Notifications"
-                    icon="notifications-outline"
-                    onPress={() => {}}
-                    showBadge
-                  />
-                )
-              }
-              right={
-                activeRoute === 'me' || activeRoute === 'team' ? (
-                  <HeaderIconButton
-                    accessibilityLabel="Settings"
-                    icon="settings-outline"
-                    onPress={() => {}}
-                  />
-                ) : (
-                  <ProfileAvatarButton initials="AK" onPress={() => {}} />
-                )
-              }
-              showBorder={!showFeedTabs}
+              left={renderHeaderLeft()}
+              right={renderHeaderRight()}
+              showBorder={!showFeedTabs && !showMatchTabs}
               title={title}
             />
 
@@ -80,6 +122,14 @@ export function AppShell() {
                 activeTab={activeFeedTab}
                 onTabPress={(key) => setActiveFeedTab(key as FeedTab)}
                 tabs={[...FEED_TABS]}
+              />
+            ) : null}
+
+            {showMatchTabs ? (
+              <TabAppHeader
+                activeTab={activeMatchTab}
+                onTabPress={(key) => setActiveMatchTab(key as MatchTab)}
+                tabs={[...MATCH_TABS]}
               />
             ) : null}
           </>
