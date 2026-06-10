@@ -10,6 +10,7 @@ import {
 } from '../components/header';
 import type { FeedTab } from '../mock';
 import { FeedScreen } from '../screens/FeedScreen';
+import { RunScreen } from '../screens/RunScreen';
 import { colors } from '../theme';
 import { isAppRoute, ROUTES, type AppRoute } from './routes';
 
@@ -23,7 +24,7 @@ export function AppShell() {
   const [activeRoute, setActiveRoute] = useState<AppRoute>('feed');
   const [activeFeedTab, setActiveFeedTab] = useState<FeedTab>('community');
 
-  const { title, screen: RouteScreen, showFeedTabs } = ROUTES[activeRoute];
+  const { title, screen: RouteScreen, showFeedTabs, hideChrome } = ROUTES[activeRoute];
 
   function handleNavPress(key: string) {
     if (isAppRoute(key)) {
@@ -31,38 +32,50 @@ export function AppShell() {
     }
   }
 
+  function renderScreen() {
+    if (activeRoute === 'feed') {
+      return <FeedScreen activeTab={activeFeedTab} />;
+    }
+
+    if (activeRoute === 'run') {
+      return <RunScreen onBack={() => setActiveRoute('feed')} />;
+    }
+
+    return RouteScreen ? <RouteScreen /> : null;
+  }
+
   return (
     <View style={styles.root}>
       <View style={styles.shell}>
-        <AppHeader
-          left={
-            <HeaderIconButton
-              accessibilityLabel="Notifications"
-              icon="notifications-outline"
-              onPress={() => {}}
-              showBadge
+        {!hideChrome ? (
+          <>
+            <AppHeader
+              left={
+                <HeaderIconButton
+                  accessibilityLabel="Notifications"
+                  icon="notifications-outline"
+                  onPress={() => {}}
+                  showBadge
+                />
+              }
+              right={<ProfileAvatarButton initials="AK" onPress={() => {}} />}
+              title={title}
             />
-          }
-          right={<ProfileAvatarButton initials="AK" onPress={() => {}} />}
-          title={title}
-        />
 
-        {showFeedTabs ? (
-          <TabAppHeader
-            activeTab={activeFeedTab}
-            onTabPress={(key) => setActiveFeedTab(key as FeedTab)}
-            tabs={[...FEED_TABS]}
-          />
+            {showFeedTabs ? (
+              <TabAppHeader
+                activeTab={activeFeedTab}
+                onTabPress={(key) => setActiveFeedTab(key as FeedTab)}
+                tabs={[...FEED_TABS]}
+              />
+            ) : null}
+          </>
         ) : null}
 
-        {activeRoute === 'feed' ? (
-          <FeedScreen activeTab={activeFeedTab} />
-        ) : RouteScreen ? (
-          <RouteScreen />
-        ) : null}
+        {renderScreen()}
       </View>
 
-      <BottomAppBar activeKey={activeRoute} onItemPress={handleNavPress} />
+      {!hideChrome ? <BottomAppBar activeKey={activeRoute} onItemPress={handleNavPress} /> : null}
     </View>
   );
 }

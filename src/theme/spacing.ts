@@ -14,4 +14,5 @@ export const layout = {
   avatarSize: 34,
   tabBarHeight: 40,
   bottomAppBarHeight: 64,
+  runDrawerRadius: 20,
 } as const;
