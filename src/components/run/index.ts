@@ -1,4 +1,5 @@
 export { RunBottomDrawer } from './RunBottomDrawer';
 export { RunDrawerStats } from './RunDrawerStats';
-export { RunMapPlaceholder } from './RunMapPlaceholder';
+export { RunMapArea } from './RunMapArea';
+export { RunMapControls } from './RunMapControls';
 export { RunStartButton } from './RunStartButton';

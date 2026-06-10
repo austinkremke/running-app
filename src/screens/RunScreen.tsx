@@ -1,6 +1,6 @@
 import { StyleSheet, View } from 'react-native';
 
-import { RunBottomDrawer, RunMapPlaceholder } from '../components/run';
+import { RunBottomDrawer, RunMapArea } from '../components/run';
 import { colors } from '../theme';
 
 type RunScreenProps = {
@@ -10,7 +10,7 @@ type RunScreenProps = {
 export function RunScreen({ onBack }: RunScreenProps) {
   return (
     <View style={styles.container}>
-      <RunMapPlaceholder onBack={onBack} />
+      <RunMapArea onBack={onBack} />
       <RunBottomDrawer />
     </View>
   );
