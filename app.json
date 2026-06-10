@@ -1,11 +1,12 @@
 {
   "expo": {
-    "name": "running-app",
+    "name": "Territory Run",
     "slug": "running-app",
+    "scheme": "runningapp",
     "version": "1.0.0",
     "orientation": "portrait",
     "icon": "./assets/icon.png",
-    "userInterfaceStyle": "light",
+    "userInterfaceStyle": "automatic",
     "ios": {
       "supportsTablet": true
     },
