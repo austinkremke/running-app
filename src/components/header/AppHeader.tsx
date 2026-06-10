@@ -1,5 +1,6 @@
 import { ReactNode } from 'react';
-import { SafeAreaView, StyleSheet, Text, View } from 'react-native';
+import { StyleSheet, Text, View } from 'react-native';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import { colors, layout, spacing, typography } from '../../theme';
 
@@ -12,9 +13,11 @@ type AppHeaderProps = {
 };
 
 export function AppHeader({ title, left, right, showBorder = false }: AppHeaderProps) {
+  const insets = useSafeAreaInsets();
+
   return (
-    <SafeAreaView style={styles.safeArea}>
-      <View style={[styles.container, showBorder && styles.bordered]}>
+    <View style={[styles.wrapper, { paddingTop: insets.top }]}>
+      <View style={styles.container}>
         <View style={styles.side}>{left ?? <View style={styles.sideSpacer} />}</View>
 
         <Text numberOfLines={1} pointerEvents="none" style={styles.title}>
@@ -25,12 +28,15 @@ export function AppHeader({ title, left, right, showBorder = false }: AppHeaderP
           {right ?? <View style={styles.sideSpacer} />}
         </View>
       </View>
-    </SafeAreaView>
+
+      {showBorder ? <View style={styles.border} /> : null}
+    </View>
   );
 }
 
 const styles = StyleSheet.create({
-  safeArea: {
+  wrapper: {
+    width: '100%',
     backgroundColor: colors.background,
   },
   container: {
@@ -40,9 +46,10 @@ const styles = StyleSheet.create({
     paddingHorizontal: spacing.lg,
     backgroundColor: colors.background,
   },
-  bordered: {
-    borderBottomWidth: StyleSheet.hairlineWidth,
-    borderBottomColor: colors.border,
+  border: {
+    height: 1,
+    alignSelf: 'stretch',
+    backgroundColor: colors.border,
   },
   side: {
     minWidth: layout.headerSideWidth,

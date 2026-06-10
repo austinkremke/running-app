@@ -51,14 +51,27 @@ export function AppShell() {
           <>
             <AppHeader
               left={
-                <HeaderIconButton
-                  accessibilityLabel="Notifications"
-                  icon="notifications-outline"
-                  onPress={() => {}}
-                  showBadge
-                />
+                activeRoute === 'me' ? undefined : (
+                  <HeaderIconButton
+                    accessibilityLabel="Notifications"
+                    icon="notifications-outline"
+                    onPress={() => {}}
+                    showBadge
+                  />
+                )
               }
-              right={<ProfileAvatarButton initials="AK" onPress={() => {}} />}
+              right={
+                activeRoute === 'me' ? (
+                  <HeaderIconButton
+                    accessibilityLabel="Settings"
+                    icon="settings-outline"
+                    onPress={() => {}}
+                  />
+                ) : (
+                  <ProfileAvatarButton initials="AK" onPress={() => {}} />
+                )
+              }
+              showBorder={!showFeedTabs}
               title={title}
             />
 
