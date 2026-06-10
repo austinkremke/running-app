@@ -1,25 +1,36 @@
-import { StyleSheet, Text, View } from 'react-native';
+import { FlatList, StyleSheet } from 'react-native';
 
-import { colors } from '../theme';
+import { RunCard } from '../components/feed';
+import { getRunsForTab, type FeedTab } from '../mock';
+import { colors, spacing } from '../theme';
 
-export function FeedScreen() {
+type FeedScreenProps = {
+  activeTab: FeedTab;
+};
+
+export function FeedScreen({ activeTab }: FeedScreenProps) {
+  const runs = getRunsForTab(activeTab);
+
   return (
-    <View style={styles.container}>
-      <Text style={styles.text}>Feed Screen</Text>
-    </View>
+    <FlatList
+      contentContainerStyle={styles.content}
+      data={runs}
+      keyExtractor={(item) => item.id}
+      renderItem={({ item }) => <RunCard run={item} />}
+      showsVerticalScrollIndicator={false}
+      style={styles.list}
+    />
   );
 }
 
 const styles = StyleSheet.create({
-  container: {
+  list: {
     flex: 1,
-    alignItems: 'center',
-    justifyContent: 'center',
     backgroundColor: colors.background,
   },
-  text: {
-    color: colors.textPrimary,
-    fontSize: 20,
-    fontWeight: '600',
+  content: {
+    paddingHorizontal: spacing.sm,
+    paddingVertical: spacing.md,
+    gap: spacing.md,
   },
 });

@@ -8,6 +8,8 @@ import {
   ProfileAvatarButton,
   TabAppHeader,
 } from '../components/header';
+import type { FeedTab } from '../mock';
+import { FeedScreen } from '../screens/FeedScreen';
 import { colors } from '../theme';
 import { isAppRoute, ROUTES, type AppRoute } from './routes';
 
@@ -19,9 +21,9 @@ const FEED_TABS = [
 
 export function AppShell() {
   const [activeRoute, setActiveRoute] = useState<AppRoute>('feed');
-  const [activeFeedTab, setActiveFeedTab] = useState('community');
+  const [activeFeedTab, setActiveFeedTab] = useState<FeedTab>('community');
 
-  const { title, screen: Screen, showFeedTabs } = ROUTES[activeRoute];
+  const { title, screen: RouteScreen, showFeedTabs } = ROUTES[activeRoute];
 
   function handleNavPress(key: string) {
     if (isAppRoute(key)) {
@@ -48,12 +50,16 @@ export function AppShell() {
         {showFeedTabs ? (
           <TabAppHeader
             activeTab={activeFeedTab}
-            onTabPress={setActiveFeedTab}
+            onTabPress={(key) => setActiveFeedTab(key as FeedTab)}
             tabs={[...FEED_TABS]}
           />
         ) : null}
 
-        <Screen />
+        {activeRoute === 'feed' ? (
+          <FeedScreen activeTab={activeFeedTab} />
+        ) : RouteScreen ? (
+          <RouteScreen />
+        ) : null}
       </View>
 
       <BottomAppBar activeKey={activeRoute} onItemPress={handleNavPress} />
