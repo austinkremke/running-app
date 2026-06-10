@@ -75,3 +75,57 @@ export type UserProfile = {
   achievements: Achievement[];
   overallStats: OverallStat[];
 };
+
+export type TeamRole = 'leader' | 'co-leader';
+
+export type TeamRank = {
+  rank: number;
+  topPercent: string;
+  subtitle: string;
+};
+
+export type TeamStat = {
+  id: string;
+  icon: string;
+  iconColor: string;
+  label: string;
+  value: string;
+  sublabel?: string;
+};
+
+export type TeamMember = {
+  id: string;
+  rank: number;
+  name: string;
+  status: string;
+  isOnline?: boolean;
+  role?: TeamRole;
+  avatarUrl?: string;
+  level: number;
+  distance: string;
+  power: string;
+};
+
+export type TeamActivity = {
+  id: string;
+  icon: string;
+  variant: AchievementVariant;
+  message: string;
+  highlight?: string;
+  timeAgo: string;
+};
+
+export type Team = {
+  id: string;
+  name: string;
+  tag: string;
+  motto: string;
+  level: number;
+  experience: ProfileExperience;
+  teamRank: TeamRank;
+  stats: TeamStat[];
+  members: TeamMember[];
+  memberCount: number;
+  memberMax: number;
+  activities: TeamActivity[];
+};

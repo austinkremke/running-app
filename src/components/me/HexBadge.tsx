@@ -102,7 +102,7 @@ export function HexBadge({
           </>
         ) : null}
         <Polygon
-          fill={isStroked ? colors.surface : palette.fill}
+          fill={isStroked ? 'transparent' : palette.fill}
           points={getHexagonPoints(size, height, 1)}
           stroke={strokeColor}
           strokeWidth={isStroked ? 1.5 : 0}
@@ -113,7 +113,13 @@ export function HexBadge({
         {children}
         {icon ? <Ionicons color={iconColor} name={icon} size={iconSize} /> : null}
         {badgeText ? (
-          <Text style={[styles.badgeText, { color: textColor }, icon && styles.badgeTextOffset]}>
+          <Text
+            style={[
+              styles.badgeText,
+              { color: textColor, fontSize: icon ? 13 : size * 0.38 },
+              icon && styles.badgeTextOffset,
+            ]}
+          >
             {badgeText}
           </Text>
         ) : null}

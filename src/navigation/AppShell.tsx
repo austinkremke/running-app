@@ -51,7 +51,7 @@ export function AppShell() {
           <>
             <AppHeader
               left={
-                activeRoute === 'me' ? undefined : (
+                activeRoute === 'me' || activeRoute === 'team' ? undefined : (
                   <HeaderIconButton
                     accessibilityLabel="Notifications"
                     icon="notifications-outline"
@@ -61,7 +61,7 @@ export function AppShell() {
                 )
               }
               right={
-                activeRoute === 'me' ? (
+                activeRoute === 'me' || activeRoute === 'team' ? (
                   <HeaderIconButton
                     accessibilityLabel="Settings"
                     icon="settings-outline"

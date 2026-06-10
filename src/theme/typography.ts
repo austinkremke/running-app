@@ -4,11 +4,11 @@ import { colors } from './colors';
 
 export const typography = {
   headerTitle: {
-    fontSize: 20,
+    fontSize: 17,
     fontWeight: '800',
     fontStyle: 'italic',
     textTransform: 'uppercase',
-    letterSpacing: 2,
+    letterSpacing: 1.5,
     color: colors.textPrimary,
   } satisfies TextStyle,
   tabLabel: {

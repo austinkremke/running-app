@@ -5,24 +5,31 @@ import { colors } from '../../theme';
 
 type XpProgressBarProps = {
   progress: number;
+  height?: number;
 };
 
 const FILL_LEAD = '#E3FF6A';
 
-export function XpProgressBar({ progress }: XpProgressBarProps) {
+export function XpProgressBar({ progress, height = 10 }: XpProgressBarProps) {
   const clampedProgress = Math.min(Math.max(progress, 0), 1);
+  const radius = height / 2;
 
   return (
-    <View style={styles.track}>
-      <View style={[styles.fillClip, { width: `${clampedProgress * 100}%` }]}>
-        <Svg height="100%" preserveAspectRatio="none" style={styles.fillSvg} viewBox="0 0 100 10">
+    <View style={[styles.track, { height, borderRadius: radius }]}>
+      <View style={[styles.fillClip, { borderRadius: radius, width: `${clampedProgress * 100}%` }]}>
+        <Svg
+          height="100%"
+          preserveAspectRatio="none"
+          style={styles.fillSvg}
+          viewBox={`0 0 100 ${height}`}
+        >
           <Defs>
             <LinearGradient id="xpFill" x1="0" x2="1" y1="0" y2="0">
               <Stop offset="0" stopColor={colors.accentLime} />
               <Stop offset="1" stopColor={FILL_LEAD} />
             </LinearGradient>
           </Defs>
-          <Rect fill="url(#xpFill)" height="10" rx="5" width="100" />
+          <Rect fill="url(#xpFill)" height={height} rx={radius} width="100" />
         </Svg>
       </View>
     </View>
@@ -31,14 +38,11 @@ export function XpProgressBar({ progress }: XpProgressBarProps) {
 
 const styles = StyleSheet.create({
   track: {
-    height: 10,
-    borderRadius: 5,
     backgroundColor: colors.surfaceElevated,
     overflow: 'hidden',
   },
   fillClip: {
     height: '100%',
-    borderRadius: 5,
     overflow: 'hidden',
   },
   fillSvg: {

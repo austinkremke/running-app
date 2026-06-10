@@ -3,3 +3,4 @@ export * from './feed';
 export * from './header';
 export * from './me';
 export * from './run';
+export * from './team';

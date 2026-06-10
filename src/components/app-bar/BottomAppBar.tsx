@@ -14,10 +14,11 @@ export type BottomAppBarItem = {
 };
 
 export const DEFAULT_BOTTOM_APP_BAR_ITEMS: BottomAppBarItem[] = [
-  { key: 'feed', label: 'FEED', icon: 'people-outline', activeIcon: 'people' },
-  { key: 'run', label: 'RUN', icon: 'walk-outline', activeIcon: 'walk' },
-  { key: 'match', label: 'MATCH', icon: 'trophy-outline', activeIcon: 'trophy' },
-  { key: 'me', label: 'ME', icon: 'person-outline', activeIcon: 'person' },
+  { key: 'feed', label: 'Feed', icon: 'people-outline', activeIcon: 'people' },
+  { key: 'run', label: 'Run', icon: 'walk-outline', activeIcon: 'walk' },
+  { key: 'match', label: 'Match', icon: 'trophy-outline', activeIcon: 'trophy' },
+  { key: 'team', label: 'Team', icon: 'shield-outline', activeIcon: 'shield' },
+  { key: 'me', label: 'Me', icon: 'person-outline', activeIcon: 'person' },
 ];
 
 type BottomAppBarProps = {
@@ -53,7 +54,7 @@ export function BottomAppBar({
                 <Ionicons
                   color={isActive ? colors.accentLime : colors.textSecondary}
                   name={iconName}
-                  size={22}
+                  size={18}
                 />
                 <Text style={[styles.label, isActive ? styles.labelActive : styles.labelInactive]}>
                   {item.label}
@@ -91,15 +92,14 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
     gap: spacing.xs,
-    paddingHorizontal: spacing.md,
+    paddingHorizontal: spacing.xs,
     paddingVertical: spacing.sm,
-    minWidth: 64,
+    minWidth: 48,
   },
   label: {
-    fontSize: 10,
-    fontWeight: '700',
-    letterSpacing: 0.8,
-    textTransform: 'uppercase',
+    fontSize: 9,
+    fontWeight: '600',
+    letterSpacing: 0.2,
   },
   labelActive: {
     color: colors.accentLime,
