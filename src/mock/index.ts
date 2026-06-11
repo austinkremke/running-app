@@ -1,15 +1,21 @@
+export { MOCK_CHALLENGE_FRIENDS } from './friends';
 export { MOCK_MATCHMAKING } from './match';
+export { MOCK_SOLO_MATCHMAKING } from './soloMatch';
 export { MOCK_PROFILE } from './profile';
 export { MOCK_TEAM } from './team';
 export { getRunsForTab, MOCK_RUNS } from './runs';
 export type {
   Achievement,
   AchievementVariant,
+  ChallengeFriend,
   FeedTab,
+  ProposedChallenge,
   Matchmaking,
   MatchRunner,
   MatchTab,
-  MatchType,
+  TeamMatchFormat,
+  SoloMatchmaking,
+  SoloSeasonRecord,
   OverallStat,
   OverallStatLayout,
   ProfileExperience,

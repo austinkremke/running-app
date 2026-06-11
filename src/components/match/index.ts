@@ -1,5 +1,9 @@
 export { AvailableRunnersSection } from './AvailableRunnersSection';
 export { FindMatchButton } from './FindMatchButton';
 export { LineupSection } from './LineupSection';
-export { MatchDetailsCard } from './MatchDetailsCard';
+export { MatchmakingLoader } from './MatchmakingLoader';
+export { MatchFormatCard } from './MatchFormatCard';
 export { MatchTeamSummaryCard } from './MatchTeamSummaryCard';
+export { SearchingForTeamCard } from './SearchingForTeamCard';
+export { TeamMatchTab } from './TeamMatchTab';
+export * from './solo';

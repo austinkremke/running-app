@@ -34,6 +34,13 @@ export function AppShell() {
   const { title, screen: RouteScreen, showFeedTabs, showMatchTabs, hideChrome } =
     ROUTES[activeRoute];
 
+  const headerTitle =
+    activeRoute === 'match'
+      ? activeMatchTab === 'solo'
+        ? 'SOLO MATCH'
+        : 'MATCHMAKING'
+      : title;
+
   function handleNavPress(key: string) {
     if (isAppRoute(key)) {
       setActiveRoute(key);
@@ -114,7 +121,7 @@ export function AppShell() {
               left={renderHeaderLeft()}
               right={renderHeaderRight()}
               showBorder={!showFeedTabs && !showMatchTabs}
-              title={title}
+              title={headerTitle}
             />
 
             {showFeedTabs ? (

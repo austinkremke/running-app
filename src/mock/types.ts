@@ -127,20 +127,51 @@ export type MatchRunner = {
   totalMiles: string;
 };
 
-export type MatchType = {
+export type TeamMatchFormat = {
   title: string;
-  description: string;
-  icon: string;
+  durationLabel: string;
+  winCondition: string;
+  overview: string;
+  scoringDetails: string;
 };
 
 export type Matchmaking = {
   teamName: string;
   powerRating: number;
   teamLevel: number;
-  matchType: MatchType;
+  matchFormat: TeamMatchFormat;
   maxLineup: number;
   lineup: MatchRunner[];
   available: MatchRunner[];
+};
+
+export type SoloSeasonRecord = {
+  wins: number;
+  losses: number;
+  bestStreak: number;
+};
+
+export type ChallengeFriend = {
+  id: string;
+  name: string;
+  level: number;
+  avatarUrl?: string;
+  isOnline?: boolean;
+};
+
+export type ProposedChallenge = {
+  friend: ChallengeFriend;
+  sentAt: string;
+};
+
+export type SoloMatchmaking = {
+  name: string;
+  avatarUrl: string;
+  level: number;
+  rankTitle: string;
+  rankIcon: string;
+  matchFormat: TeamMatchFormat;
+  seasonRecord: SoloSeasonRecord;
 };
 
 export type Team = {

@@ -25,10 +25,14 @@ export const MOCK_MATCHMAKING: Matchmaking = {
   teamName: 'Road Warriors',
   powerRating: 7821,
   teamLevel: 24,
-  matchType: {
-    title: 'Distance',
-    description: 'Scoring based on total miles run during match.',
-    icon: 'footsteps',
+  matchFormat: {
+    title: '3 Day Challenge',
+    durationLabel: '3 Days',
+    winCondition: 'Highest team score wins',
+    overview:
+      'Your lineup has 3 days to earn as many points as possible. Every run from your selected runners counts toward your team total.',
+    scoringDetails:
+      'Points come from your team\'s combined distance and pace—the more miles your lineup covers, and the faster they run them, the higher your score.',
   },
   maxLineup: 5,
   lineup: [
