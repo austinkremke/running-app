@@ -52,7 +52,7 @@ export const MOCK_PROFILE: UserProfile = {
   overallStats: [
     {
       id: 'stat-distance',
-      icon: 'trail-sign-outline',
+      icon: 'footsteps-outline',
       iconColor: '#D7FF2F',
       value: '1,248.7',
       unit: 'mi',

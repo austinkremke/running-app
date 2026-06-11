@@ -1,0 +1,39 @@
+import Svg, { Path } from 'react-native-svg';
+
+type RunnerIconProps = {
+  color: string;
+  size?: number;
+};
+
+const VIEWBOX_WIDTH = 20;
+const VIEWBOX_HEIGHT = 22;
+const STROKE_WIDTH = 1.5;
+
+export function RunnerIcon({ color, size = 18 }: RunnerIconProps) {
+  const width = size * (VIEWBOX_WIDTH / VIEWBOX_HEIGHT);
+  const height = size;
+
+  return (
+    <Svg fill="none" height={height} viewBox={`0 0 ${VIEWBOX_WIDTH} ${VIEWBOX_HEIGHT}`} width={width}>
+      <Path
+        d="M15.3752 2.4375C15.3752 3.36948 14.6197 4.125 13.6877 4.125C12.7557 4.125 12.0002 3.36948 12.0002 2.4375C12.0002 1.50552 12.7557 0.75 13.6877 0.75C14.6197 0.75 15.3752 1.50552 15.3752 2.4375Z"
+        stroke={color}
+        strokeWidth={STROKE_WIDTH}
+      />
+      <Path
+        d="M13.1252 21L12.3781 18.057C12.1308 17.0831 11.6194 16.1936 10.8985 15.4837L9.18768 13.7989M18.7502 6.59811C16.4582 9.17767 14.4243 8.78534 13.1252 7.81119C12.9989 7.7165 12.8623 7.57414 12.7294 7.41525C12.2653 6.86071 12.0332 6.58344 11.8069 6.47774C11.5807 6.37203 11.2967 6.37199 10.7288 6.37189C10.3626 6.37183 9.99614 6.3727 9.75018 6.37561C5.85506 6.42167 4.12518 7.70571 3.00018 9.92167M9.75018 6.37561L8.32245 8.57859C7.53749 9.78978 7.14501 10.3954 7.12971 11.0312C7.12289 11.3144 7.16963 11.5964 7.26745 11.8623C7.48707 12.4592 8.05394 12.9057 9.18768 13.7989M13.1252 7.81119L9.18768 13.7989"
+        stroke={color}
+        strokeLinecap="round"
+        strokeLinejoin="round"
+        strokeWidth={STROKE_WIDTH}
+      />
+      <Path
+        d="M0.750183 17.3215L1.51318 17.5031C3.45764 17.9657 5.47883 17.081 6.37518 15.375"
+        stroke={color}
+        strokeLinecap="round"
+        strokeLinejoin="round"
+        strokeWidth={STROKE_WIDTH}
+      />
+    </Svg>
+  );
+}

@@ -38,7 +38,7 @@ export const MOCK_TEAM: Team = {
   stats: [
     {
       id: 'team-stat-distance',
-      icon: 'trail-sign-outline',
+      icon: 'footsteps-outline',
       iconColor: '#D7FF2F',
       label: 'Total Distance',
       value: '128,741 mi',

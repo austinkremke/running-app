@@ -12,7 +12,7 @@ type StatColumn = {
 };
 
 const DEFAULT_STATS: StatColumn[] = [
-  { icon: 'trail-sign-outline', value: '0.00', unit: ' mi', label: 'Distance' },
+  { icon: 'footsteps-outline', value: '0.00', unit: ' mi', label: 'Distance' },
   { icon: 'timer-outline', value: '00:00', label: 'Duration' },
   { icon: 'speedometer-outline', value: '0:00', unit: ' /mi', label: 'Avg Pace' },
 ];

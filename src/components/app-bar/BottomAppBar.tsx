@@ -1,21 +1,29 @@
 import { Ionicons } from '@expo/vector-icons';
+import { ComponentType } from 'react';
 import { Pressable, StyleSheet, Text, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
+import { RunnerIcon } from '../icons';
 import { colors, layout, spacing } from '../../theme';
 
 type IoniconsName = React.ComponentProps<typeof Ionicons>['name'];
+
+type BottomAppBarSvgIconProps = {
+  color: string;
+  size: number;
+};
 
 export type BottomAppBarItem = {
   key: string;
   label: string;
   icon: IoniconsName;
   activeIcon?: IoniconsName;
+  SvgIcon?: ComponentType<BottomAppBarSvgIconProps>;
 };
 
 export const DEFAULT_BOTTOM_APP_BAR_ITEMS: BottomAppBarItem[] = [
   { key: 'feed', label: 'Feed', icon: 'people-outline', activeIcon: 'people' },
-  { key: 'run', label: 'Run', icon: 'walk-outline', activeIcon: 'walk' },
+  { key: 'run', label: 'Run', icon: 'walk-outline', activeIcon: 'walk', SvgIcon: RunnerIcon },
   { key: 'match', label: 'Match', icon: 'trophy-outline', activeIcon: 'trophy' },
   { key: 'team', label: 'Team', icon: 'shield-outline', activeIcon: 'shield' },
   { key: 'me', label: 'Me', icon: 'person-outline', activeIcon: 'person' },
@@ -40,6 +48,8 @@ export function BottomAppBar({
         {items.map((item) => {
           const isActive = item.key === activeKey;
           const iconName = isActive && item.activeIcon ? item.activeIcon : item.icon;
+          const iconColor = isActive ? colors.accentLime : colors.textSecondary;
+          const SvgIcon = item.SvgIcon;
 
           return (
             <Pressable
@@ -51,11 +61,11 @@ export function BottomAppBar({
               style={styles.itemPressable}
             >
               <View style={styles.item}>
-                <Ionicons
-                  color={isActive ? colors.accentLime : colors.textSecondary}
-                  name={iconName}
-                  size={18}
-                />
+                {SvgIcon ? (
+                  <SvgIcon color={iconColor} size={18} />
+                ) : (
+                  <Ionicons color={iconColor} name={iconName} size={18} />
+                )}
                 <Text style={[styles.label, isActive ? styles.labelActive : styles.labelInactive]}>
                   {item.label}
                 </Text>

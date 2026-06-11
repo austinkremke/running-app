@@ -1,6 +1,6 @@
-import { Ionicons } from '@expo/vector-icons';
 import { Pressable, StyleSheet, Text } from 'react-native';
 
+import { RunnerIcon } from '../icons';
 import { colors, spacing } from '../../theme';
 
 type RunStartButtonProps = {
@@ -15,7 +15,7 @@ export function RunStartButton({ onPress }: RunStartButtonProps) {
       onPress={onPress}
       style={({ pressed }) => [styles.button, pressed && styles.pressed]}
     >
-      <Ionicons color={colors.background} name="walk" size={20} />
+      <RunnerIcon color={colors.background} size={20} />
       <Text style={styles.label}>START RUN</Text>
     </Pressable>
   );
