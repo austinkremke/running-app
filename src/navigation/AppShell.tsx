@@ -12,6 +12,7 @@ import type { FeedTab, MatchTab } from '../mock';
 import { FeedScreen } from '../screens/FeedScreen';
 import { MatchScreen } from '../screens/MatchScreen';
 import { RunScreen } from '../screens/RunScreen';
+import { TeamMatchScreen } from '../screens/TeamMatchScreen';
 import { colors } from '../theme';
 import { isAppRoute, ROUTES, type AppRoute } from './routes';
 
@@ -28,23 +29,46 @@ const MATCH_TABS = [
 
 export function AppShell() {
   const [activeRoute, setActiveRoute] = useState<AppRoute>('feed');
+  const [runReturnRoute, setRunReturnRoute] = useState<AppRoute>('feed');
   const [activeFeedTab, setActiveFeedTab] = useState<FeedTab>('community');
   const [activeMatchTab, setActiveMatchTab] = useState<MatchTab>('team');
 
-  const { title, screen: RouteScreen, showFeedTabs, showMatchTabs, hideChrome } =
-    ROUTES[activeRoute];
+  const {
+    title,
+    screen: RouteScreen,
+    showFeedTabs,
+    showMatchTabs,
+    showHeaderBorder = !showFeedTabs && !showMatchTabs,
+    hideChrome,
+  } = ROUTES[activeRoute];
 
   const headerTitle =
     activeRoute === 'match'
       ? activeMatchTab === 'solo'
         ? 'SOLO MATCH'
         : 'MATCHMAKING'
-      : title;
+      : activeRoute === 'teamMatch'
+        ? 'MATCH'
+        : title;
+
+  function openRun() {
+    if (activeRoute !== 'run') {
+      setRunReturnRoute(activeRoute);
+    }
+    setActiveRoute('run');
+  }
 
   function handleNavPress(key: string) {
-    if (isAppRoute(key)) {
-      setActiveRoute(key);
+    if (!isAppRoute(key)) {
+      return;
     }
+
+    if (key === 'run') {
+      openRun();
+      return;
+    }
+
+    setActiveRoute(key);
   }
 
   function renderScreen() {
@@ -53,23 +77,27 @@ export function AppShell() {
     }
 
     if (activeRoute === 'run') {
-      return <RunScreen onBack={() => setActiveRoute('feed')} />;
+      return <RunScreen onBack={() => setActiveRoute(runReturnRoute)} />;
     }
 
     if (activeRoute === 'match') {
-      return <MatchScreen activeTab={activeMatchTab} />;
+      return <MatchScreen activeTab={activeMatchTab} onOpenTeamMatch={() => setActiveRoute('teamMatch')} />;
+    }
+
+    if (activeRoute === 'teamMatch') {
+      return <TeamMatchScreen onRunPress={openRun} />;
     }
 
     return RouteScreen ? <RouteScreen /> : null;
   }
 
   function renderHeaderLeft() {
-    if (activeRoute === 'match') {
+    if (activeRoute === 'match' || activeRoute === 'teamMatch') {
       return (
         <HeaderIconButton
           accessibilityLabel="Go back"
           icon="chevron-back"
-          onPress={() => setActiveRoute('feed')}
+          onPress={() => setActiveRoute(activeRoute === 'teamMatch' ? 'match' : 'feed')}
         />
       );
     }
@@ -89,6 +117,23 @@ export function AppShell() {
   }
 
   function renderHeaderRight() {
+    if (activeRoute === 'teamMatch') {
+      return (
+        <View style={styles.headerActions}>
+          <HeaderIconButton
+            accessibilityLabel="Team chat"
+            icon="chatbubble-outline"
+            onPress={() => {}}
+          />
+          <HeaderIconButton
+            accessibilityLabel="More options"
+            icon="ellipsis-vertical"
+            onPress={() => {}}
+          />
+        </View>
+      );
+    }
+
     if (activeRoute === 'match') {
       return (
         <HeaderIconButton
@@ -120,7 +165,7 @@ export function AppShell() {
             <AppHeader
               left={renderHeaderLeft()}
               right={renderHeaderRight()}
-              showBorder={!showFeedTabs && !showMatchTabs}
+              showBorder={showHeaderBorder}
               title={headerTitle}
             />
 
@@ -145,7 +190,12 @@ export function AppShell() {
         {renderScreen()}
       </View>
 
-      {!hideChrome ? <BottomAppBar activeKey={activeRoute} onItemPress={handleNavPress} /> : null}
+      {!hideChrome ? (
+        <BottomAppBar
+          activeKey={activeRoute === 'teamMatch' ? 'match' : activeRoute}
+          onItemPress={handleNavPress}
+        />
+      ) : null}
     </View>
   );
 }
@@ -157,5 +207,10 @@ const styles = StyleSheet.create({
   },
   shell: {
     flex: 1,
+  },
+  headerActions: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 4,
   },
 });

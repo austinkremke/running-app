@@ -4,10 +4,13 @@ export { MOCK_SOLO_MATCHMAKING } from './soloMatch';
 export { MOCK_PROFILE } from './profile';
 export { MOCK_TEAM } from './team';
 export { getRunsForTab, MOCK_RUNS } from './runs';
+export { MOCK_ACTIVE_TEAM_MATCH } from './teamMatch';
+export { MOCK_TEAM_CHAT_MESSAGES } from './teamChat';
 export { MOCK_XP_GAIN_LEVEL_UP, MOCK_XP_GAIN_NORMAL } from './xpGain';
 export type {
   Achievement,
   AchievementVariant,
+  ActiveTeamMatch,
   ChallengeFriend,
   FeedTab,
   ProposedChallenge,
@@ -25,6 +28,12 @@ export type {
   RunStats,
   RunUser,
   Team,
+  TeamChatMessage,
+  TeamMatchAccent,
+  TeamMatchActivity,
+  TeamMatchCountdown,
+  TeamMatchParticipant,
+  TeamMatchTeam,
   TeamActivity,
   TeamMember,
   TeamRank,

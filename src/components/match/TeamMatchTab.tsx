@@ -10,8 +10,13 @@ import { LineupSection } from './LineupSection';
 import { MatchFormatCard } from './MatchFormatCard';
 import { MatchTeamSummaryCard } from './MatchTeamSummaryCard';
 import { SearchingForTeamCard } from './SearchingForTeamCard';
+import { TeamMatchPreviewButton } from './team/TeamMatchPreviewButton';
 
-export function TeamMatchTab() {
+type TeamMatchTabProps = {
+  onViewActiveMatch?: () => void;
+};
+
+export function TeamMatchTab({ onViewActiveMatch }: TeamMatchTabProps) {
   const config = MOCK_MATCHMAKING;
   const [lineup, setLineup] = useState<MatchRunner[]>(config.lineup);
   const [available, setAvailable] = useState<MatchRunner[]>(config.available);
@@ -63,6 +68,8 @@ export function TeamMatchTab() {
           teamLevel={config.teamLevel}
           teamName={config.teamName}
         />
+
+        <TeamMatchPreviewButton onPress={onViewActiveMatch} />
 
         {isSearching ? (
           <SearchingForTeamCard onCancel={handleCancelSearch} />

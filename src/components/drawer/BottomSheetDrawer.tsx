@@ -2,8 +2,10 @@ import { ReactNode, useEffect, useRef } from 'react';
 import {
   Animated,
   Dimensions,
+  KeyboardAvoidingView,
   Modal,
   PanResponder,
+  Platform,
   Pressable,
   StyleSheet,
   View,
@@ -22,6 +24,7 @@ type BottomSheetDrawerProps = {
   children: ReactNode;
   footer?: ReactNode;
   heightRatio?: number;
+  keyboardAvoiding?: boolean;
   accessibilityLabel?: string;
 };
 
@@ -31,6 +34,7 @@ export function BottomSheetDrawer({
   children,
   footer,
   heightRatio = 0.6,
+  keyboardAvoiding = false,
   accessibilityLabel = 'Close drawer',
 }: BottomSheetDrawerProps) {
   const insets = useSafeAreaInsets();
@@ -113,35 +117,52 @@ export function BottomSheetDrawer({
     return null;
   }
 
+  const drawer = (
+    <Animated.View
+      {...panResponder.panHandlers}
+      style={[
+        styles.drawer,
+        {
+          height: drawerHeight,
+          paddingBottom: Math.max(insets.bottom, spacing.md),
+          transform: [{ translateY }],
+        },
+      ]}
+    >
+      <View style={styles.handleArea}>
+        <View style={styles.handle} />
+      </View>
+
+      <View style={styles.content}>{children}</View>
+
+      {footer ? <View style={styles.footer}>{footer}</View> : null}
+    </Animated.View>
+  );
+
   return (
     <Modal animationType="none" onRequestClose={() => dismissDrawer()} transparent visible>
-      <View style={styles.overlay}>
-        <Pressable
-          accessibilityLabel={accessibilityLabel}
-          onPress={() => dismissDrawer()}
-          style={styles.backdrop}
-        />
-
-        <Animated.View
-          {...panResponder.panHandlers}
-          style={[
-            styles.drawer,
-            {
-              height: drawerHeight,
-              paddingBottom: Math.max(insets.bottom, spacing.md),
-              transform: [{ translateY }],
-            },
-          ]}
+      {keyboardAvoiding ? (
+        <KeyboardAvoidingView
+          behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
+          style={styles.overlay}
         >
-          <View style={styles.handleArea}>
-            <View style={styles.handle} />
-          </View>
-
-          <View style={styles.content}>{children}</View>
-
-          {footer ? <View style={styles.footer}>{footer}</View> : null}
-        </Animated.View>
-      </View>
+          <Pressable
+            accessibilityLabel={accessibilityLabel}
+            onPress={() => dismissDrawer()}
+            style={styles.backdrop}
+          />
+          {drawer}
+        </KeyboardAvoidingView>
+      ) : (
+        <View style={styles.overlay}>
+          <Pressable
+            accessibilityLabel={accessibilityLabel}
+            onPress={() => dismissDrawer()}
+            style={styles.backdrop}
+          />
+          {drawer}
+        </View>
+      )}
     </Modal>
   );
 }

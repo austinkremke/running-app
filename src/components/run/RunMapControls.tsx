@@ -15,7 +15,7 @@ export function RunMapControls({ onBack }: RunMapControlsProps) {
   return (
     <>
       <Pressable
-        accessibilityLabel="Go back to feed"
+        accessibilityLabel="Go back"
         onPress={onBack}
         style={[styles.mapButton, styles.backButton, { top: controlsTop }]}
       >

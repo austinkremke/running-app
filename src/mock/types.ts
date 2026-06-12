@@ -188,6 +188,60 @@ export type SoloMatchmaking = {
   seasonRecord: SoloSeasonRecord;
 };
 
+export type TeamMatchAccent = 'lime' | 'purple';
+
+export type TeamMatchParticipant = {
+  id: string;
+  name: string;
+  level: number;
+  avatarUrl?: string;
+  points: number;
+  contributionPercent: number;
+  isLeader?: boolean;
+};
+
+export type TeamMatchTeam = {
+  id: string;
+  name: string;
+  totalPoints: number;
+  accent: TeamMatchAccent;
+  shieldIcon: string;
+  members: TeamMatchParticipant[];
+};
+
+export type TeamChatMessage = {
+  id: string;
+  authorName: string;
+  avatarUrl?: string;
+  body: string;
+  sentAt: string;
+  isCurrentUser?: boolean;
+};
+
+export type TeamMatchActivity = {
+  id: string;
+  avatarUrl?: string;
+  playerName: string;
+  description: string;
+  pointsEarned: number;
+  timeAgo: string;
+  accent: TeamMatchAccent;
+};
+
+export type TeamMatchCountdown = {
+  days: number;
+  hours: number;
+  minutes: number;
+};
+
+export type ActiveTeamMatch = {
+  id: string;
+  homeTeam: TeamMatchTeam;
+  awayTeam: TeamMatchTeam;
+  countdown: TeamMatchCountdown;
+  activities: TeamMatchActivity[];
+};
+
 export type Team = {
   id: string;
   name: string;
