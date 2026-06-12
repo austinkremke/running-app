@@ -122,8 +122,8 @@ const styles = StyleSheet.create({
   },
   motto: {
     color: colors.textSecondary,
-    fontSize: 9,
-    lineHeight: 12,
+    fontSize: 10,
+    lineHeight: 13,
   },
   levelRow: {
     flexDirection: 'row',
@@ -167,12 +167,12 @@ const styles = StyleSheet.create({
   },
   membersCount: {
     color: colors.textPrimary,
-    fontSize: 10,
+    fontSize: 11,
     fontWeight: '700',
   },
   membersLabel: {
     color: colors.textSecondary,
-    fontSize: 7,
+    fontSize: 8,
     fontWeight: '600',
   },
   pointsBlock: {
@@ -185,14 +185,14 @@ const styles = StyleSheet.create({
   },
   pointsValue: {
     color: colors.accentLime,
-    fontSize: 14,
+    fontSize: 15,
     fontWeight: '800',
     fontStyle: 'italic',
-    lineHeight: 16,
+    lineHeight: 17,
   },
   pointsLabel: {
     color: colors.textSecondary,
-    fontSize: 7,
+    fontSize: 8,
     fontWeight: '600',
     letterSpacing: 0.2,
     marginTop: 1,
