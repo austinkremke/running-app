@@ -284,3 +284,29 @@ export type TopTeamListing = {
   shieldIcon: string;
   shieldAccent: TeamLogoAccent;
 };
+
+export type PostRunChartTab = 'pace' | 'elevation' | 'heartRate';
+
+export type PostRunChartPoint = {
+  distanceMiles: number;
+  value: number;
+};
+
+export type PostRunSummary = {
+  completedAtLabel: string;
+  distanceMiles: number;
+  duration: string;
+  durationUnit: string;
+  avgPace: string;
+  avgPaceUnit: string;
+  calories: number;
+  caloriesUnit: string;
+  avgHeartRate: number;
+  avgHeartRateUnit: string;
+  elevationGain: number;
+  elevationGainUnit: string;
+  weatherTempF: number;
+  photos: string[];
+  chartData: Record<PostRunChartTab, PostRunChartPoint[]>;
+  chartReferenceLines: Partial<Record<PostRunChartTab, number>>;
+};

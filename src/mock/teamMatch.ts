@@ -88,7 +88,7 @@ export const MOCK_ACTIVE_TEAM_MATCH: ActiveTeamMatch = {
         level: 17,
         avatarUrl: AVATARS.sarah,
         points: 384,
-        challengeStats: { runCount: 3, distanceMiles: 15.8, pacePerMile: '7:34' },
+        challengeStats: { distanceMiles: 15.8, pacePerMile: '7:34' },
         isLeader: true,
       },
       {

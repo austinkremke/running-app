@@ -1,0 +1,162 @@
+import { useMemo, useState } from 'react';
+import { StyleSheet, Text, View } from 'react-native';
+import Svg, { Defs, Line, LinearGradient, Path, Stop } from 'react-native-svg';
+
+import type { PostRunChartPoint } from '../../mock';
+import { colors } from '../../theme';
+
+type PostRunLineChartProps = {
+  data: PostRunChartPoint[];
+  yLabels: string[];
+  yUnit?: string;
+  xMaxMiles: number;
+  referenceValue?: number;
+};
+
+const CHART_HEIGHT = 132;
+const PADDING_LEFT = 34;
+const PADDING_RIGHT = 8;
+const PADDING_TOP = 8;
+const PADDING_BOTTOM = 18;
+const PLOT_HEIGHT = CHART_HEIGHT - PADDING_TOP - PADDING_BOTTOM;
+
+export function PostRunLineChart({
+  data,
+  yLabels,
+  yUnit,
+  xMaxMiles,
+  referenceValue,
+}: PostRunLineChartProps) {
+  const [width, setWidth] = useState(0);
+  const plotWidth = Math.max(width - PADDING_LEFT - PADDING_RIGHT, 1);
+
+  const { linePath, areaPath, referenceY } = useMemo(() => {
+    if (data.length === 0 || width <= 0) {
+      return { linePath: '', areaPath: '', referenceY: null as number | null };
+    }
+
+    const values = data.map((point) => point.value);
+    const minValue = Math.min(...values);
+    const maxValue = Math.max(...values);
+    const valueRange = Math.max(maxValue - minValue, 1);
+
+    const points = data.map((point) => {
+      const x = PADDING_LEFT + (point.distanceMiles / Math.max(xMaxMiles, 0.01)) * plotWidth;
+      const normalized = (point.value - minValue) / valueRange;
+      const y = PADDING_TOP + (1 - normalized) * PLOT_HEIGHT;
+      return { x, y };
+    });
+
+    const line = points
+      .map((point, index) => `${index === 0 ? 'M' : 'L'} ${point.x} ${point.y}`)
+      .join(' ');
+    const area = `${line} L ${points[points.length - 1]?.x ?? PADDING_LEFT} ${
+      PADDING_TOP + PLOT_HEIGHT
+    } L ${points[0]?.x ?? PADDING_LEFT} ${PADDING_TOP + PLOT_HEIGHT} Z`;
+
+    let refY: number | null = null;
+    if (referenceValue != null) {
+      const normalized = (referenceValue - minValue) / valueRange;
+      refY = PADDING_TOP + (1 - normalized) * PLOT_HEIGHT;
+    }
+
+    return { linePath: line, areaPath: area, referenceY: refY };
+  }, [data, plotWidth, referenceValue, width, xMaxMiles]);
+
+  return (
+    <View onLayout={(event) => setWidth(event.nativeEvent.layout.width)} style={styles.container}>
+      <View style={styles.yAxis}>
+        {yLabels.map((label) => (
+          <Text key={label} style={styles.yLabel}>
+            {label}
+          </Text>
+        ))}
+        {yUnit ? <Text style={styles.yUnit}>{yUnit}</Text> : null}
+      </View>
+
+      {width > 0 ? (
+        <Svg height={CHART_HEIGHT} width={width}>
+          <Defs>
+            <LinearGradient id="postRunChartFill" x1="0" x2="0" y1="0" y2="1">
+              <Stop offset="0%" stopColor={colors.accentLime} stopOpacity={0.28} />
+              <Stop offset="100%" stopColor={colors.accentLime} stopOpacity={0.02} />
+            </LinearGradient>
+          </Defs>
+
+          {referenceY != null ? (
+            <Line
+              stroke={colors.textSecondary}
+              strokeDasharray="4 4"
+              strokeWidth={1}
+              x1={PADDING_LEFT}
+              x2={width - PADDING_RIGHT}
+              y1={referenceY}
+              y2={referenceY}
+            />
+          ) : null}
+
+          {areaPath ? <Path d={areaPath} fill="url(#postRunChartFill)" /> : null}
+          {linePath ? (
+            <Path d={linePath} fill="none" stroke={colors.accentLime} strokeWidth={2} />
+          ) : null}
+        </Svg>
+      ) : null}
+
+      <View style={styles.xAxis}>
+        {[0, 2, 4, 6, 8].map((mile) => (
+          <Text key={mile} style={styles.xLabel}>
+            {mile} mi
+          </Text>
+        ))}
+      </View>
+    </View>
+  );
+}
+
+export function formatPaceSeconds(totalSeconds: number): string {
+  const minutes = Math.floor(totalSeconds / 60);
+  const seconds = Math.round(totalSeconds % 60);
+  return `${minutes}:${seconds.toString().padStart(2, '0')}`;
+}
+
+export function buildPaceYLabels(minSeconds: number, maxSeconds: number): string[] {
+  const step = (maxSeconds - minSeconds) / 3;
+  return [0, 1, 2, 3].map((index) => formatPaceSeconds(maxSeconds - step * index));
+}
+
+const styles = StyleSheet.create({
+  container: {
+    minHeight: CHART_HEIGHT + 24,
+  },
+  yAxis: {
+    position: 'absolute',
+    left: 0,
+    top: PADDING_TOP,
+    height: PLOT_HEIGHT,
+    justifyContent: 'space-between',
+    zIndex: 1,
+  },
+  yLabel: {
+    color: colors.textSecondary,
+    fontSize: 9,
+    fontWeight: '600',
+  },
+  yUnit: {
+    color: colors.textSecondary,
+    fontSize: 8,
+    fontWeight: '600',
+    marginTop: 2,
+  },
+  xAxis: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    paddingLeft: PADDING_LEFT,
+    paddingRight: PADDING_RIGHT,
+    marginTop: 2,
+  },
+  xLabel: {
+    color: colors.textSecondary,
+    fontSize: 9,
+    fontWeight: '600',
+  },
+});

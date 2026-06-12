@@ -7,6 +7,7 @@ export { MOCK_TOP_TEAMS, TOP_TEAMS_PAGE_SIZE } from './topTeams';
 export { getRunsForTab, MOCK_RUNS } from './runs';
 export { MOCK_ACTIVE_TEAM_MATCH } from './teamMatch';
 export { MOCK_TEAM_CHAT_MESSAGES } from './teamChat';
+export { MOCK_POST_RUN, MOCK_POST_RUN_ROUTE } from './postRun';
 export { MOCK_XP_GAIN_LEVEL_UP, MOCK_XP_GAIN_NORMAL } from './xpGain';
 export type {
   Achievement,
@@ -23,6 +24,9 @@ export type {
   SoloSeasonRecord,
   OverallStat,
   OverallStatLayout,
+  PostRunChartTab,
+  PostRunChartPoint,
+  PostRunSummary,
   ProfileExperience,
   ProfileRank,
   Run,
@@ -32,6 +36,7 @@ export type {
   TeamChatMessage,
   TeamMatchAccent,
   TeamMatchActivity,
+  TeamMatchChallengeStats,
   TeamMatchCountdown,
   TeamMatchParticipant,
   TeamMatchTeam,
