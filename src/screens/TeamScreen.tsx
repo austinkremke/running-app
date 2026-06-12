@@ -9,7 +9,11 @@ import {
 import { MOCK_TEAM } from '../mock';
 import { colors, spacing } from '../theme';
 
-export function TeamScreen() {
+type TeamScreenProps = {
+  onOpenTopTeams?: () => void;
+};
+
+export function TeamScreen({ onOpenTopTeams }: TeamScreenProps) {
   const team = MOCK_TEAM;
 
   return (
@@ -18,7 +22,7 @@ export function TeamScreen() {
       showsVerticalScrollIndicator={false}
       style={styles.scroll}
     >
-      <TeamTopSection team={team} />
+      <TeamTopSection onRankPress={onOpenTopTeams} team={team} />
       <TeamStatsSection stats={team.stats} />
       <TeamMembersSection
         memberCount={team.memberCount}

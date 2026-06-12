@@ -4,3 +4,4 @@ export { MeScreen } from './MeScreen';
 export { RunScreen } from './RunScreen';
 export { TeamMatchScreen } from './TeamMatchScreen';
 export { TeamScreen } from './TeamScreen';
+export { TopTeamsScreen } from './TopTeamsScreen';

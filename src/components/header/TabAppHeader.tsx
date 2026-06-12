@@ -12,6 +12,8 @@ type TabAppHeaderProps = {
   activeTab: string;
   onTabPress: (key: string) => void;
   showBorder?: boolean;
+  accentActive?: boolean;
+  compact?: boolean;
 };
 
 export function TabAppHeader({
@@ -19,6 +21,8 @@ export function TabAppHeader({
   activeTab,
   onTabPress,
   showBorder = true,
+  accentActive = false,
+  compact = false,
 }: TabAppHeaderProps) {
   return (
     <View style={[styles.container, showBorder && styles.bordered]}>
@@ -34,10 +38,26 @@ export function TabAppHeader({
               onPress={() => onTabPress(tab.key)}
               style={styles.tab}
             >
-              <Text style={[styles.label, isActive ? styles.labelActive : styles.labelInactive]}>
+              <Text
+                style={[
+                  styles.label,
+                  compact && styles.labelCompact,
+                  isActive
+                    ? accentActive
+                      ? styles.labelAccentActive
+                      : styles.labelActive
+                    : styles.labelInactive,
+                ]}
+              >
                 {tab.label}
               </Text>
-              <View style={[styles.indicator, !isActive && styles.indicatorHidden]} />
+              <View
+                style={[
+                  styles.indicator,
+                  compact && styles.indicatorCompact,
+                  !isActive && styles.indicatorHidden,
+                ]}
+              />
             </Pressable>
           );
         })}
@@ -70,8 +90,15 @@ const styles = StyleSheet.create({
     ...typography.tabLabel,
     textAlign: 'center',
   },
+  labelCompact: {
+    fontSize: 10,
+    letterSpacing: 0.8,
+  },
   labelActive: {
     color: colors.textPrimary,
+  },
+  labelAccentActive: {
+    color: colors.accentLime,
   },
   labelInactive: {
     color: colors.textSecondary,
@@ -82,6 +109,10 @@ const styles = StyleSheet.create({
     height: 3,
     borderRadius: 2,
     backgroundColor: colors.accentLime,
+  },
+  indicatorCompact: {
+    height: 2,
+    borderRadius: 1,
   },
   indicatorHidden: {
     backgroundColor: 'transparent',

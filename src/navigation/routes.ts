@@ -2,7 +2,7 @@ import { ComponentType } from 'react';
 
 import { MeScreen, TeamScreen } from '../screens';
 
-export type AppRoute = 'feed' | 'run' | 'match' | 'teamMatch' | 'team' | 'me';
+export type AppRoute = 'feed' | 'run' | 'match' | 'teamMatch' | 'team' | 'topTeams' | 'me';
 
 type RouteConfig = {
   title: string;
@@ -28,6 +28,11 @@ export const ROUTES: Record<AppRoute, RouteConfig> = {
     showHeaderBorder: true,
   },
   team: { title: 'TEAM', screen: TeamScreen, showFeedTabs: false, showHeaderBorder: true },
+  topTeams: {
+    title: 'TOP TEAMS',
+    showFeedTabs: false,
+    showHeaderBorder: true,
+  },
   me: { title: 'ME', screen: MeScreen, showFeedTabs: false, showHeaderBorder: true },
 };
 

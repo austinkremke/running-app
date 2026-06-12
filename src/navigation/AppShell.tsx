@@ -13,6 +13,8 @@ import { FeedScreen } from '../screens/FeedScreen';
 import { MatchScreen } from '../screens/MatchScreen';
 import { RunScreen } from '../screens/RunScreen';
 import { TeamMatchScreen } from '../screens/TeamMatchScreen';
+import { TeamScreen } from '../screens/TeamScreen';
+import { TopTeamsScreen } from '../screens/TopTeamsScreen';
 import { colors } from '../theme';
 import { isAppRoute, ROUTES, type AppRoute } from './routes';
 
@@ -49,7 +51,9 @@ export function AppShell() {
         : 'MATCHMAKING'
       : activeRoute === 'teamMatch'
         ? 'MATCH'
-        : title;
+        : activeRoute === 'topTeams'
+          ? 'TOP TEAMS'
+          : title;
 
   function openRun() {
     if (activeRoute !== 'run') {
@@ -88,16 +92,36 @@ export function AppShell() {
       return <TeamMatchScreen onRunPress={openRun} />;
     }
 
+    if (activeRoute === 'team') {
+      return <TeamScreen onOpenTopTeams={() => setActiveRoute('topTeams')} />;
+    }
+
+    if (activeRoute === 'topTeams') {
+      return <TopTeamsScreen />;
+    }
+
     return RouteScreen ? <RouteScreen /> : null;
   }
 
   function renderHeaderLeft() {
-    if (activeRoute === 'match' || activeRoute === 'teamMatch') {
+    if (activeRoute === 'match' || activeRoute === 'teamMatch' || activeRoute === 'topTeams') {
       return (
         <HeaderIconButton
           accessibilityLabel="Go back"
           icon="chevron-back"
-          onPress={() => setActiveRoute(activeRoute === 'teamMatch' ? 'match' : 'feed')}
+          onPress={() => {
+            if (activeRoute === 'teamMatch') {
+              setActiveRoute('match');
+              return;
+            }
+
+            if (activeRoute === 'topTeams') {
+              setActiveRoute('team');
+              return;
+            }
+
+            setActiveRoute('feed');
+          }}
         />
       );
     }
@@ -117,6 +141,16 @@ export function AppShell() {
   }
 
   function renderHeaderRight() {
+    if (activeRoute === 'topTeams') {
+      return (
+        <HeaderIconButton
+          accessibilityLabel="Top teams info"
+          icon="information-circle-outline"
+          onPress={() => {}}
+        />
+      );
+    }
+
     if (activeRoute === 'teamMatch') {
       return (
         <View style={styles.headerActions}>
@@ -192,7 +226,9 @@ export function AppShell() {
 
       {!hideChrome ? (
         <BottomAppBar
-          activeKey={activeRoute === 'teamMatch' ? 'match' : activeRoute}
+          activeKey={
+            activeRoute === 'teamMatch' ? 'match' : activeRoute === 'topTeams' ? 'team' : activeRoute
+          }
           onItemPress={handleNavPress}
         />
       ) : null}

@@ -256,3 +256,22 @@ export type Team = {
   memberMax: number;
   activities: TeamActivity[];
 };
+
+export type TopTeamsTab = 'rankings' | 'trending' | 'new' | 'nearby';
+
+export type TopTeamShieldAccent = 'lime' | 'purple' | 'gold' | 'silver' | 'cyan' | 'blue';
+
+export type TopTeamListing = {
+  id: string;
+  rank: number;
+  name: string;
+  tag: string;
+  motto: string;
+  level: number;
+  memberCount: number;
+  memberMax: number;
+  clanRank: number;
+  totalPoints: number;
+  shieldIcon: string;
+  shieldAccent: TopTeamShieldAccent;
+};

@@ -1,16 +1,24 @@
 import { Ionicons } from '@expo/vector-icons';
-import { StyleSheet, Text, View } from 'react-native';
+import { Pressable, StyleSheet, Text, View } from 'react-native';
 
 import type { TeamRank } from '../../mock';
 import { colors, spacing } from '../../theme';
 
 type TeamRankCardProps = {
   teamRank: TeamRank;
+  onPress?: () => void;
 };
 
-export function TeamRankCard({ teamRank }: TeamRankCardProps) {
+export function TeamRankCard({ teamRank, onPress }: TeamRankCardProps) {
   return (
-    <View style={styles.card}>
+    <Pressable
+      accessibilityHint="Opens the top teams leaderboard"
+      accessibilityLabel={`Team rank ${teamRank.rank}. ${teamRank.topPercent} ${teamRank.subtitle}`}
+      accessibilityRole="button"
+      disabled={!onPress}
+      onPress={onPress}
+      style={({ pressed }) => [styles.card, onPress && pressed && styles.cardPressed]}
+    >
       <Text style={styles.label}>Team Rank</Text>
       <Text style={styles.rank}>#{teamRank.rank}</Text>
 
@@ -25,7 +33,7 @@ export function TeamRankCard({ teamRank }: TeamRankCardProps) {
           </Text>
         </View>
       </View>
-    </View>
+    </Pressable>
   );
 }
 
@@ -41,6 +49,9 @@ const styles = StyleSheet.create({
     paddingHorizontal: spacing.xs,
     paddingVertical: spacing.sm,
     justifyContent: 'space-between',
+  },
+  cardPressed: {
+    opacity: 0.85,
   },
   label: {
     color: colors.textSecondary,

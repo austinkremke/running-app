@@ -12,9 +12,10 @@ type TeamTopSectionProps = {
     Team,
     'name' | 'tag' | 'motto' | 'level' | 'experience' | 'teamRank'
   >;
+  onRankPress?: () => void;
 };
 
-export function TeamTopSection({ team }: TeamTopSectionProps) {
+export function TeamTopSection({ team, onRankPress }: TeamTopSectionProps) {
   return (
     <View style={styles.container}>
       <TeamShieldLogo />
@@ -42,7 +43,7 @@ export function TeamTopSection({ team }: TeamTopSectionProps) {
           <TeamLevelXpRow experience={team.experience} level={team.level} />
         </View>
 
-        <TeamRankCard teamRank={team.teamRank} />
+        <TeamRankCard onPress={onRankPress} teamRank={team.teamRank} />
       </View>
     </View>
   );

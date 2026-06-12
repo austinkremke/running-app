@@ -3,6 +3,7 @@ export { MOCK_MATCHMAKING } from './match';
 export { MOCK_SOLO_MATCHMAKING } from './soloMatch';
 export { MOCK_PROFILE } from './profile';
 export { MOCK_TEAM } from './team';
+export { MOCK_TOP_TEAMS, TOP_TEAMS_PAGE_SIZE } from './topTeams';
 export { getRunsForTab, MOCK_RUNS } from './runs';
 export { MOCK_ACTIVE_TEAM_MATCH } from './teamMatch';
 export { MOCK_TEAM_CHAT_MESSAGES } from './teamChat';
@@ -39,6 +40,9 @@ export type {
   TeamRank,
   TeamRole,
   TeamStat,
+  TopTeamListing,
+  TopTeamsTab,
+  TopTeamShieldAccent,
   UserProfile,
   XpGainEvent,
   XpGainRunSummary,
