@@ -7,6 +7,7 @@ type UserLevelBadgeProps = {
   level: number;
   bottom?: number;
   color?: string;
+  strokeWidth?: number;
 };
 
 const BADGE_WIDTH = 24;
@@ -30,6 +31,7 @@ export function UserLevelBadge({
   level,
   bottom = -8,
   color = colors.accentLime,
+  strokeWidth = 1.5,
 }: UserLevelBadgeProps) {
   return (
     <View style={[styles.wrapper, { bottom }]}>
@@ -38,7 +40,7 @@ export function UserLevelBadge({
           fill={colors.surface}
           points={getHexagonPoints(BADGE_WIDTH, BADGE_HEIGHT, 0.5)}
           stroke={color}
-          strokeWidth={1.5}
+          strokeWidth={strokeWidth}
         />
       </Svg>
       <Text style={[styles.text, { color }]}>{level}</Text>

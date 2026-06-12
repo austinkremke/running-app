@@ -10,6 +10,7 @@ import {
   formatMatchPoints,
   getTeamMatchAccentColor,
   TEAM_MATCH_AVATAR_BORDER_WIDTH,
+  TEAM_MATCH_LEVEL_BADGE_STROKE_WIDTH,
 } from './matchTheme';
 
 type TeamMatchRosterRowProps = {
@@ -37,7 +38,12 @@ export function TeamMatchRosterRow({
             borderWidth={TEAM_MATCH_AVATAR_BORDER_WIDTH}
             size={ROSTER_AVATAR_SIZE}
           />
-          <UserLevelBadge bottom={-2} color={accentColor} level={participant.level} />
+          <UserLevelBadge
+            bottom={-2}
+            color={accentColor}
+            level={participant.level}
+            strokeWidth={TEAM_MATCH_LEVEL_BADGE_STROKE_WIDTH}
+          />
         </View>
 
         <View style={styles.content}>

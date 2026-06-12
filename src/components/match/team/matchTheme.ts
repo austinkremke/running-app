@@ -1,3 +1,5 @@
+import { StyleSheet } from 'react-native';
+
 import type { TeamMatchAccent, TeamMatchChallengeStats } from '../../../mock';
 import { getTeamLogoAccentColor } from '../../team/teamLogoTheme';
 
@@ -28,4 +30,5 @@ export function formatChallengePace(stats: TeamMatchChallengeStats): string {
   return `${stats.pacePerMile} min/mi`;
 }
 
-export const TEAM_MATCH_AVATAR_BORDER_WIDTH = 1;
+export const TEAM_MATCH_AVATAR_BORDER_WIDTH = StyleSheet.hairlineWidth;
+export const TEAM_MATCH_LEVEL_BADGE_STROKE_WIDTH = StyleSheet.hairlineWidth;
