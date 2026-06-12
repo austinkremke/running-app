@@ -65,6 +65,8 @@ export function TeamMatchTab({ onViewActiveMatch }: TeamMatchTabProps) {
       >
         <MatchTeamSummaryCard
           powerRating={config.powerRating}
+          shieldAccent={config.shieldAccent}
+          shieldIcon={config.shieldIcon}
           teamLevel={config.teamLevel}
           teamName={config.teamName}
         />

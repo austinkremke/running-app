@@ -1,4 +1,4 @@
-import type { TopTeamListing, TopTeamShieldAccent } from './types';
+import type { TeamLogoAccent, TopTeamListing } from './types';
 
 const BASE_TEAMS: Omit<TopTeamListing, 'id' | 'rank'>[] = [
   {
@@ -75,7 +75,7 @@ const BASE_TEAMS: Omit<TopTeamListing, 'id' | 'rank'>[] = [
   },
 ];
 
-const ACCENTS: TopTeamShieldAccent[] = ['lime', 'purple', 'gold', 'silver', 'cyan', 'blue'];
+const ACCENTS: TeamLogoAccent[] = ['lime', 'purple', 'gold', 'silver', 'cyan', 'blue'];
 const ICONS = ['paw', 'flash', 'footsteps', 'flame', 'speedometer', 'medal', 'moon', 'walk', 'trophy', 'fitness'];
 
 function buildGeneratedTeams(count: number): TopTeamListing[] {

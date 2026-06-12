@@ -1,24 +1,31 @@
 import { Ionicons } from '@expo/vector-icons';
 import { Pressable, StyleSheet, Text, View } from 'react-native';
 
+import type { TeamLogoAccent } from '../../mock';
 import { colors, spacing } from '../../theme';
 import { HexBadge } from '../me/HexBadge';
-import { TeamShieldLogo } from '../team/TeamShieldLogo';
+import { TeamLogo } from '../team/TeamLogo';
+
+type IoniconsName = React.ComponentProps<typeof Ionicons>['name'];
 
 type MatchTeamSummaryCardProps = {
   teamName: string;
   powerRating: number;
   teamLevel: number;
+  shieldIcon: string;
+  shieldAccent: TeamLogoAccent;
 };
 
 export function MatchTeamSummaryCard({
   teamName,
   powerRating,
   teamLevel,
+  shieldIcon,
+  shieldAccent,
 }: MatchTeamSummaryCardProps) {
   return (
     <View style={styles.card}>
-      <TeamShieldLogo width={64} />
+      <TeamLogo accent={shieldAccent} filled icon={shieldIcon as IoniconsName} size={64} />
 
       <View style={styles.meta}>
         <View style={styles.nameRow}>

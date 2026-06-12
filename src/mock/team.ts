@@ -35,6 +35,8 @@ export const MOCK_TEAM: Team = {
     topPercent: 'Top 2%',
     subtitle: 'of all teams',
   },
+  shieldIcon: 'paw',
+  shieldAccent: 'lime',
   stats: [
     {
       id: 'team-stat-distance',

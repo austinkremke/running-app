@@ -38,7 +38,7 @@ export const MOCK_ACTIVE_TEAM_MATCH: ActiveTeamMatch = {
         level: 24,
         avatarUrl: AVATARS.austin,
         points: 412,
-        contributionPercent: 33,
+        challengeStats: { distanceMiles: 18.6, pacePerMile: '7:12' },
         isLeader: true,
       },
       {
@@ -47,7 +47,7 @@ export const MOCK_ACTIVE_TEAM_MATCH: ActiveTeamMatch = {
         level: 18,
         avatarUrl: AVATARS.tyler,
         points: 299,
-        contributionPercent: 24,
+        challengeStats: { distanceMiles: 12.4, pacePerMile: '7:48' },
       },
       {
         id: 'rw-chris',
@@ -55,7 +55,7 @@ export const MOCK_ACTIVE_TEAM_MATCH: ActiveTeamMatch = {
         level: 15,
         avatarUrl: AVATARS.chris,
         points: 246,
-        contributionPercent: 19,
+        challengeStats: { distanceMiles: 14.1, pacePerMile: '8:05' },
       },
       {
         id: 'rw-jake',
@@ -63,7 +63,7 @@ export const MOCK_ACTIVE_TEAM_MATCH: ActiveTeamMatch = {
         level: 17,
         avatarUrl: AVATARS.jake,
         points: 156,
-        contributionPercent: 13,
+        challengeStats: { distanceMiles: 8.2, pacePerMile: '8:22' },
       },
       {
         id: 'rw-ryan',
@@ -71,7 +71,7 @@ export const MOCK_ACTIVE_TEAM_MATCH: ActiveTeamMatch = {
         level: 14,
         avatarUrl: AVATARS.ryan,
         points: 135,
-        contributionPercent: 11,
+        challengeStats: { distanceMiles: 7.5, pacePerMile: '8:41' },
       },
     ],
   },
@@ -88,7 +88,7 @@ export const MOCK_ACTIVE_TEAM_MATCH: ActiveTeamMatch = {
         level: 17,
         avatarUrl: AVATARS.sarah,
         points: 384,
-        contributionPercent: 33,
+        challengeStats: { runCount: 3, distanceMiles: 15.8, pacePerMile: '7:34' },
         isLeader: true,
       },
       {
@@ -97,7 +97,7 @@ export const MOCK_ACTIVE_TEAM_MATCH: ActiveTeamMatch = {
         level: 15,
         avatarUrl: AVATARS.mike,
         points: 271,
-        contributionPercent: 23,
+        challengeStats: { distanceMiles: 11.2, pacePerMile: '7:56' },
       },
       {
         id: 'pacers-emma',
@@ -105,7 +105,7 @@ export const MOCK_ACTIVE_TEAM_MATCH: ActiveTeamMatch = {
         level: 14,
         avatarUrl: AVATARS.emma,
         points: 236,
-        contributionPercent: 20,
+        challengeStats: { distanceMiles: 10.2, pacePerMile: '8:11' },
       },
       {
         id: 'pacers-luke',
@@ -113,7 +113,7 @@ export const MOCK_ACTIVE_TEAM_MATCH: ActiveTeamMatch = {
         level: 13,
         avatarUrl: AVATARS.luke,
         points: 189,
-        contributionPercent: 16,
+        challengeStats: { distanceMiles: 9.4, pacePerMile: '8:28' },
       },
       {
         id: 'pacers-noah',
@@ -121,7 +121,7 @@ export const MOCK_ACTIVE_TEAM_MATCH: ActiveTeamMatch = {
         level: 12,
         avatarUrl: AVATARS.noah,
         points: 101,
-        contributionPercent: 9,
+        challengeStats: { distanceMiles: 5.6, pacePerMile: '8:55' },
       },
     ],
   },

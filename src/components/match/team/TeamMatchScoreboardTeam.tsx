@@ -1,8 +1,15 @@
+import { Ionicons } from '@expo/vector-icons';
+import { useState } from 'react';
 import { StyleSheet, Text, View } from 'react-native';
 
 import type { TeamMatchTeam } from '../../../mock';
 import { colors, spacing } from '../../../theme';
+import { TeamLogo } from '../../team/TeamLogo';
 import { formatMatchPoints, getTeamMatchAccentColor } from './matchTheme';
+
+type IoniconsName = React.ComponentProps<typeof Ionicons>['name'];
+
+const SCORE_LINE_HEIGHT = 34;
 
 type TeamMatchScoreboardTeamProps = {
   team: TeamMatchTeam;
@@ -12,35 +19,67 @@ type TeamMatchScoreboardTeamProps = {
 export function TeamMatchScoreboardTeam({ team, side }: TeamMatchScoreboardTeamProps) {
   const accentColor = getTeamMatchAccentColor(team.accent);
   const isHome = side === 'home';
+  const [logoScoreWidth, setLogoScoreWidth] = useState(0);
 
   return (
-    <View style={[styles.container, isHome ? styles.home : styles.away]}>
-      <View style={styles.textBlock}>
-        <Text numberOfLines={1} style={[styles.teamName, { color: accentColor }]}>
+    <View style={[styles.side, isHome ? styles.sideHome : styles.sideAway]}>
+      <View style={styles.teamBlock}>
+        <Text
+          style={[
+            styles.teamName,
+            { color: accentColor },
+            logoScoreWidth > 0 ? { width: logoScoreWidth } : null,
+          ]}
+        >
           {team.name.toUpperCase()}
         </Text>
-        <Text style={styles.score}>{formatMatchPoints(team.totalPoints)}</Text>
+
+        <View
+          onLayout={(event) => setLogoScoreWidth(event.nativeEvent.layout.width)}
+          style={styles.logoScoreRow}
+        >
+          {isHome ? (
+            <>
+              <TeamLogo
+                accent={team.accent}
+                height={SCORE_LINE_HEIGHT}
+                icon={team.shieldIcon as IoniconsName}
+              />
+              <Text style={styles.score}>{formatMatchPoints(team.totalPoints)}</Text>
+            </>
+          ) : (
+            <>
+              <Text style={styles.score}>{formatMatchPoints(team.totalPoints)}</Text>
+              <TeamLogo
+                accent={team.accent}
+                height={SCORE_LINE_HEIGHT}
+                icon={team.shieldIcon as IoniconsName}
+              />
+            </>
+          )}
+        </View>
       </View>
     </View>
   );
 }
 
 const styles = StyleSheet.create({
-  container: {
+  side: {
     flex: 1,
     minWidth: 0,
   },
-  home: {
+  sideHome: {
     alignItems: 'flex-end',
     paddingRight: spacing.sm,
   },
-  away: {
+  sideAway: {
     alignItems: 'flex-start',
     paddingLeft: spacing.sm,
   },
-  textBlock: {
+  teamBlock: {
     alignItems: 'center',
-    gap: 2,
+    gap: 4,
+    maxWidth: '100%',
   },
   teamName: {
     fontSize: 10,
@@ -49,12 +88,17 @@ const styles = StyleSheet.create({
     letterSpacing: 0.5,
     textAlign: 'center',
   },
+  logoScoreRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: spacing.sm,
+  },
   score: {
     color: colors.textPrimary,
     fontSize: 32,
     fontWeight: '800',
     fontStyle: 'italic',
     letterSpacing: -0.5,
-    lineHeight: 34,
+    lineHeight: SCORE_LINE_HEIGHT,
   },
 });

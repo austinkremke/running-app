@@ -3,17 +3,12 @@ import { StyleSheet, Text, View } from 'react-native';
 
 import type { ActiveTeamMatch } from '../../../mock';
 import { colors, spacing } from '../../../theme';
-import { MatchTeamShield } from './MatchTeamShield';
 import { formatMatchPoints, getTeamMatchAccentColor } from './matchTheme';
 import { TeamMatchScoreboardTeam } from './TeamMatchScoreboardTeam';
-
-type IoniconsName = React.ComponentProps<typeof Ionicons>['name'];
 
 type TeamMatchScoreboardProps = {
   match: ActiveTeamMatch;
 };
-
-const SHIELD_SIZE = 48;
 
 export function TeamMatchScoreboard({ match }: TeamMatchScoreboardProps) {
   const { homeTeam, awayTeam, countdown } = match;
@@ -24,21 +19,11 @@ export function TeamMatchScoreboard({ match }: TeamMatchScoreboardProps) {
   return (
     <View style={styles.container}>
       <View style={styles.teamsRow}>
-        <MatchTeamShield
-          accent={homeTeam.accent}
-          icon={homeTeam.shieldIcon as IoniconsName}
-          size={SHIELD_SIZE}
-        />
         <TeamMatchScoreboardTeam side="home" team={homeTeam} />
         <View style={styles.vsWrap}>
           <Text style={styles.vs}>VS</Text>
         </View>
         <TeamMatchScoreboardTeam side="away" team={awayTeam} />
-        <MatchTeamShield
-          accent={awayTeam.accent}
-          icon={awayTeam.shieldIcon as IoniconsName}
-          size={SHIELD_SIZE}
-        />
       </View>
 
       <View style={styles.statusSection}>
@@ -72,7 +57,7 @@ const styles = StyleSheet.create({
   },
   teamsRow: {
     flexDirection: 'row',
-    alignItems: 'center',
+    alignItems: 'flex-end',
     gap: spacing.md,
   },
   vsWrap: {
@@ -80,6 +65,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
     flexShrink: 0,
+    paddingBottom: 6,
   },
   vs: {
     color: colors.textSecondary,

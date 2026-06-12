@@ -25,6 +25,8 @@ export const MOCK_MATCHMAKING: Matchmaking = {
   teamName: 'Road Warriors',
   powerRating: 7821,
   teamLevel: 24,
+  shieldIcon: 'paw',
+  shieldAccent: 'lime',
   matchFormat: {
     title: '3 Day Challenge',
     durationLabel: '3 Days',

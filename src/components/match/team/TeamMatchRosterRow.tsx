@@ -1,9 +1,12 @@
 import { StyleSheet, Text, View } from 'react-native';
 
 import { Avatar } from '../../avatar';
+import { UserLevelBadge } from '../../feed/UserLevelBadge';
 import type { TeamMatchAccent, TeamMatchParticipant } from '../../../mock';
 import { colors, spacing } from '../../../theme';
 import {
+  formatChallengeDistance,
+  formatChallengePace,
   formatMatchPoints,
   getTeamMatchAccentColor,
   TEAM_MATCH_AVATAR_BORDER_WIDTH,
@@ -15,6 +18,8 @@ type TeamMatchRosterRowProps = {
   showDivider?: boolean;
 };
 
+const ROSTER_AVATAR_SIZE = 32;
+
 export function TeamMatchRosterRow({
   participant,
   accent,
@@ -25,40 +30,33 @@ export function TeamMatchRosterRow({
   return (
     <View style={styles.container}>
       <View style={styles.row}>
-        <Avatar
-          avatarUrl={participant.avatarUrl}
-          borderColor={accentColor}
-          borderWidth={TEAM_MATCH_AVATAR_BORDER_WIDTH}
-          stretch
-        />
+        <View style={styles.avatarWrap}>
+          <Avatar
+            avatarUrl={participant.avatarUrl}
+            borderColor={accentColor}
+            borderWidth={TEAM_MATCH_AVATAR_BORDER_WIDTH}
+            size={ROSTER_AVATAR_SIZE}
+          />
+          <UserLevelBadge bottom={-2} color={accentColor} level={participant.level} />
+        </View>
 
         <View style={styles.content}>
-          <View style={styles.detailsRow}>
-            <View style={styles.meta}>
-              <Text numberOfLines={1} style={styles.name}>
-                {participant.name}
-              </Text>
-              <Text style={styles.level}>Level {participant.level}</Text>
-            </View>
-
-            <View style={styles.pointsCol}>
-              <Text style={[styles.points, { color: accentColor }]}>
-                {formatMatchPoints(participant.points)} PTS
-              </Text>
-              <Text style={styles.percent}>{participant.contributionPercent}%</Text>
-            </View>
+          <View style={styles.topRow}>
+            <Text numberOfLines={1} style={styles.name}>
+              {participant.name}
+            </Text>
+            <Text style={[styles.points, { color: accentColor }]}>
+              {formatMatchPoints(participant.points)} PTS
+            </Text>
           </View>
-
-          <View style={styles.barTrack}>
-            <View
-              style={[
-                styles.barFill,
-                {
-                  width: `${participant.contributionPercent}%`,
-                  backgroundColor: accentColor,
-                },
-              ]}
-            />
+          <View style={styles.statsRow}>
+            <Text numberOfLines={1} style={styles.statText}>
+              {formatChallengeDistance(participant.challengeStats)}
+            </Text>
+            <View style={styles.statsDivider} />
+            <Text numberOfLines={1} style={styles.statText}>
+              {formatChallengePace(participant.challengeStats)}
+            </Text>
           </View>
         </View>
       </View>
@@ -70,63 +68,60 @@ export function TeamMatchRosterRow({
 
 const styles = StyleSheet.create({
   container: {
-    paddingTop: spacing.md,
+    paddingTop: spacing.lg,
     paddingHorizontal: spacing.sm,
   },
   row: {
     flexDirection: 'row',
     alignItems: 'stretch',
     gap: spacing.sm,
-    paddingBottom: spacing.sm,
+    paddingBottom: spacing.lg,
+  },
+  avatarWrap: {
+    width: ROSTER_AVATAR_SIZE + 4,
+    alignItems: 'center',
+    paddingBottom: spacing.xs,
   },
   content: {
     flex: 1,
     minWidth: 0,
-    gap: spacing.xs,
     justifyContent: 'space-between',
   },
-  detailsRow: {
+  topRow: {
     flexDirection: 'row',
     alignItems: 'center',
+    justifyContent: 'space-between',
     gap: spacing.xs,
   },
-  meta: {
+  name: {
     flex: 1,
     minWidth: 0,
-    gap: 2,
-  },
-  name: {
     color: colors.textPrimary,
     fontSize: 12,
     fontWeight: '700',
   },
-  level: {
-    color: colors.textSecondary,
-    fontSize: 10,
-  },
-  pointsCol: {
-    alignItems: 'flex-end',
-    gap: 2,
-  },
   points: {
+    flexShrink: 0,
     fontSize: 11,
     fontWeight: '800',
     fontStyle: 'italic',
   },
-  percent: {
+  statsRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+  },
+  statText: {
+    flexShrink: 1,
     color: colors.textSecondary,
     fontSize: 10,
     fontWeight: '600',
   },
-  barTrack: {
-    height: 3,
-    borderRadius: 2,
-    backgroundColor: colors.surfaceElevated,
-    overflow: 'hidden',
-  },
-  barFill: {
-    height: '100%',
-    borderRadius: 2,
+  statsDivider: {
+    width: 1,
+    height: 10,
+    backgroundColor: colors.divider,
+    flexShrink: 0,
   },
   divider: {
     height: 1,

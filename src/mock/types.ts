@@ -153,6 +153,8 @@ export type Matchmaking = {
   teamName: string;
   powerRating: number;
   teamLevel: number;
+  shieldIcon: string;
+  shieldAccent: TeamLogoAccent;
   matchFormat: TeamMatchFormat;
   maxLineup: number;
   lineup: MatchRunner[];
@@ -190,13 +192,18 @@ export type SoloMatchmaking = {
 
 export type TeamMatchAccent = 'lime' | 'purple';
 
+export type TeamMatchChallengeStats = {
+  distanceMiles: number;
+  pacePerMile: string;
+};
+
 export type TeamMatchParticipant = {
   id: string;
   name: string;
   level: number;
   avatarUrl?: string;
   points: number;
-  contributionPercent: number;
+  challengeStats: TeamMatchChallengeStats;
   isLeader?: boolean;
 };
 
@@ -242,6 +249,8 @@ export type ActiveTeamMatch = {
   activities: TeamMatchActivity[];
 };
 
+export type TeamLogoAccent = 'lime' | 'purple' | 'gold' | 'silver' | 'cyan' | 'blue';
+
 export type Team = {
   id: string;
   name: string;
@@ -250,6 +259,8 @@ export type Team = {
   level: number;
   experience: ProfileExperience;
   teamRank: TeamRank;
+  shieldIcon: string;
+  shieldAccent: TeamLogoAccent;
   stats: TeamStat[];
   members: TeamMember[];
   memberCount: number;
@@ -258,8 +269,6 @@ export type Team = {
 };
 
 export type TopTeamsTab = 'rankings' | 'trending' | 'new' | 'nearby';
-
-export type TopTeamShieldAccent = 'lime' | 'purple' | 'gold' | 'silver' | 'cyan' | 'blue';
 
 export type TopTeamListing = {
   id: string;
@@ -273,5 +282,5 @@ export type TopTeamListing = {
   clanRank: number;
   totalPoints: number;
   shieldIcon: string;
-  shieldAccent: TopTeamShieldAccent;
+  shieldAccent: TeamLogoAccent;
 };

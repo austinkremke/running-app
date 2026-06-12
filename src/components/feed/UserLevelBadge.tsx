@@ -5,6 +5,8 @@ import { colors } from '../../theme';
 
 type UserLevelBadgeProps = {
   level: number;
+  bottom?: number;
+  color?: string;
 };
 
 const BADGE_WIDTH = 24;
@@ -24,18 +26,22 @@ function getHexagonPoints(width: number, height: number, inset = 0): string {
   }).join(' ');
 }
 
-export function UserLevelBadge({ level }: UserLevelBadgeProps) {
+export function UserLevelBadge({
+  level,
+  bottom = -8,
+  color = colors.accentLime,
+}: UserLevelBadgeProps) {
   return (
-    <View style={styles.wrapper}>
+    <View style={[styles.wrapper, { bottom }]}>
       <Svg height={BADGE_HEIGHT} viewBox={`0 0 ${BADGE_WIDTH} ${BADGE_HEIGHT}`} width={BADGE_WIDTH}>
         <Polygon
           fill={colors.surface}
           points={getHexagonPoints(BADGE_WIDTH, BADGE_HEIGHT, 0.5)}
-          stroke={colors.accentLime}
+          stroke={color}
           strokeWidth={1.5}
         />
       </Svg>
-      <Text style={styles.text}>{level}</Text>
+      <Text style={[styles.text, { color }]}>{level}</Text>
     </View>
   );
 }
@@ -43,7 +49,6 @@ export function UserLevelBadge({ level }: UserLevelBadgeProps) {
 const styles = StyleSheet.create({
   wrapper: {
     position: 'absolute',
-    bottom: -8,
     alignSelf: 'center',
     width: BADGE_WIDTH,
     height: BADGE_HEIGHT,
@@ -52,7 +57,6 @@ const styles = StyleSheet.create({
   },
   text: {
     position: 'absolute',
-    color: colors.accentLime,
     fontSize: 9,
     fontWeight: '800',
     lineHeight: 11,
