@@ -113,13 +113,19 @@ export function useXpGainAnimation(event: XpGainEvent | null, visible: boolean) 
           setShowLevelUpBanner(true);
           setShowConfetti(true);
           setLevelPulse(true);
-          await delay(1100);
+          await delay(1600);
+          if (cancelled) {
+            return;
+          }
+
+          setLevelPulse(false);
+          setShowLevelUpBanner(false);
+          await delay(900);
           if (cancelled) {
             return;
           }
 
           setShowConfetti(false);
-          setLevelPulse(false);
           currentXp = 0;
           setDisplayXp(0);
           progress.setValue(0);
