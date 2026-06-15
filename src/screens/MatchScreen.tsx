@@ -4,11 +4,12 @@ import type { MatchTab } from '../mock';
 type MatchScreenProps = {
   activeTab: MatchTab;
   onOpenTeamMatch?: () => void;
+  onOpenSoloMatch?: () => void;
 };
 
-export function MatchScreen({ activeTab, onOpenTeamMatch }: MatchScreenProps) {
+export function MatchScreen({ activeTab, onOpenTeamMatch, onOpenSoloMatch }: MatchScreenProps) {
   if (activeTab === 'solo') {
-    return <SoloMatchTab />;
+    return <SoloMatchTab onViewActiveMatch={onOpenSoloMatch} />;
   }
 
   return <TeamMatchTab onViewActiveMatch={onOpenTeamMatch} />;

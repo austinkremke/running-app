@@ -3,6 +3,7 @@ export { MatchScreen } from './MatchScreen';
 export { MeScreen } from './MeScreen';
 export { PostRunScreen } from './PostRunScreen';
 export { RunScreen } from './RunScreen';
+export { SoloMatchScreen } from './SoloMatchScreen';
 export { TeamMatchScreen } from './TeamMatchScreen';
 export { TeamScreen } from './TeamScreen';
 export { TopTeamsScreen } from './TopTeamsScreen';

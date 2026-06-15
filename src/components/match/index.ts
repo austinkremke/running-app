@@ -4,6 +4,7 @@ export { LineupSection } from './LineupSection';
 export { MatchmakingLoader } from './MatchmakingLoader';
 export { MatchFormatCard } from './MatchFormatCard';
 export { MatchTeamSummaryCard } from './MatchTeamSummaryCard';
+export { MatchVsIndicator } from './MatchVsIndicator';
 export { SearchingForTeamCard } from './SearchingForTeamCard';
 export { TeamMatchTab } from './TeamMatchTab';
 export * from './solo';

@@ -1,13 +1,16 @@
 import { StatusBar } from 'expo-status-bar';
 import { SafeAreaProvider } from 'react-native-safe-area-context';
 
-import { AppShell } from './src/navigation/AppShell';
+import { OnboardingProvider } from './src/context';
+import { RootNavigator } from './src/navigation/RootNavigator';
 
 export default function App() {
   return (
     <SafeAreaProvider>
-      <StatusBar style="light" />
-      <AppShell />
+      <OnboardingProvider>
+        <StatusBar style="light" />
+        <RootNavigator />
+      </OnboardingProvider>
     </SafeAreaProvider>
   );
 }

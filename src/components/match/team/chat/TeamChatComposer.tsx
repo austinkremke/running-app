@@ -7,9 +7,15 @@ type TeamChatComposerProps = {
   value: string;
   onChangeText: (text: string) => void;
   onSend: () => void;
+  placeholder?: string;
 };
 
-export function TeamChatComposer({ value, onChangeText, onSend }: TeamChatComposerProps) {
+export function TeamChatComposer({
+  value,
+  onChangeText,
+  onSend,
+  placeholder = 'Message your team...',
+}: TeamChatComposerProps) {
   const canSend = value.trim().length > 0;
 
   return (
@@ -17,7 +23,7 @@ export function TeamChatComposer({ value, onChangeText, onSend }: TeamChatCompos
       <TextInput
         multiline
         onChangeText={onChangeText}
-        placeholder="Message your team..."
+        placeholder={placeholder}
         placeholderTextColor={colors.textSecondary}
         style={styles.input}
         value={value}

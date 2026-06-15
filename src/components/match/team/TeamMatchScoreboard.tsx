@@ -3,8 +3,11 @@ import { StyleSheet, Text, View } from 'react-native';
 
 import type { ActiveTeamMatch } from '../../../mock';
 import { colors, spacing } from '../../../theme';
+import { MatchVsIndicator } from '../MatchVsIndicator';
 import { formatMatchPoints, getTeamMatchAccentColor } from './matchTheme';
 import { TeamMatchScoreboardTeam } from './TeamMatchScoreboardTeam';
+
+const SCORE_LINE_HEIGHT = 34;
 
 type TeamMatchScoreboardProps = {
   match: ActiveTeamMatch;
@@ -20,9 +23,7 @@ export function TeamMatchScoreboard({ match }: TeamMatchScoreboardProps) {
     <View style={styles.container}>
       <View style={styles.teamsRow}>
         <TeamMatchScoreboardTeam side="home" team={homeTeam} />
-        <View style={styles.vsWrap}>
-          <Text style={styles.vs}>VS</Text>
-        </View>
+        <MatchVsIndicator style={styles.vsWrap} variant="diamond" />
         <TeamMatchScoreboardTeam side="away" team={awayTeam} />
       </View>
 
@@ -61,17 +62,9 @@ const styles = StyleSheet.create({
     gap: spacing.md,
   },
   vsWrap: {
-    width: 32,
-    alignItems: 'center',
-    justifyContent: 'center',
-    flexShrink: 0,
-    paddingBottom: 6,
-  },
-  vs: {
-    color: colors.textSecondary,
-    fontSize: 12,
-    fontWeight: '800',
-    fontStyle: 'italic',
+    width: 36,
+    height: SCORE_LINE_HEIGHT,
+    marginBottom: 4,
   },
   leadRow: {
     flexDirection: 'row',

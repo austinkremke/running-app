@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { StyleSheet, View } from 'react-native';
 
 import { BottomAppBar } from '../components/app-bar';
@@ -8,10 +8,12 @@ import {
   ProfileAvatarButton,
   TabAppHeader,
 } from '../components/header';
+import { useOnboarding } from '../context';
 import type { FeedTab, MatchTab } from '../mock';
 import { FeedScreen } from '../screens/FeedScreen';
 import { MatchScreen } from '../screens/MatchScreen';
 import { RunScreen } from '../screens/RunScreen';
+import { SoloMatchScreen } from '../screens/SoloMatchScreen';
 import { TeamMatchScreen } from '../screens/TeamMatchScreen';
 import { TeamScreen } from '../screens/TeamScreen';
 import { TopTeamsScreen } from '../screens/TopTeamsScreen';
@@ -30,10 +32,21 @@ const MATCH_TABS = [
 ] as const;
 
 export function AppShell() {
+  const { shouldOpenSoloMatch, consumeSoloMatchNavigation } = useOnboarding();
   const [activeRoute, setActiveRoute] = useState<AppRoute>('feed');
   const [runReturnRoute, setRunReturnRoute] = useState<AppRoute>('feed');
   const [activeFeedTab, setActiveFeedTab] = useState<FeedTab>('community');
   const [activeMatchTab, setActiveMatchTab] = useState<MatchTab>('team');
+
+  useEffect(() => {
+    if (!shouldOpenSoloMatch) {
+      return;
+    }
+
+    setActiveRoute('soloMatch');
+    setActiveMatchTab('solo');
+    consumeSoloMatchNavigation();
+  }, [consumeSoloMatchNavigation, shouldOpenSoloMatch]);
 
   const {
     title,
@@ -85,11 +98,21 @@ export function AppShell() {
     }
 
     if (activeRoute === 'match') {
-      return <MatchScreen activeTab={activeMatchTab} onOpenTeamMatch={() => setActiveRoute('teamMatch')} />;
+      return (
+        <MatchScreen
+          activeTab={activeMatchTab}
+          onOpenSoloMatch={() => setActiveRoute('soloMatch')}
+          onOpenTeamMatch={() => setActiveRoute('teamMatch')}
+        />
+      );
     }
 
     if (activeRoute === 'teamMatch') {
       return <TeamMatchScreen onRunPress={openRun} />;
+    }
+
+    if (activeRoute === 'soloMatch') {
+      return <SoloMatchScreen onRunPress={openRun} />;
     }
 
     if (activeRoute === 'team') {
@@ -104,14 +127,17 @@ export function AppShell() {
   }
 
   function renderHeaderLeft() {
-    if (activeRoute === 'match' || activeRoute === 'teamMatch' || activeRoute === 'topTeams') {
+    if (activeRoute === 'match' || activeRoute === 'teamMatch' || activeRoute === 'soloMatch' || activeRoute === 'topTeams') {
       return (
         <HeaderIconButton
           accessibilityLabel="Go back"
           icon="chevron-back"
           onPress={() => {
-            if (activeRoute === 'teamMatch') {
+            if (activeRoute === 'teamMatch' || activeRoute === 'soloMatch') {
               setActiveRoute('match');
+              if (activeRoute === 'soloMatch') {
+                setActiveMatchTab('solo');
+              }
               return;
             }
 
@@ -148,6 +174,23 @@ export function AppShell() {
           icon="information-circle-outline"
           onPress={() => {}}
         />
+      );
+    }
+
+    if (activeRoute === 'soloMatch') {
+      return (
+        <View style={styles.headerActions}>
+          <HeaderIconButton
+            accessibilityLabel="Share match"
+            icon="share-outline"
+            onPress={() => {}}
+          />
+          <HeaderIconButton
+            accessibilityLabel="More options"
+            icon="ellipsis-vertical"
+            onPress={() => {}}
+          />
+        </View>
       );
     }
 
@@ -227,7 +270,11 @@ export function AppShell() {
       {!hideChrome ? (
         <BottomAppBar
           activeKey={
-            activeRoute === 'teamMatch' ? 'match' : activeRoute === 'topTeams' ? 'team' : activeRoute
+            activeRoute === 'teamMatch' || activeRoute === 'soloMatch'
+              ? 'match'
+              : activeRoute === 'topTeams'
+                ? 'team'
+                : activeRoute
           }
           onItemPress={handleNavPress}
         />

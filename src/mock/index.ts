@@ -1,3 +1,7 @@
+export { MOCK_SOLO_CHAT_MESSAGES } from './soloChat';
+export { MOCK_ACTIVE_SOLO_MATCH } from './soloActiveMatch';
+export { MOCK_ONBOARDING_NPC } from './onboardingNpc';
+export type { OnboardingNpcOpponent } from './onboardingNpc';
 export { MOCK_CHALLENGE_FRIENDS } from './friends';
 export { MOCK_MATCHMAKING } from './match';
 export { MOCK_SOLO_MATCHMAKING } from './soloMatch';
@@ -12,6 +16,7 @@ export { MOCK_XP_GAIN_LEVEL_UP, MOCK_XP_GAIN_NORMAL } from './xpGain';
 export type {
   Achievement,
   AchievementVariant,
+  ActiveSoloMatch,
   ActiveTeamMatch,
   ChallengeFriend,
   FeedTab,
@@ -21,6 +26,11 @@ export type {
   MatchTab,
   TeamMatchFormat,
   SoloMatchmaking,
+  SoloMatchActivity,
+  SoloMatchComparisonStat,
+  SoloMatchHighlight,
+  SoloMatchInfo,
+  SoloMatchRunner,
   SoloSeasonRecord,
   OverallStat,
   OverallStatLayout,

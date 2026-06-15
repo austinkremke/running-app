@@ -249,6 +249,62 @@ export type ActiveTeamMatch = {
   activities: TeamMatchActivity[];
 };
 
+export type SoloMatchRunner = {
+  id: string;
+  name: string;
+  level: number;
+  avatarUrl: string;
+  totalPoints: number;
+  accent: TeamMatchAccent;
+};
+
+export type SoloMatchInfo = {
+  rank: number;
+  rankPercentile: string;
+  matchType: string;
+  matchTypeIcon: string;
+  entryFee: number;
+  entryFeeLabel: string;
+};
+
+export type SoloMatchComparisonStat = {
+  id: string;
+  label: string;
+  icon: string;
+  homeValue: string;
+  awayValue: string;
+  homeProgress: number;
+};
+
+export type SoloMatchActivity = {
+  id: string;
+  dayLabel: string;
+  distanceMiles: number;
+  durationLabel: string;
+  pointsEarned: number;
+  accent: TeamMatchAccent;
+};
+
+export type SoloMatchHighlight = {
+  id: string;
+  icon: string;
+  label: string;
+  value: string;
+  subtext: string;
+  accent?: TeamMatchAccent;
+};
+
+export type ActiveSoloMatch = {
+  id: string;
+  homeRunner: SoloMatchRunner;
+  awayRunner: SoloMatchRunner;
+  countdown: TeamMatchCountdown;
+  info: SoloMatchInfo;
+  stats: SoloMatchComparisonStat[];
+  activities: SoloMatchActivity[];
+  highlights: SoloMatchHighlight[];
+};
+
 export type TeamLogoAccent = 'lime' | 'purple' | 'gold' | 'silver' | 'cyan' | 'blue';
 
 export type Team = {

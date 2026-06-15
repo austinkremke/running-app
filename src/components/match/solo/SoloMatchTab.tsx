@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { ScrollView, StyleSheet, View } from 'react-native';
+import { Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
 
 import { MOCK_CHALLENGE_FRIENDS, MOCK_SOLO_MATCHMAKING } from '../../../mock';
 import type { ProposedChallenge } from '../../../mock';
@@ -12,7 +12,11 @@ import { SoloMatchFormatCard } from './SoloMatchFormatCard';
 import { SoloProfileCard } from './SoloProfileCard';
 import { SoloSeasonRecordCard } from './SoloSeasonRecordCard';
 
-export function SoloMatchTab() {
+type SoloMatchTabProps = {
+  onViewActiveMatch?: () => void;
+};
+
+export function SoloMatchTab({ onViewActiveMatch }: SoloMatchTabProps) {
   const soloConfig = MOCK_SOLO_MATCHMAKING;
   const [drawerVisible, setDrawerVisible] = useState(false);
   const [selectedFriendId, setSelectedFriendId] = useState<string | null>(null);
@@ -67,6 +71,15 @@ export function SoloMatchTab() {
         showsVerticalScrollIndicator={false}
         style={styles.scroll}
       >
+        <Pressable
+          accessibilityRole="button"
+          onPress={onViewActiveMatch}
+          style={({ pressed }) => [styles.activeMatchCard, pressed && styles.pressed]}
+        >
+          <Text style={styles.activeMatchEyebrow}>ACTIVE MATCH</Text>
+          <Text style={styles.activeMatchTitle}>View 1v1 match vs Jordan</Text>
+        </Pressable>
+
         <SoloProfileCard
           avatarUrl={soloConfig.avatarUrl}
           level={soloConfig.level}
@@ -122,5 +135,28 @@ const styles = StyleSheet.create({
   },
   bottomSpacer: {
     height: spacing.md,
+  },
+  activeMatchCard: {
+    backgroundColor: colors.surface,
+    borderRadius: 14,
+    borderWidth: 1,
+    borderColor: colors.accentLime,
+    padding: spacing.md,
+    gap: 4,
+  },
+  activeMatchEyebrow: {
+    color: colors.accentLime,
+    fontSize: 9,
+    fontWeight: '800',
+    fontStyle: 'italic',
+    letterSpacing: 0.8,
+  },
+  activeMatchTitle: {
+    color: colors.textPrimary,
+    fontSize: 14,
+    fontWeight: '700',
+  },
+  pressed: {
+    opacity: 0.85,
   },
 });
