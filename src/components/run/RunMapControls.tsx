@@ -1,35 +1,39 @@
 import { Ionicons } from '@expo/vector-icons';
-import { Pressable, StyleSheet, View } from 'react-native';
+import { Pressable, StyleSheet } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import { colors, spacing } from '../../theme';
 
+/** Clears the Mapbox scale bar in the top-left corner. */
+const MAP_SCALE_CLEARANCE = 52;
+
 type RunMapControlsProps = {
   onBack?: () => void;
+  onRecenter?: () => void;
 };
 
-export function RunMapControls({ onBack }: RunMapControlsProps) {
+export function RunMapControls({ onBack, onRecenter }: RunMapControlsProps) {
   const insets = useSafeAreaInsets();
   const controlsTop = insets.top + spacing.lg;
+  const backButtonTop = controlsTop + MAP_SCALE_CLEARANCE;
 
   return (
     <>
       <Pressable
         accessibilityLabel="Go back"
         onPress={onBack}
-        style={[styles.mapButton, styles.backButton, { top: controlsTop }]}
+        style={[styles.mapButton, styles.backButton, { top: backButtonTop }]}
       >
         <Ionicons color={colors.textPrimary} name="chevron-back" size={22} />
       </Pressable>
 
-      <View style={[styles.rightControls, { top: controlsTop }]}>
-        <Pressable accessibilityLabel="Map layers" style={styles.mapButton}>
-          <Ionicons color={colors.textPrimary} name="layers-outline" size={18} />
-        </Pressable>
-        <Pressable accessibilityLabel="Map orientation" style={styles.mapButton}>
-          <Ionicons color={colors.textPrimary} name="compass-outline" size={18} />
-        </Pressable>
-      </View>
+      <Pressable
+        accessibilityLabel="Center on my location"
+        onPress={onRecenter}
+        style={[styles.mapButton, styles.locateButton, { top: controlsTop }]}
+      >
+        <Ionicons color={colors.textPrimary} name="locate" size={18} />
+      </Pressable>
     </>
   );
 }
@@ -50,10 +54,9 @@ const styles = StyleSheet.create({
     left: spacing.lg,
     zIndex: 2,
   },
-  rightControls: {
+  locateButton: {
     position: 'absolute',
     right: spacing.lg,
-    gap: spacing.sm,
     zIndex: 2,
   },
 });

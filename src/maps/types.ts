@@ -18,6 +18,8 @@ export type MapViewProps = {
   region: MapRegion;
   routePoints?: GpsPoint[];
   showsUserLocation?: boolean;
+  /** Increment to fly the camera to the user's current location. */
+  recenterSignal?: number;
 };
 
 export type LocationWatcher = {

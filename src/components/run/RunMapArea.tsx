@@ -1,3 +1,4 @@
+import { useState } from 'react';
 import { StyleSheet, View } from 'react-native';
 
 import { useInitialMapRegion } from '../../hooks/useInitialMapRegion';
@@ -10,12 +11,16 @@ type RunMapAreaProps = {
 
 export function RunMapArea({ onBack }: RunMapAreaProps) {
   const { region } = useInitialMapRegion();
+  const [recenterSignal, setRecenterSignal] = useState(0);
   const MapView = activeMapProvider.MapView;
 
   return (
     <View style={styles.container}>
-      <MapView region={region} showsUserLocation />
-      <RunMapControls onBack={onBack} />
+      <MapView region={region} recenterSignal={recenterSignal} showsUserLocation />
+      <RunMapControls
+        onBack={onBack}
+        onRecenter={() => setRecenterSignal((count) => count + 1)}
+      />
     </View>
   );
 }

@@ -1,4 +1,4 @@
-import { Pressable, StyleSheet, Text, View } from 'react-native';
+import { StyleSheet, Text, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
 import { OnboardingAuthButton, RunOffLogo } from '../../components/onboarding';
@@ -37,15 +37,6 @@ export function OnboardingLoginScreen() {
             onPress={() => mockSignIn('email')}
             variant="primary"
           />
-
-          <Pressable
-            accessibilityRole="button"
-            onPress={() => mockSignIn('email')}
-            style={({ pressed }) => [styles.existingAccount, pressed && styles.pressed]}
-          >
-            <Text style={styles.existingAccountText}>I ALREADY HAVE AN ACCOUNT</Text>
-            <Text style={styles.existingAccountChevron}>›</Text>
-          </Pressable>
         </View>
       </View>
     </SafeAreaView>
@@ -90,37 +81,7 @@ const styles = StyleSheet.create({
     textAlign: 'center',
     letterSpacing: 0.5,
   },
-  tagline: {
-    color: colors.textSecondary,
-    fontSize: 14,
-    lineHeight: 20,
-    textAlign: 'center',
-    marginTop: spacing.sm,
-    maxWidth: 280,
-  },
   actions: {
     gap: spacing.sm,
-  },
-  existingAccount: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'center',
-    paddingVertical: spacing.md,
-    gap: spacing.xs,
-  },
-  existingAccountText: {
-    color: colors.textSecondary,
-    fontSize: 11,
-    fontWeight: '700',
-    letterSpacing: 1.2,
-  },
-  existingAccountChevron: {
-    color: colors.textSecondary,
-    fontSize: 16,
-    fontWeight: '700',
-    marginTop: -1,
-  },
-  pressed: {
-    opacity: 0.75,
   },
 });

@@ -1,10 +1,11 @@
-import { useMemo } from 'react';
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { Platform, StyleSheet, Text, View } from 'react-native';
 
+import { UserLocationDot } from '../../../components/run/UserLocationDot';
 import { colors, spacing } from '../../../theme';
 import { regionToCenter, regionToZoomLevel } from '../../mapCamera';
 import type { MapViewProps } from '../../types';
-import { isMapboxConfigured, MAPBOX_STYLE_URL } from './init';
+import { isMapboxConfigured, MAPBOX_STYLE_IMPORT_CONFIG, MAPBOX_STYLE_URL } from './init';
 import { getMapboxModule } from './mapboxNative';
 
 function MapFallback({ title, body }: { title: string; body: string }) {
@@ -20,11 +21,46 @@ export function MapboxMapView({
   region,
   routePoints = [],
   showsUserLocation = true,
+  recenterSignal = 0,
 }: MapViewProps) {
   const mapbox = getMapboxModule();
+  const cameraRef = useRef<{ setCamera: (config: object) => void } | null>(null);
+  const userCoordinateRef = useRef<[number, number] | null>(null);
+  const [userCoordinate, setUserCoordinate] = useState<[number, number] | null>(null);
   const isTracking = routePoints.length > 0;
   const zoomLevel = useMemo(() => regionToZoomLevel(region), [region]);
   const centerCoordinate = useMemo(() => regionToCenter(region), [region]);
+  const initialCameraSettings = useRef({
+    centerCoordinate: regionToCenter(region),
+    zoomLevel: regionToZoomLevel(region),
+  }).current;
+
+  const handleUserLocationUpdate = useCallback(
+    (location: { coords?: { longitude: number; latitude: number } }) => {
+      if (!location.coords) return;
+      const coordinate: [number, number] = [
+        location.coords.longitude,
+        location.coords.latitude,
+      ];
+      userCoordinateRef.current = coordinate;
+      setUserCoordinate(coordinate);
+    },
+    [],
+  );
+
+  useEffect(() => {
+    if (!recenterSignal) return;
+
+    const coordinate = userCoordinateRef.current;
+    if (!coordinate) return;
+
+    cameraRef.current?.setCamera({
+      centerCoordinate: coordinate,
+      zoomLevel: regionToZoomLevel(region),
+      animationDuration: 500,
+      animationMode: 'easeTo',
+    });
+  }, [recenterSignal, region]);
 
   const routeGeoJson = useMemo<GeoJSON.FeatureCollection<GeoJSON.LineString>>(() => {
     if (routePoints.length < 2) {
@@ -75,7 +111,7 @@ export function MapboxMapView({
     );
   }
 
-  const { Camera, LineLayer, MapView, ShapeSource, UserLocation } = mapbox;
+  const { Camera, LineLayer, MapView, MarkerView, ShapeSource, StyleImport, UserLocation } = mapbox;
 
   return (
     <MapView
@@ -89,13 +125,33 @@ export function MapboxMapView({
       attributionEnabled
       logoEnabled={false}
     >
-      <Camera
-        centerCoordinate={centerCoordinate}
-        zoomLevel={zoomLevel}
-        animationDuration={isTracking ? 0 : 500}
+      <StyleImport
+        id="basemap"
+        existing
+        config={MAPBOX_STYLE_IMPORT_CONFIG}
       />
 
-      {showsUserLocation ? <UserLocation visible /> : null}
+      <Camera
+        ref={cameraRef}
+        defaultSettings={initialCameraSettings}
+        {...(isTracking
+          ? {
+              centerCoordinate,
+              zoomLevel,
+              animationDuration: 0,
+            }
+          : {})}
+      />
+
+      {showsUserLocation ? (
+        <UserLocation visible={false} onUpdate={handleUserLocationUpdate} />
+      ) : null}
+
+      {showsUserLocation && userCoordinate ? (
+        <MarkerView coordinate={userCoordinate} allowOverlap allowOverlapWithPuck>
+          <UserLocationDot />
+        </MarkerView>
+      ) : null}
 
       {routeGeoJson.features.length > 0 ? (
         <ShapeSource id="run-route" shape={routeGeoJson}>
