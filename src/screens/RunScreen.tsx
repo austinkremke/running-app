@@ -1,10 +1,11 @@
-import { useState } from 'react';
-import { Modal, StyleSheet, View } from 'react-native';
+import { useEffect, useState } from 'react';
+import { Alert, Modal, StyleSheet, View } from 'react-native';
 import { SafeAreaProvider } from 'react-native-safe-area-context';
 
 import { PostRunTestButton } from '../components/post-run';
 import { RunBottomDrawer, RunMapArea } from '../components/run';
 import { XpGainDrawer, XpGainTestButtons } from '../components/xp';
+import { useRun } from '../context';
 import {
   MOCK_POST_RUN,
   MOCK_POST_RUN_ROUTE,
@@ -12,6 +13,7 @@ import {
   MOCK_XP_GAIN_NORMAL,
 } from '../mock';
 import type { XpGainEvent } from '../mock';
+import { recordsToGpsPoints } from '../services/activityAdapters';
 import { PostRunScreen } from './PostRunScreen';
 import { colors } from '../theme';
 
@@ -20,9 +22,26 @@ type RunScreenProps = {
 };
 
 export function RunScreen({ onBack }: RunScreenProps) {
+  const {
+    isRecording,
+    routePoints,
+    distanceLabel,
+    durationLabel,
+    paceLabel,
+    lastFinishedRun,
+    startRun,
+    stopRun,
+    clearLastFinishedRun,
+  } = useRun();
   const [xpDrawerVisible, setXpDrawerVisible] = useState(false);
   const [xpEvent, setXpEvent] = useState<XpGainEvent | null>(null);
   const [postRunVisible, setPostRunVisible] = useState(false);
+  const [previewPostRun, setPreviewPostRun] = useState(false);
+
+  useEffect(() => {
+    if (!lastFinishedRun) return;
+    setPostRunVisible(true);
+  }, [lastFinishedRun]);
 
   function openXpDrawer(event: XpGainEvent) {
     setXpEvent(event);
@@ -34,44 +53,106 @@ export function RunScreen({ onBack }: RunScreenProps) {
     setXpEvent(null);
   }
 
-  function openPostRun() {
+  function openMockPostRun() {
+    setPreviewPostRun(true);
     setPostRunVisible(true);
   }
 
   function closePostRun() {
     setPostRunVisible(false);
+    setPreviewPostRun(false);
+    clearLastFinishedRun();
   }
 
   function handleAddToFeed() {
     closePostRun();
-    openXpDrawer(MOCK_XP_GAIN_NORMAL);
+    const summary = lastFinishedRun?.summary;
+    openXpDrawer({
+      ...MOCK_XP_GAIN_NORMAL,
+      runSummary: summary
+        ? {
+            distance: `${summary.distanceMiles.toFixed(2)} mi`,
+            duration: summary.duration,
+            pace: `${summary.avgPace}${summary.avgPaceUnit}`,
+          }
+        : MOCK_XP_GAIN_NORMAL.runSummary,
+    });
   }
+
+  async function handleStartRun() {
+    const started = await startRun();
+    if (!started) {
+      Alert.alert(
+        'Location required',
+        'Enable location access in Settings to record your run.',
+      );
+    }
+  }
+
+  async function handleStopRun() {
+    await stopRun();
+  }
+
+  function handleBack() {
+    if (!isRecording) {
+      onBack?.();
+      return;
+    }
+
+    Alert.alert('Stop your run?', 'Going back will end your current run.', [
+      { text: 'Keep running', style: 'cancel' },
+      {
+        text: 'Stop run',
+        style: 'destructive',
+        onPress: () => {
+          void stopRun();
+        },
+      },
+    ]);
+  }
+
+  const postRunSummary = previewPostRun ? MOCK_POST_RUN : lastFinishedRun?.summary;
+  const postRunRoute = previewPostRun
+    ? MOCK_POST_RUN_ROUTE
+    : lastFinishedRun
+      ? recordsToGpsPoints(lastFinishedRun.records)
+      : [];
 
   return (
     <View style={styles.container}>
-      <RunMapArea onBack={onBack} />
+      <RunMapArea isTracking={isRecording} onBack={handleBack} routePoints={routePoints} />
       <RunBottomDrawer
+        distanceLabel={distanceLabel}
+        durationLabel={durationLabel}
+        isRecording={isRecording}
+        onStartRun={handleStartRun}
+        onStopRun={handleStopRun}
+        paceLabel={paceLabel}
         footer={
-          <>
-            <PostRunTestButton onPress={openPostRun} />
-            <XpGainTestButtons
-              onTestLevelUp={() => openXpDrawer(MOCK_XP_GAIN_LEVEL_UP)}
-              onTestNormal={() => openXpDrawer(MOCK_XP_GAIN_NORMAL)}
-            />
-          </>
+          __DEV__ ? (
+            <>
+              <PostRunTestButton onPress={openMockPostRun} />
+              <XpGainTestButtons
+                onTestLevelUp={() => openXpDrawer(MOCK_XP_GAIN_LEVEL_UP)}
+                onTestNormal={() => openXpDrawer(MOCK_XP_GAIN_NORMAL)}
+              />
+            </>
+          ) : null
         }
       />
       <XpGainDrawer event={xpEvent} onClose={closeXpDrawer} visible={xpDrawerVisible} />
-      <Modal animationType="slide" presentationStyle="fullScreen" visible={postRunVisible}>
-        <SafeAreaProvider>
-          <PostRunScreen
-            onAddToFeed={handleAddToFeed}
-            onBack={closePostRun}
-            routePoints={MOCK_POST_RUN_ROUTE}
-            summary={MOCK_POST_RUN}
-          />
-        </SafeAreaProvider>
-      </Modal>
+      {postRunSummary ? (
+        <Modal animationType="slide" presentationStyle="fullScreen" visible={postRunVisible}>
+          <SafeAreaProvider>
+            <PostRunScreen
+              onAddToFeed={handleAddToFeed}
+              onBack={closePostRun}
+              routePoints={postRunRoute}
+              summary={postRunSummary}
+            />
+          </SafeAreaProvider>
+        </Modal>
+      ) : null}
     </View>
   );
 }

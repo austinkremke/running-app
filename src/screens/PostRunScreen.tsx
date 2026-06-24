@@ -43,8 +43,8 @@ export function PostRunScreen({ summary, routePoints, onBack, onAddToFeed }: Pos
     },
     {
       label: 'AVG HEART RATE',
-      value: String(summary.avgHeartRate),
-      unit: summary.avgHeartRateUnit,
+      value: summary.avgHeartRate > 0 ? String(summary.avgHeartRate) : '—',
+      unit: summary.avgHeartRate > 0 ? summary.avgHeartRateUnit : '',
     },
     {
       label: 'ELEVATION GAIN',

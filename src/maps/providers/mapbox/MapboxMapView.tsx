@@ -1,12 +1,41 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { Platform, StyleSheet, Text, View } from 'react-native';
 
+import { RouteEndpointDot } from '../../../components/run/RouteEndpointDot';
 import { UserLocationDot } from '../../../components/run/UserLocationDot';
 import { colors, spacing } from '../../../theme';
 import { regionToCenter, regionToZoomLevel } from '../../mapCamera';
 import type { MapViewProps } from '../../types';
 import { isMapboxConfigured, MAPBOX_STYLE_IMPORT_CONFIG, MAPBOX_STYLE_URL } from './init';
 import { getMapboxModule } from './mapboxNative';
+
+const ROUTE_LINE_COLOR = colors.accentLime;
+const ROUTE_FIT_PADDING = 14;
+
+function expandBounds(
+  ne: [number, number],
+  sw: [number, number],
+  minSpan = 0.00012,
+): { ne: [number, number]; sw: [number, number] } {
+  const nextNe: [number, number] = [...ne];
+  const nextSw: [number, number] = [...sw];
+  const lngSpan = nextNe[0] - nextSw[0];
+  const latSpan = nextNe[1] - nextSw[1];
+
+  if (lngSpan < minSpan) {
+    const pad = (minSpan - lngSpan) / 2;
+    nextNe[0] += pad;
+    nextSw[0] -= pad;
+  }
+
+  if (latSpan < minSpan) {
+    const pad = (minSpan - latSpan) / 2;
+    nextNe[1] += pad;
+    nextSw[1] -= pad;
+  }
+
+  return { ne: nextNe, sw: nextSw };
+}
 
 function MapFallback({ title, body }: { title: string; body: string }) {
   return (
@@ -21,19 +50,42 @@ export function MapboxMapView({
   region,
   routePoints = [],
   showsUserLocation = true,
+  followRoute = false,
+  showRouteEndpoints = false,
   recenterSignal = 0,
 }: MapViewProps) {
   const mapbox = getMapboxModule();
-  const cameraRef = useRef<{ setCamera: (config: object) => void } | null>(null);
+  const cameraRef = useRef<{ setCamera: (config: object) => void; fitBounds: (...args: unknown[]) => void } | null>(null);
   const userCoordinateRef = useRef<[number, number] | null>(null);
   const [userCoordinate, setUserCoordinate] = useState<[number, number] | null>(null);
-  const isTracking = routePoints.length > 0;
+  const isRoutePreview = showRouteEndpoints;
   const zoomLevel = useMemo(() => regionToZoomLevel(region), [region]);
   const centerCoordinate = useMemo(() => regionToCenter(region), [region]);
   const initialCameraSettings = useRef({
     centerCoordinate: regionToCenter(region),
     zoomLevel: regionToZoomLevel(region),
   }).current;
+
+  const routeStart = routePoints[0] ?? null;
+  const routeEnd = routePoints.length > 1 ? routePoints[routePoints.length - 1] : null;
+
+  const fitRouteToViewport = useCallback(() => {
+    if (!showRouteEndpoints || routePoints.length < 2) return;
+
+    const lngs = routePoints.map((point) => point.longitude);
+    const lats = routePoints.map((point) => point.latitude);
+    const { ne, sw } = expandBounds(
+      [Math.max(...lngs), Math.max(...lats)],
+      [Math.min(...lngs), Math.min(...lats)],
+    );
+
+    cameraRef.current?.fitBounds(
+      ne,
+      sw,
+      [ROUTE_FIT_PADDING, ROUTE_FIT_PADDING, ROUTE_FIT_PADDING, ROUTE_FIT_PADDING],
+      0,
+    );
+  }, [routePoints, showRouteEndpoints]);
 
   const handleUserLocationUpdate = useCallback(
     (location: { coords?: { longitude: number; latitude: number } }) => {
@@ -61,6 +113,10 @@ export function MapboxMapView({
       animationMode: 'easeTo',
     });
   }, [recenterSignal, region]);
+
+  useEffect(() => {
+    fitRouteToViewport();
+  }, [fitRouteToViewport]);
 
   const routeGeoJson = useMemo<GeoJSON.FeatureCollection<GeoJSON.LineString>>(() => {
     if (routePoints.length < 2) {
@@ -118,12 +174,13 @@ export function MapboxMapView({
       style={styles.map}
       styleURL={MAPBOX_STYLE_URL}
       projection="globe"
-      pitchEnabled
-      rotateEnabled
-      scrollEnabled
-      zoomEnabled
-      attributionEnabled
+      pitchEnabled={!isRoutePreview}
+      rotateEnabled={!isRoutePreview}
+      scrollEnabled={!isRoutePreview}
+      zoomEnabled={!isRoutePreview}
+      attributionEnabled={false}
       logoEnabled={false}
+      onDidFinishLoadingMap={fitRouteToViewport}
     >
       <StyleImport
         id="basemap"
@@ -134,7 +191,7 @@ export function MapboxMapView({
       <Camera
         ref={cameraRef}
         defaultSettings={initialCameraSettings}
-        {...(isTracking
+        {...(followRoute
           ? {
               centerCoordinate,
               zoomLevel,
@@ -156,15 +213,47 @@ export function MapboxMapView({
       {routeGeoJson.features.length > 0 ? (
         <ShapeSource id="run-route" shape={routeGeoJson}>
           <LineLayer
+            id="run-route-glow"
+            style={{
+              lineColor: ROUTE_LINE_COLOR,
+              lineWidth: 8,
+              lineOpacity: 0.35,
+              lineCap: 'round',
+              lineJoin: 'round',
+              lineEmissiveStrength: 1,
+            }}
+          />
+          <LineLayer
             id="run-route-line"
             style={{
-              lineColor: colors.accentLime,
+              lineColor: ROUTE_LINE_COLOR,
               lineWidth: 4,
               lineCap: 'round',
               lineJoin: 'round',
+              lineEmissiveStrength: 1,
             }}
           />
         </ShapeSource>
+      ) : null}
+
+      {showRouteEndpoints && routeStart ? (
+        <MarkerView
+          coordinate={[routeStart.longitude, routeStart.latitude]}
+          allowOverlap
+          allowOverlapWithPuck
+        >
+          <RouteEndpointDot />
+        </MarkerView>
+      ) : null}
+
+      {showRouteEndpoints && routeEnd ? (
+        <MarkerView
+          coordinate={[routeEnd.longitude, routeEnd.latitude]}
+          allowOverlap
+          allowOverlapWithPuck
+        >
+          <RouteEndpointDot />
+        </MarkerView>
       ) : null}
     </MapView>
   );

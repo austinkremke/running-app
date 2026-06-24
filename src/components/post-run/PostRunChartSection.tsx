@@ -9,22 +9,31 @@ type PostRunChartSectionProps = {
   summary: Pick<PostRunSummary, 'chartData' | 'chartReferenceLines' | 'distanceMiles'>;
 };
 
-const TABS: { key: PostRunChartTab; label: string }[] = [
+const ALL_TABS: { key: PostRunChartTab; label: string }[] = [
   { key: 'pace', label: 'PACE' },
   { key: 'elevation', label: 'ELEVATION' },
   { key: 'heartRate', label: 'HEART RATE' },
 ];
 
 export function PostRunChartSection({ summary }: PostRunChartSectionProps) {
-  const [activeTab, setActiveTab] = useState<PostRunChartTab>('pace');
-  const data = summary.chartData[activeTab];
+  const tabs = useMemo(
+    () => ALL_TABS.filter((tab) => summary.chartData[tab.key].length > 0),
+    [summary.chartData],
+  );
+  const [activeTab, setActiveTab] = useState<PostRunChartTab>(tabs[0]?.key ?? 'pace');
+  const resolvedTab = tabs.some((tab) => tab.key === activeTab) ? activeTab : tabs[0]?.key;
+  const data = resolvedTab ? summary.chartData[resolvedTab] : [];
 
   const chartConfig = useMemo(() => {
+    if (!resolvedTab || data.length === 0) {
+      return null;
+    }
+
     const values = data.map((point) => point.value);
     const minValue = Math.min(...values);
     const maxValue = Math.max(...values);
 
-    if (activeTab === 'pace') {
+    if (resolvedTab === 'pace') {
       return {
         yLabels: buildPaceYLabels(minValue, maxValue),
         yUnit: '/mi',
@@ -32,10 +41,12 @@ export function PostRunChartSection({ summary }: PostRunChartSectionProps) {
       };
     }
 
-    if (activeTab === 'elevation') {
-      const step = (maxValue - minValue) / 3;
+    if (resolvedTab === 'elevation') {
+      const range = Math.max(maxValue - minValue, 10);
+      const step = range / 3;
+      const top = maxValue + range * 0.05;
       return {
-        yLabels: [0, 1, 2, 3].map((index) => String(Math.round(maxValue - step * index))),
+        yLabels: [0, 1, 2, 3].map((index) => String(Math.round(top - step * index))),
         yUnit: 'ft',
         referenceValue: undefined,
       };
@@ -47,13 +58,17 @@ export function PostRunChartSection({ summary }: PostRunChartSectionProps) {
       yUnit: 'bpm',
       referenceValue: summary.chartReferenceLines.heartRate,
     };
-  }, [activeTab, data, summary.chartReferenceLines.pace, summary.chartReferenceLines.heartRate]);
+  }, [data, resolvedTab, summary.chartReferenceLines.heartRate, summary.chartReferenceLines.pace]);
+
+  if (!resolvedTab || !chartConfig || data.length === 0) {
+    return null;
+  }
 
   return (
     <View style={styles.container}>
       <View style={styles.tabs}>
-        {TABS.map((tab) => {
-          const isActive = tab.key === activeTab;
+        {tabs.map((tab) => {
+          const isActive = tab.key === resolvedTab;
 
           return (
             <Pressable

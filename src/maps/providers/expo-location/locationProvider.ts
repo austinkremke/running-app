@@ -16,6 +16,9 @@ function locationToGpsPoint(position: Location.LocationObject): GpsPoint {
     latitude: position.coords.latitude,
     longitude: position.coords.longitude,
     accuracy: position.coords.accuracy,
+    altitude: position.coords.altitude,
+    speed: position.coords.speed,
+    heading: position.coords.heading,
     timestamp: new Date(position.timestamp).toISOString(),
   };
 }
@@ -74,7 +77,7 @@ export const expoLocationProvider: LocationProvider = {
       {
         accuracy: Location.Accuracy.High,
         timeInterval: MAP_CONFIG.GPS_INTERVAL_MS,
-        distanceInterval: 5,
+        distanceInterval: MAP_CONFIG.GPS_DISTANCE_METERS,
       },
       (position) => onPoint(locationToGpsPoint(position)),
     );

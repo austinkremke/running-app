@@ -1,7 +1,8 @@
 import type { MapRegion } from './types';
 
 export const MAP_CONFIG = {
-  GPS_INTERVAL_MS: 3000,
+  GPS_INTERVAL_MS: 1000,
+  GPS_DISTANCE_METERS: 1,
 } as const;
 
 export const MOCK_GPS =

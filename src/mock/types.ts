@@ -361,7 +361,7 @@ export type PostRunSummary = {
   avgHeartRateUnit: string;
   elevationGain: number;
   elevationGainUnit: string;
-  weatherTempF: number;
+  weatherTempF?: number;
   photos: string[];
   chartData: Record<PostRunChartTab, PostRunChartPoint[]>;
   chartReferenceLines: Partial<Record<PostRunChartTab, number>>;

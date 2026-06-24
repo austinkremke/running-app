@@ -1,5 +1,5 @@
 import { Ionicons } from '@expo/vector-icons';
-import { useState } from 'react';
+import { useMemo, useState } from 'react';
 import {
   Dimensions,
   Image,
@@ -14,12 +14,13 @@ import {
 import type { GpsPoint } from '../../maps/types';
 import { useInitialMapRegion } from '../../hooks/useInitialMapRegion';
 import { activeMapProvider } from '../../maps';
+import { regionFromRoutePoints } from '../../maps/mapCamera';
 import { colors, spacing } from '../../theme';
 
 type PostRunMediaCarouselProps = {
   photos: string[];
   routePoints: GpsPoint[];
-  weatherTempF: number;
+  weatherTempF?: number;
 };
 
 const SCREEN_WIDTH = Dimensions.get('window').width;
@@ -33,7 +34,11 @@ export function PostRunMediaCarousel({
   routePoints,
   weatherTempF,
 }: PostRunMediaCarouselProps) {
-  const { region } = useInitialMapRegion();
+  const { region: initialRegion } = useInitialMapRegion();
+  const region = useMemo(
+    () => regionFromRoutePoints(routePoints, 1.08) ?? initialRegion,
+    [initialRegion, routePoints],
+  );
   const MapView = activeMapProvider.MapView;
   const [activeIndex, setActiveIndex] = useState(0);
   const slideCount = 1 + photos.length;
@@ -56,14 +61,22 @@ export function PostRunMediaCarousel({
         contentContainerStyle={styles.scrollContent}
       >
         <View style={styles.card}>
-          <MapView region={region} routePoints={routePoints} />
+          <MapView
+            followRoute={false}
+            region={region}
+            routePoints={routePoints}
+            showRouteEndpoints={routePoints.length >= 2}
+            showsUserLocation={false}
+          />
           <View style={styles.expandButton}>
             <Ionicons color={colors.textPrimary} name="expand-outline" size={16} />
           </View>
-          <View style={styles.weatherPill}>
-            <Ionicons color={colors.accentGold} name="sunny-outline" size={14} />
-            <Text style={styles.weatherText}>{weatherTempF}°F</Text>
-          </View>
+          {weatherTempF != null ? (
+            <View style={styles.weatherPill}>
+              <Ionicons color={colors.accentGold} name="sunny-outline" size={14} />
+              <Text style={styles.weatherText}>{weatherTempF}°F</Text>
+            </View>
+          ) : null}
         </View>
 
         {photos.map((photoUrl) => (

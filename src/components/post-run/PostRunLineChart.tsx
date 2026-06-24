@@ -4,6 +4,7 @@ import Svg, { Defs, Line, LinearGradient, Path, Stop } from 'react-native-svg';
 
 import type { PostRunChartPoint } from '../../mock';
 import { colors } from '../../theme';
+import { buildDistanceAxisTicks } from '../../utils/chartAxis';
 
 type PostRunLineChartProps = {
   data: PostRunChartPoint[];
@@ -29,6 +30,8 @@ export function PostRunLineChart({
 }: PostRunLineChartProps) {
   const [width, setWidth] = useState(0);
   const plotWidth = Math.max(width - PADDING_LEFT - PADDING_RIGHT, 1);
+  const xAxisTicks = useMemo(() => buildDistanceAxisTicks(xMaxMiles), [xMaxMiles]);
+  const xMax = Math.max(xMaxMiles, 0.0001);
 
   const { linePath, areaPath, referenceY } = useMemo(() => {
     if (data.length === 0 || width <= 0) {
@@ -36,12 +39,17 @@ export function PostRunLineChart({
     }
 
     const values = data.map((point) => point.value);
-    const minValue = Math.min(...values);
-    const maxValue = Math.max(...values);
+    let minValue = Math.min(...values);
+    let maxValue = Math.max(...values);
+    if (minValue === maxValue) {
+      const padding = Math.max(Math.abs(minValue) * 0.05, 5);
+      minValue -= padding;
+      maxValue += padding;
+    }
     const valueRange = Math.max(maxValue - minValue, 1);
 
     const points = data.map((point) => {
-      const x = PADDING_LEFT + (point.distanceMiles / Math.max(xMaxMiles, 0.01)) * plotWidth;
+      const x = PADDING_LEFT + (point.distanceMiles / xMax) * plotWidth;
       const normalized = (point.value - minValue) / valueRange;
       const y = PADDING_TOP + (1 - normalized) * PLOT_HEIGHT;
       return { x, y };
@@ -61,13 +69,13 @@ export function PostRunLineChart({
     }
 
     return { linePath: line, areaPath: area, referenceY: refY };
-  }, [data, plotWidth, referenceValue, width, xMaxMiles]);
+  }, [data, plotWidth, referenceValue, width, xMax]);
 
   return (
     <View onLayout={(event) => setWidth(event.nativeEvent.layout.width)} style={styles.container}>
       <View style={styles.yAxis}>
-        {yLabels.map((label) => (
-          <Text key={label} style={styles.yLabel}>
+        {yLabels.map((label, index) => (
+          <Text key={`y-${index}-${label}`} style={styles.yLabel}>
             {label}
           </Text>
         ))}
@@ -103,9 +111,9 @@ export function PostRunLineChart({
       ) : null}
 
       <View style={styles.xAxis}>
-        {[0, 2, 4, 6, 8].map((mile) => (
-          <Text key={mile} style={styles.xLabel}>
-            {mile} mi
+        {xAxisTicks.map((tick) => (
+          <Text key={tick.id} style={styles.xLabel}>
+            {tick.label}
           </Text>
         ))}
       </View>
