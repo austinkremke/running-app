@@ -5,7 +5,7 @@ alwaysApply: true
 
 # Run Off (running-app)
 
-This workspace folder is **Run Off** — an Expo 56 React Native running app with local activity recording and a **live Supabase backend** (auth, activities, teams, feed).
+This workspace folder is **Run Off** — an Expo 56 React Native running app with local activity recording and a **live Supabase backend** (auth, activities, teams, feed, matches).
 
 ## Before non-trivial work
 

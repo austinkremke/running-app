@@ -52,7 +52,7 @@ Mention milestone/phase in the subject (e.g. `milestone 02 Phase C`) and note do
 | # | Topic | Status |
 |---|--------|--------|
 | 01 | Activity recording (local) | Done |
-| 02 | Supabase backend | **In progress** — Phase A–C done; Phase D next |
+| 02 | Supabase backend | **In progress** — Phase A–D done; Phase E next |
 | 03 | XP & rank (separate systems) | Planned |
 | 04 | Garmin / Strava | Planned |
 | 05 | Matchmaking & feed | Planned |
@@ -113,9 +113,9 @@ Business logic does not live in screen components.
 
 **Phase B (done):** `activities` table + Storage bucket; sync on run stop.
 
-**Phase C (done):** `teams`, `team_members`, `feed_posts`; feed + team screens from server.
+**Phase D (done):** `matches`, `match_participants`, active match screens; `match_id` on activities.
 
-**Phase D (next):** matches, match participants on server.
+**Phase E (next):** Edge Functions, webhooks, hardening.
 
 - Postgres: users, teams, matches, feed, `activities` **summary**, progression tables.
 - **User provisioning:** `handle_new_user` trigger on `auth.users` INSERT — not client-side profile creation.
@@ -179,7 +179,8 @@ Before merging significant work, confirm relevant items:
 - [ ] **Catalogs:** reference data from DB, not duplicated config lists
 - [ ] **Auth (02 Phase A):** sign-up provisions `profiles` via trigger; no client-only profile insert
 - [ ] **Activity sync (02 Phase B):** run stop uploads `activities` row + Storage track when logged in
-- [ ] **Social (02 Phase C):** feed/team screens use `feedService` / `teamService`; docs synced per checklist above
+- [ ] **Social (02 Phase C):** feed/team screens use `feedService` / `teamService`
+- [ ] **Matches (02 Phase D):** active team/solo screens from `matchService`; `match_id` on synced activities
 - [ ] **Docs sync:** README, milestones, SCHEMA, AGENTS, skill updated for shipped scope
 - [ ] Native modules (AsyncStorage, Mapbox) noted if rebuild required
 - [ ] Permissions: location is foreground-only unless milestone says otherwise
@@ -194,7 +195,7 @@ Full risk catalog: [reference.md](reference.md)
 - **Expo 56** — read https://docs.expo.dev/versions/v56.0.0/ before platform APIs.
 - **Mapbox** — dev client build required; not Expo Go.
 - **Env:** `EXPO_PUBLIC_MAPBOX_ACCESS_TOKEN`, `EXPO_PUBLIC_MOCK_GPS` (0 on device).
-- **Supabase** — Phases A–C live (auth, activities, teams, feed). `supabase db push` after migrations.
+- **Supabase** — Phases A–D live. `supabase db push` after migrations.
 
 ---
 
@@ -210,8 +211,8 @@ Full risk catalog: [reference.md](reference.md)
 | Onboarding / auth | `AuthContext.tsx`, `OnboardingContext.tsx`, `OnboardingLoginScreen.tsx` |
 | XP UI (mock) | `XpGainDrawer.tsx`, `mock/xpGain.ts` |
 | Auth + sync | `AuthContext.tsx`, `services/supabase.ts`, `activitySync.ts`, `activitySyncQueue.ts` |
-| Social | `feedService.ts`, `teamService.ts`, `socialMappers.ts`, `hooks/useFeed.ts`, `hooks/useMyTeam.ts` |
-| Level (stub) | `levelCurve.ts` |
+| Social | `feedService.ts`, `teamService.ts`, `socialMappers.ts` |
+| Matches | `matchService.ts`, `matchMappers.ts`, `useActiveTeamMatch.ts`, `useActiveSoloMatch.ts` |
 | Milestones | `milestones/*.md` |
 | Supabase schema | `supabase/migrations/`, `supabase/SCHEMA.md`, `src/types/database.ts` |
 

@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { ScrollView, StyleSheet, View } from 'react-native';
+import { ActivityIndicator, ScrollView, StyleSheet, View } from 'react-native';
 
 import {
   TeamChatDrawer,
@@ -8,7 +8,7 @@ import {
   TeamMatchRosters,
   TeamMatchScoreboard,
 } from '../components/match/team';
-import { MOCK_ACTIVE_TEAM_MATCH } from '../mock';
+import { useActiveTeamMatch } from '../hooks/useActiveTeamMatch';
 import { colors, spacing } from '../theme';
 
 type TeamMatchScreenProps = {
@@ -16,8 +16,16 @@ type TeamMatchScreenProps = {
 };
 
 export function TeamMatchScreen({ onRunPress }: TeamMatchScreenProps) {
-  const match = MOCK_ACTIVE_TEAM_MATCH;
+  const { match, loading } = useActiveTeamMatch();
   const [chatVisible, setChatVisible] = useState(false);
+
+  if (loading || !match) {
+    return (
+      <View style={styles.centered}>
+        <ActivityIndicator color={colors.accentLime} />
+      </View>
+    );
+  }
 
   return (
     <View style={styles.container}>
@@ -58,5 +66,11 @@ const styles = StyleSheet.create({
   },
   bottomSpacer: {
     height: spacing.sm,
+  },
+  centered: {
+    flex: 1,
+    alignItems: 'center',
+    justifyContent: 'center',
+    backgroundColor: colors.background,
   },
 });

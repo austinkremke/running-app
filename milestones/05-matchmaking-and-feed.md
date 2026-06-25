@@ -19,7 +19,7 @@ Replace remaining mock match/social data with server-backed state: real opponent
 
 | Area | Today | Target |
 |------|-------|--------|
-| Solo / team matches | Mock screens | Postgres `matches` + participants |
+| Solo / team matches | Mock lineup tab | **Active** match screens from Postgres; lineup still mock |
 | Match results | Static | Runs linked to `activity_id`; Elo update |
 | Feed | **Server** (`feed_posts` + `activities`) — no likes/comments/friends | Reactions, friends tab, richer cards |
 | Teams | **Server** (join, members, top list) — stats/activity mock | Full team stats, activity stream |
@@ -30,9 +30,7 @@ Replace remaining mock match/social data with server-backed state: real opponent
 
 ## Rollout phases
 
-### Phase 1 — Match persistence
-
-- Create/join match; store state; link completed run on stop/sync
+- Live team match shell in [02 Phase D](../02-supabase-backend.md#phase-d--match-shell-on-server); scoring/Elo still static
 
 ### Phase 2 — Elo & rank UI
 

@@ -1,7 +1,7 @@
 # Supabase Backend
 
 > **Milestone:** 02  
-> **Status:** In progress — Phase A + B + C shipped; Phase D next  
+> **Status:** In progress — Phase A–D shipped; Phase E next  
 > **Depends on:** [01 Activity recording](./01-activity-recording.md)  
 > **Unblocks:** [03 XP & rank](./03-xp-and-ranking.md), [04 Integrations](./04-third-party-integrations.md), [05 Matchmaking & feed](./05-matchmaking-and-feed.md)
 
@@ -405,8 +405,21 @@ create trigger on_auth_user_created
 
 ### Phase D — Match shell on server
 
-- `matches`, `match_participants` — persist mock match state
-- Realtime optional for chat ([05](./05-matchmaking-and-feed.md))
+- `match_types`, `matches`, `match_participants` tables + RLS
+- Demo team match: Road Warriors vs Pacers (`state_json` + live home roster overlay)
+- Demo solo match: enroll on first Solo Match view; home runner from profile
+- Active Team/Solo match screens load from Supabase (mock fallback if no team / offline)
+- Runs started during active match → `activities.match_id` on sync
+
+**Shipped in app:** `matchService.ts`, `matchMappers.ts`, `useActiveTeamMatch`, `useActiveSoloMatch`, `RunContext` match linking
+
+**Phase D checklist**
+
+- [x] `matches` migration + seed demo matches
+- [x] Team match screen from server when on a team
+- [x] Solo match enroll + screen from server
+- [x] Link `match_id` on activity sync when active match exists
+- [ ] Match lineup tab still mock (matchmaking flow → milestone 05)
 
 ### Phase E — Hardening
 
@@ -424,6 +437,7 @@ create trigger on_auth_user_created
 | No user in database | `auth.users` + trigger → `profiles`, `player_progress`, `player_rank` |
 | `activityStorage.ts` only | Local cache + sync on stop → Supabase `activities` + Storage (Phase B — done) |
 | Mock feed / teams | Postgres + RLS (Phase C — done) |
+| Mock active match screens | Server `matches` + `state_json` (Phase D — done); lineup tab still mock |
 | `activityExchange` stubs | Edge Functions + Storage (Phase E / [04](./04-third-party-integrations.md)) |
 
 ---
@@ -445,4 +459,4 @@ create trigger on_auth_user_created
 
 **First implementation step:** Phase A — Supabase Auth sign-up creates `auth.users`; a Postgres trigger provisions `profiles` + default progression rows; the app replaces mock onboarding auth with a real session and profile fetch. **Shipped.**
 
-**Current step:** Phase D — matches, `match_participants`, persist mock match state on server.
+**Current step:** Phase E — Edge Functions, webhooks, rate limits, staging/prod.

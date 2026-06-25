@@ -88,12 +88,14 @@ teams / team_members            — logo, tag, motto; one team per user (v1)
 feed_posts                      — activity_id FK, audiences[], caption fields
 
 matches / match_participants / match_results
+match_types                     — reference catalog (seed)
 feed_reactions                  — later
 ```
 
 **Phase A ships:** `profiles`, `player_progress`, `player_rank`, trigger, RLS, `rank_tiers` seed.  
 **Phase B ships:** `activities` table + `activities` Storage bucket; sync on run stop.  
-**Phase C ships:** `teams`, `team_members`, `feed_posts`, `profiles.team_id`; feed + team UI from server.
+**Phase C ships:** `teams`, `team_members`, `feed_posts`, `profiles.team_id`; feed + team UI from server.  
+**Phase D ships:** `match_types`, `matches`, `match_participants`; active match screens + `activities.match_id`.
 
 Full detail: [02-supabase-backend.md](../milestones/02-supabase-backend.md).
 
@@ -108,6 +110,8 @@ Full detail: [02-supabase-backend.md](../milestones/02-supabase-backend.md).
 | `teams` | Seeded `Road Warriors` (`11111111-1111-4111-8111-111111111111`) |
 | `team_members` | Unique `user_id` — one team per user (v1) |
 | `feed_posts` | `audiences text[]`: `community`, `friends`, `team`; unique `activity_id` |
+| `matches` | `kind` team/solo, `state_json` UI shell, `ends_at` for countdown |
+| `match_participants` | `user_id`, `side`, `points`; solo enroll on first view |
 
 ---
 

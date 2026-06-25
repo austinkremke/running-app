@@ -21,6 +21,7 @@ Expo 56 React Native running app — local GPS recording, Supabase backend, team
 - **Supabase** — Auth, Postgres, Storage
   - Activities sync on run stop (Phase B)
   - Teams, memberships, feed posts (Phase C)
+  - Match shell: `matches`, `match_participants` (Phase D)
 
 ## Env
 
@@ -54,7 +55,8 @@ Mapbox on device often needs a recent Xcode beta; see project notes in your shel
 | 02 Supabase — Phase A auth | **Done** |
 | 02 Supabase — Phase B activity sync | **Done** |
 | 02 Supabase — Phase C teams/feed | **Done** |
-| 02 Supabase — Phase D matches | **Next** |
+| 02 Supabase — Phase D matches | **Done** |
+| 02 Supabase — Phase E hardening | **Next** |
 | 03 XP & rank | Planned |
 | 04 Garmin / Strava | Planned |
 | 05 Matchmaking & feed | Planned (partial overlap with 02 Phase C) |
@@ -63,7 +65,7 @@ Mapbox on device often needs a recent Xcode beta; see project notes in your shel
 
 | Area | State |
 |------|--------|
-| Match / matchmaking screens | Mock data |
+| Match / matchmaking lineup UI | Mock (lineup tab); **active match screens from server** |
 | Me tab profile, XP drawer on feed | Mock UI (XP not written to server) |
 | Feed likes / comments | UI only (zeros) |
 | Friends feed tab | Empty (no social graph yet) |
@@ -90,6 +92,12 @@ Mapbox on device often needs a recent Xcode beta; see project notes in your shel
 2. Post-run → “Add to Activity Feed” creates `feed_posts` linked to synced `activities`.
 3. Feed tabs load posts from Postgres (friends tab pending social graph).
 
+**Matches (Phase D)**
+
+1. Join **Road Warriors** → active team match vs Pacers loads on Team Match screen.
+2. Open Solo Match → enrolls in demo solo match; home runner from your profile.
+3. Runs started during an active match get `activities.match_id` on sync.
+
 ## Key services
 
 | Area | Files |
@@ -97,6 +105,7 @@ Mapbox on device often needs a recent Xcode beta; see project notes in your shel
 | Auth | `AuthContext.tsx`, `services/supabase.ts`, `services/profileService.ts` |
 | Activities | `activitySync.ts`, `activityPolyline.ts`, `activitySyncQueue.ts` |
 | Social | `feedService.ts`, `teamService.ts`, `socialMappers.ts` |
+| Matches | `matchService.ts`, `matchMappers.ts`, `hooks/useActiveTeamMatch.ts`, `hooks/useActiveSoloMatch.ts` |
 | Level (display stub) | `levelCurve.ts` — full XP in milestone 03 |
 
 Details: [02-supabase-backend.md](milestones/02-supabase-backend.md).

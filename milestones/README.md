@@ -6,7 +6,7 @@ Chronological roadmap for **Run Off** (`running-app`). Each milestone is a self-
 
 **Database / schema:** [supabase/SCHEMA.md](../supabase/SCHEMA.md) — migration workflow, DB-first catalogs (`rank_tiers`), generated `src/types/database.ts`.
 
-**Backend order (milestone 02):** Auth → activity sync → teams/feed → matches. Phases A–C are **shipped**; Phase D (matches) is **next**. See [02](./02-supabase-backend.md).
+**Backend order (milestone 02):** Auth → activity sync → teams/feed → matches. Phases A–D are **shipped**; Phase E (hardening) is **next**. See [02](./02-supabase-backend.md).
 
 **When shipping work:** update docs before commit — checklist in [run-off SKILL § Docs sync](../.cursor/skills/run-off/SKILL.md#docs-sync-on-ship-required).
 
@@ -23,7 +23,7 @@ When adding a milestone:
 | # | Milestone | Status | Depends on | Unblocks |
 |---|-----------|--------|------------|----------|
 | 01 | [Activity recording](./01-activity-recording.md) | **Done** | — | 02, 03, 04 |
-| 02 | [Supabase backend](./02-supabase-backend.md) | **In progress** — Phase A–C done; Phase D matches next | 01 | 03, 04, 05 |
+| 02 | [Supabase backend](./02-supabase-backend.md) | **In progress** — Phase A–D done; Phase E hardening next | 01 | 03, 04, 05 |
 | 03 | [XP & competitive rank](./03-xp-and-ranking.md) | Planned | 01, 02 (partial) | 05 |
 | 04 | [Third-party integrations](./04-third-party-integrations.md) | Planned | 01, 02 | 05 |
 | 05 | [Matchmaking, feed & social sync](./05-matchmaking-and-feed.md) | Planned | 02, 03, 04 | — |
@@ -40,6 +40,7 @@ When adding a milestone:
         │  Phase A: auth + profiles  │
         │  Phase B: activity sync    │
         │  Phase C: teams + feed     │
+        │  Phase D: matches          │
         ├──────────────┬─────────────┤
         ▼              ▼             ▼
 03 XP & rank    04 Garmin/Strava   (auth, teams schema)

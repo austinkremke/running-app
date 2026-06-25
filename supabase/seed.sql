@@ -30,3 +30,20 @@ on conflict (id) do update set
   motto = excluded.motto,
   logo_icon = excluded.logo_icon,
   logo_accent = excluded.logo_accent;
+
+-- Opponent team for Phase D demo team match.
+insert into public.teams (id, name, tag, motto, logo_icon, logo_accent)
+values (
+  '11111111-1111-4111-8111-222222222222',
+  'Pacers',
+  'PACS',
+  'Pace is power.',
+  'footsteps',
+  'purple'
+)
+on conflict (id) do update set
+  name = excluded.name,
+  tag = excluded.tag,
+  motto = excluded.motto,
+  logo_icon = excluded.logo_icon,
+  logo_accent = excluded.logo_accent;

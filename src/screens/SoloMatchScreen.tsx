@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { ScrollView, StyleSheet, View } from 'react-native';
+import { ActivityIndicator, ScrollView, StyleSheet, View } from 'react-native';
 
 import {
   SoloActiveMatchActions,
@@ -9,21 +9,25 @@ import {
   SoloMatchScoreboard,
   SoloMatchStatsSection,
 } from '../components/match/solo';
-import { MOCK_ACTIVE_SOLO_MATCH, type ActiveSoloMatch } from '../mock';
+import { useActiveSoloMatch } from '../hooks/useActiveSoloMatch';
 import { colors, spacing } from '../theme';
 
 type SoloMatchScreenProps = {
-  match?: ActiveSoloMatch;
   onRunPress?: () => void;
   embedded?: boolean;
 };
 
-export function SoloMatchScreen({
-  match = MOCK_ACTIVE_SOLO_MATCH,
-  onRunPress,
-  embedded = false,
-}: SoloMatchScreenProps) {
+export function SoloMatchScreen({ onRunPress, embedded = false }: SoloMatchScreenProps) {
+  const { match, loading } = useActiveSoloMatch();
   const [chatVisible, setChatVisible] = useState(false);
+
+  if (loading || !match) {
+    return (
+      <View style={styles.centered}>
+        <ActivityIndicator color={colors.accentLime} />
+      </View>
+    );
+  }
 
   return (
     <View style={styles.container}>
@@ -69,5 +73,11 @@ const styles = StyleSheet.create({
   },
   bottomSpacer: {
     height: spacing.sm,
+  },
+  centered: {
+    flex: 1,
+    alignItems: 'center',
+    justifyContent: 'center',
+    backgroundColor: colors.background,
   },
 });

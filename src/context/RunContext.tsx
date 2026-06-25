@@ -17,6 +17,7 @@ import { recordsToGpsPoints } from '../services/activityAdapters';
 import { livePaceLabel, totalDistanceMeters } from '../services/activityMetrics';
 import { appendGpsRecord, createStartRecord } from '../services/activityRecorder';
 import { buildPostRunSummary } from '../services/buildPostRunSummary';
+import { fetchActiveMatchId } from '../services/matchService';
 import { syncActivityToServer } from '../services/activitySync';
 import { formatDistanceMiles, formatDurationClock } from '../services/distanceService';
 import { elapsedSeconds } from '../services/runMetrics';
@@ -108,12 +109,14 @@ export function RunProvider({ children }: { children: React.ReactNode }) {
 
     const startedAt = new Date().toISOString();
     const source = await detectActivitySource();
+    const matchId = userId ? await fetchActiveMatchId(userId) : null;
     const nextSession: ActivitySession = {
       id: newActivityId(),
       status: 'recording',
       startedAt,
       pausedDurationMs: 0,
       source,
+      matchId: matchId ?? undefined,
     };
 
     const firstPoint = await activeLocationProvider.getCurrentPosition();
@@ -137,7 +140,7 @@ export function RunProvider({ children }: { children: React.ReactNode }) {
     });
 
     return true;
-  }, [isRecording]);
+  }, [isRecording, userId]);
 
   const stopRun = useCallback(async () => {
     watcherRef.current?.stop();
