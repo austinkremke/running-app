@@ -109,7 +109,14 @@ export function RunProvider({ children }: { children: React.ReactNode }) {
 
     const startedAt = new Date().toISOString();
     const source = await detectActivitySource();
-    const matchId = userId ? await fetchActiveMatchId(userId) : null;
+    let matchId: string | null = null;
+    if (userId) {
+      try {
+        matchId = await fetchActiveMatchId(userId);
+      } catch (error) {
+        console.warn('Could not resolve active match for run.', error);
+      }
+    }
     const nextSession: ActivitySession = {
       id: newActivityId(),
       status: 'recording',
