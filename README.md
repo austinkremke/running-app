@@ -7,6 +7,7 @@ Expo 56 React Native running app — local GPS recording, Supabase backend, team
 | Doc | Purpose |
 |-----|---------|
 | [milestones/README.md](milestones/README.md) | Roadmap (01 → 06) + status table |
+| [milestones/06-account-gating-and-cosmetics.md](milestones/06-account-gating-and-cosmetics.md) | Account settings, achievements, gates, rank avatar borders |
 | [milestones/02-supabase-backend.md](milestones/02-supabase-backend.md) | Backend phases A–E (auth, sync, teams, feed, matches) |
 | [supabase/SCHEMA.md](supabase/SCHEMA.md) | Database index + migration workflow |
 | [AGENTS.md](AGENTS.md) | Agent / contributor quick rules |
@@ -22,6 +23,7 @@ Expo 56 React Native running app — local GPS recording, Supabase backend, team
   - Activities sync on run stop (Phase B)
   - Teams, memberships, feed posts (Phase C)
   - Match shell: `matches`, `match_participants` (Phase D)
+  - RLS helpers for `match_participants` + `feed_posts` / `activities` (post–Phase D fixes)
 
 ## Env
 
@@ -59,7 +61,8 @@ Mapbox on device often needs a recent Xcode beta; see project notes in your shel
 | 02 Supabase — Phase E hardening | **Next** |
 | 03 XP & rank | Planned |
 | 04 Garmin / Strava | Planned |
-| 05 Matchmaking & feed | Planned (partial overlap with 02 Phase C) |
+| 05 Matchmaking & feed | Planned (partial overlap with 02 Phase C/D) |
+| 06 Account, gating & cosmetics | Planned |
 
 ### Still mock / placeholder (honest)
 
@@ -67,9 +70,11 @@ Mapbox on device often needs a recent Xcode beta; see project notes in your shel
 |------|--------|
 | Match / matchmaking lineup UI | Mock (lineup tab); **active match screens from server** |
 | Me tab profile, XP drawer on feed | Mock UI (XP not written to server) |
+| Achievements on Me tab | Mock list (server catalog → milestone 06) |
 | Feed likes / comments | UI only (zeros) |
 | Friends feed tab | Empty (no social graph yet) |
 | Team stats / team activity feed | Placeholder sections |
+| Team match roster names | Mix of seeded `state_json` + real `team_members` overlay |
 
 ## Backend flow
 
@@ -89,8 +94,8 @@ Mapbox on device often needs a recent Xcode beta; see project notes in your shel
 **Social (Phase C)**
 
 1. Team tab → join a team (seeded **Road Warriors** for dev).
-2. Post-run → “Add to Activity Feed” creates `feed_posts` linked to synced `activities`.
-3. Feed tabs load posts from Postgres (friends tab pending social graph).
+2. Post-run → “Add to Activity Feed” syncs the activity if needed, then creates `feed_posts` linked to `activities`.
+3. Feed tabs load posts from Postgres; each card shows a **static route map** from the activity `polyline` (friends tab pending social graph).
 
 **Matches (Phase D)**
 
@@ -104,7 +109,8 @@ Mapbox on device often needs a recent Xcode beta; see project notes in your shel
 |------|--------|
 | Auth | `AuthContext.tsx`, `services/supabase.ts`, `services/profileService.ts` |
 | Activities | `activitySync.ts`, `activityPolyline.ts`, `activitySyncQueue.ts` |
-| Social | `feedService.ts`, `teamService.ts`, `socialMappers.ts` |
+| Social | `feedService.ts` (`publishActivityToFeed`), `teamService.ts`, `socialMappers.ts` |
+| Feed route preview | `StaticRouteMapPreview.tsx`, `polylineToGpsPoints` in `activityAdapters.ts` |
 | Matches | `matchService.ts`, `matchMappers.ts`, `hooks/useActiveTeamMatch.ts`, `hooks/useActiveSoloMatch.ts` |
 | Level (display stub) | `levelCurve.ts` — full XP in milestone 03 |
 

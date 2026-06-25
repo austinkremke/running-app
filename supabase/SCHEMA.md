@@ -94,10 +94,21 @@ feed_reactions                  — later
 
 **Phase A ships:** `profiles`, `player_progress`, `player_rank`, trigger, RLS, `rank_tiers` seed.  
 **Phase B ships:** `activities` table + `activities` Storage bucket; sync on run stop.  
-**Phase C ships:** `teams`, `team_members`, `feed_posts`, `profiles.team_id`; feed + team UI from server.  
-**Phase D ships:** `match_types`, `matches`, `match_participants`; active match screens + `activities.match_id`.
+**Phase C ships:** `teams`, `team_members`, `feed_posts`, `profiles.team_id`; feed + team UI from server; feed route preview from `activities.polyline`.  
+**Phase D ships:** `match_types`, `matches`, `match_participants`; active match screens + `activities.match_id`.  
+**Post–Phase D RLS fixes:** `20250615000001_fix_match_participants_rls.sql`, `20250616000001_fix_feed_posts_rls.sql` — security definer helpers to avoid policy recursion.
 
 Full detail: [02-supabase-backend.md](../milestones/02-supabase-backend.md).
+
+---
+
+## RLS helpers (security definer)
+
+| Function | Used by |
+|----------|---------|
+| `is_match_participant`, `can_view_match` | `matches` / `match_participants` SELECT |
+| `user_owns_activity` | `feed_posts` INSERT |
+| `activity_has_visible_feed_post` | `activities` SELECT (feed-shared) |
 
 ---
 

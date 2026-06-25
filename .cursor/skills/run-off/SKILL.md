@@ -28,6 +28,7 @@ When you finish a **milestone**, **milestone 02 phase**, or any PR that changes 
 | [milestones/01-activity-recording.md](../../milestones/01-activity-recording.md) | Known gaps / handoff if sync or feed behavior changed |
 | [milestones/03-xp-and-ranking.md](../../milestones/03-xp-and-ranking.md) | Depends-on notes if progression tables or stubs changed |
 | [milestones/05-matchmaking-and-feed.md](../../milestones/05-matchmaking-and-feed.md) | Scope “Today vs Target” if feed/teams/matches moved |
+| [milestones/06-account-gating-and-cosmetics.md](../../milestones/06-account-gating-and-cosmetics.md) | If account/gating/achievement scope changed |
 | [supabase/SCHEMA.md](../../supabase/SCHEMA.md) | Table index, “Phase X ships” lines, workflow step 6 |
 | [AGENTS.md](../../AGENTS.md) | Quick rules, current phase pointer |
 | [SKILL.md](SKILL.md) | Milestone table, Supabase phases, key files, pre-ship checklist |
@@ -180,7 +181,7 @@ Before merging significant work, confirm relevant items:
 - [ ] **Catalogs:** reference data from DB, not duplicated config lists
 - [ ] **Auth (02 Phase A):** sign-up provisions `profiles` via trigger; no client-only profile insert
 - [ ] **Activity sync (02 Phase B):** run stop uploads `activities` row + Storage track when logged in
-- [ ] **Social (02 Phase C):** feed/team screens use `feedService` / `teamService`
+- [ ] **Social (02 Phase C):** feed/team screens use `feedService` / `teamService`; feed cards render route from `polyline`
 - [ ] **Matches (02 Phase D):** active team/solo screens from `matchService`; `match_id` on synced activities
 - [ ] **Docs sync:** README, milestones, SCHEMA, AGENTS, skill updated for shipped scope
 - [ ] Native modules (AsyncStorage, Mapbox) noted if rebuild required
@@ -208,11 +209,11 @@ Full risk catalog: [reference.md](reference.md)
 | Types | `types/activity.ts` |
 | Charts | `activityStreams.ts`, `chartAxis.ts` |
 | Post-run | `PostRunScreen.tsx`, `buildPostRunSummary.ts` |
-| Maps | `MapboxMapView.tsx`, `locationProvider.ts` |
+| Maps | `MapboxMapView.tsx`, `StaticRouteMapPreview.tsx`, `locationProvider.ts` |
 | Onboarding / auth | `AuthContext.tsx`, `OnboardingContext.tsx`, `OnboardingLoginScreen.tsx` |
 | XP UI (mock) | `XpGainDrawer.tsx`, `mock/xpGain.ts` |
 | Auth + sync | `AuthContext.tsx`, `services/supabase.ts`, `activitySync.ts`, `activitySyncQueue.ts` |
-| Social | `feedService.ts`, `teamService.ts`, `socialMappers.ts` |
+| Social | `feedService.ts` (`publishActivityToFeed`), `teamService.ts`, `socialMappers.ts`, `activityAdapters.ts` (`polylineToGpsPoints`) |
 | Matches | `matchService.ts`, `matchMappers.ts`, `useActiveTeamMatch.ts`, `useActiveSoloMatch.ts` |
 | Milestones | `milestones/*.md` |
 | Supabase schema | `supabase/migrations/`, `supabase/SCHEMA.md`, `src/types/database.ts` |

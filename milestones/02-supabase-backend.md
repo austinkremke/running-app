@@ -3,7 +3,7 @@
 > **Milestone:** 02  
 > **Status:** In progress — Phase A–D shipped; Phase E next  
 > **Depends on:** [01 Activity recording](./01-activity-recording.md)  
-> **Unblocks:** [03 XP & rank](./03-xp-and-ranking.md), [04 Integrations](./04-third-party-integrations.md), [05 Matchmaking & feed](./05-matchmaking-and-feed.md)
+> **Unblocks:** [03 XP & rank](./03-xp-and-ranking.md), [04 Integrations](./04-third-party-integrations.md), [05 Matchmaking & feed](./05-matchmaking-and-feed.md), [06 Account & gating](./06-account-gating-and-cosmetics.md)
 
 ---
 
@@ -393,7 +393,7 @@ create trigger on_auth_user_created
 
 - `teams`, `team_members`, `profiles.team_id`
 - Feed posts linked to `activities` (`feed_posts` with `audiences[]`)
-- **Shipped in app:** `teamService.ts`, `feedService.ts`, `socialMappers.ts`; Feed / Team / Top Teams screens load from Supabase; “Add to feed” creates `feed_posts`
+- **Shipped in app:** `teamService.ts`, `feedService.ts` (`publishActivityToFeed` syncs before post), `socialMappers.ts`; Feed / Team / Top Teams screens load from Supabase; feed cards show **static route map** from `activities.polyline` (`StaticRouteMapPreview`)
 
 **Phase C checklist**
 
@@ -402,6 +402,8 @@ create trigger on_auth_user_created
 - [x] Feed tabs query server posts (friends tab empty until social graph ships)
 - [x] Team tab join prompt → `joinTeam`
 - [x] Apply migration to remote + verify feed post after run
+- [x] Fix `feed_posts` ↔ `activities` RLS recursion (`user_owns_activity`, `activity_has_visible_feed_post`)
+- [x] Feed card route preview from synced polyline
 
 ### Phase D — Match shell on server
 
@@ -419,6 +421,7 @@ create trigger on_auth_user_created
 - [x] Team match screen from server when on a team
 - [x] Solo match enroll + screen from server
 - [x] Link `match_id` on activity sync when active match exists
+- [x] Fix `match_participants` RLS infinite recursion (`is_match_participant`, `can_view_match` security definer helpers)
 - [ ] Match lineup tab still mock (matchmaking flow → milestone 05)
 
 ### Phase E — Hardening
@@ -436,7 +439,7 @@ create trigger on_auth_user_created
 | `OnboardingContext` mock auth | Supabase Auth + `AuthContext` (Phase A — done) |
 | No user in database | `auth.users` + trigger → `profiles`, `player_progress`, `player_rank` |
 | `activityStorage.ts` only | Local cache + sync on stop → Supabase `activities` + Storage (Phase B — done) |
-| Mock feed / teams | Postgres + RLS (Phase C — done) |
+| Mock feed / teams | Postgres + RLS (Phase C — done); route map on feed cards from `polyline` |
 | Mock active match screens | Server `matches` + `state_json` (Phase D — done); lineup tab still mock |
 | `activityExchange` stubs | Edge Functions + Storage (Phase E / [04](./04-third-party-integrations.md)) |
 

@@ -37,4 +37,4 @@ Key paths: `src/types/activity.ts`, `src/services/activity*.ts`, `src/context/Ru
 
 ## Handoff to milestone 02
 
-Backend accepts the same **`ActivityRecord[]` + session summary** shape. Phases A–C shipped: summaries in Postgres, full tracks in Storage, `feed_posts` on “Add to feed”.
+Backend accepts the same **`ActivityRecord[]` + session summary** shape. Phases A–D shipped: summaries + downsampled `polyline` in Postgres, full tracks in Storage, `feed_posts` on “Add to feed”, static route preview on feed cards from `polyline`.
