@@ -1,6 +1,6 @@
 # Database schema overview
 
-> **Source of truth:** `supabase/migrations/*.sql` (add when milestone 02 starts).  
+> **Source of truth:** `supabase/migrations/*.sql`.  
 > **Generated types:** `src/types/database.ts` via `supabase gen types typescript`.  
 > **Design doc:** [milestones/02-supabase-backend.md](../milestones/02-supabase-backend.md)
 
@@ -79,14 +79,17 @@ player_rank                   — user_id → profiles, competitive_rating (defa
 rank_tiers                    — id, display_name, subtitle, icon, min_rating, sort_order (SEED)
 xp_ledger                     — id, user_id, amount, source, breakdown_json, …
 
-activities                    — id, user_id, started_at, distance_m, summary_json, polyline, …
+activities                    — id, user_id, started_at, ended_at, distance_meters, duration_seconds,
+                              — source, summary_json, polyline (jsonb), track_storage_path
+                              — Storage: activities/{user_id}/{activity_id}/track.json
+
 teams / team_members
 matches / match_participants / match_results
 feed_posts / feed_reactions
 ```
 
 **Phase A ships:** `profiles`, `player_progress`, `player_rank`, trigger, RLS, `rank_tiers` seed.  
-**Phase B+:** `activities`, teams, matches, feed.
+**Phase B ships:** `activities` table + `activities` Storage bucket; sync on run stop.
 
 Full detail: [02-supabase-backend.md](../milestones/02-supabase-backend.md).
 

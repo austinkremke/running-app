@@ -7,7 +7,7 @@ Expo 56 React Native running app — local GPS recording, competitive matches, t
 | Doc | Purpose |
 |-----|---------|
 | [milestones/README.md](milestones/README.md) | Roadmap (01 → 05) |
-| [milestones/02-supabase-backend.md](milestones/02-supabase-backend.md) | Backend plan — **Phase A: auth & users in DB first** |
+| [milestones/02-supabase-backend.md](milestones/02-supabase-backend.md) | Backend plan — Phase A auth + Phase B activity sync |
 | [supabase/SCHEMA.md](supabase/SCHEMA.md) | Database index + migration workflow |
 | [AGENTS.md](AGENTS.md) | Agent / contributor quick rules |
 
@@ -15,7 +15,7 @@ Expo 56 React Native running app — local GPS recording, competitive matches, t
 
 - **Expo 56** + custom navigation (`src/navigation/`)
 - **Mapbox** — dev client build required (`npx expo run:ios`)
-- **Supabase** (planned) — Auth, Postgres, Storage
+- **Supabase** — Auth, Postgres, Storage (activities sync on run stop)
 
 ## Env
 
@@ -23,8 +23,6 @@ Copy `.env.example` → `.env`. Required today:
 
 - `EXPO_PUBLIC_MAPBOX_ACCESS_TOKEN`
 - `EXPO_PUBLIC_MOCK_GPS` — `1` in simulator, `0` on device
-
-When milestone 02 Phase A lands:
 
 - `EXPO_PUBLIC_SUPABASE_URL`
 - `EXPO_PUBLIC_SUPABASE_ANON_KEY`
@@ -47,16 +45,26 @@ Mapbox on device often needs a recent Xcode beta; see project notes in your shel
 | Milestone | Status |
 |-----------|--------|
 | 01 Activity recording (local) | Done |
-| 02 Supabase — Phase A auth | In progress (linked to run-off project) |
+| 02 Supabase — Phase A auth | Done |
+| 02 Supabase — Phase B activity sync | Done |
+| 02 Supabase — Phase C teams/feed | Next |
 | 03 XP & rank | Planned |
 | 04 Garmin / Strava | Planned |
 | 05 Matchmaking & feed | Planned |
 
-## Backend: how users get into the database
+## Backend flow
+
+**Auth (Phase A)**
 
 1. User signs in on onboarding (Apple / Google / email).
 2. Supabase Auth creates `auth.users`.
 3. Postgres trigger creates `profiles`, `player_progress`, `player_rank`.
 4. App stores session and loads profile.
 
-Details: [02-supabase-backend.md — Phase A](milestones/02-supabase-backend.md#phase-a--auth--user-provisioning-first-step).
+**Activity sync (Phase B)**
+
+1. Run stops → saved locally (`activityStorage.ts`).
+2. If logged in → `activities` row + downsampled `polyline` in Postgres; full track in Storage.
+3. If offline or sync fails → queued locally; flushed on next login.
+
+Details: [02-supabase-backend.md](milestones/02-supabase-backend.md).

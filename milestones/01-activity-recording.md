@@ -27,7 +27,7 @@ Key paths: `src/types/activity.ts`, `src/services/activity*.ts`, `src/context/Ru
 
 ## Known gaps (not this milestone)
 
-- No cloud sync or multi-device.
+- Cloud sync ships in [02 Phase B](./02-supabase-backend.md#phase-b--activity-sync) (local-first + queue).
 - No server-side validation / anti-cheat.
 - XP drawer still mocked on “Add to feed”.
 - Garmin/Strava import not implemented.

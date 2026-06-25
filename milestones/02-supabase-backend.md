@@ -1,7 +1,7 @@
 # Supabase Backend
 
 > **Milestone:** 02  
-> **Status:** Next  
+> **Status:** In progress — Phase A + B shipped; Phase C next  
 > **Depends on:** [01 Activity recording](./01-activity-recording.md)  
 > **Unblocks:** [03 XP & rank](./03-xp-and-ranking.md), [04 Integrations](./04-third-party-integrations.md), [05 Matchmaking & feed](./05-matchmaking-and-feed.md)
 
@@ -265,29 +265,29 @@ Onboarding “How it works” → complete → AppShell (logged-in user)
 
 **1. Supabase project & repo**
 
-- [ ] Create Supabase project (dev); optional separate prod later
-- [ ] `supabase init` + link project; add `supabase/config.toml` to repo
-- [ ] Env: `EXPO_PUBLIC_SUPABASE_URL`, `EXPO_PUBLIC_SUPABASE_ANON_KEY` in `.env` / `.env.example`
-- [ ] Enable auth providers in dashboard: **Email** (dev), **Apple** (iOS ship), **Google** (optional v1)
+- [x] Create Supabase project (dev); optional separate prod later
+- [x] `supabase init` + link project; add `supabase/config.toml` to repo
+- [x] Env: `EXPO_PUBLIC_SUPABASE_URL`, `EXPO_PUBLIC_SUPABASE_ANON_KEY` in `.env` / `.env.example`
+- [x] Enable auth providers in dashboard: **Email** (dev), **Apple** (iOS ship), **Google** (optional v1)
 
 **2. First migration — users in Postgres**
 
-- [ ] `profiles` table + RLS (select/update own row; insert via trigger only)
-- [ ] `player_progress`, `player_rank` tables + RLS
-- [ ] `handle_new_user()` trigger on `auth.users` INSERT
-- [ ] `seed.sql`: `rank_tiers` rows (can land in same PR or immediately after)
-- [ ] `supabase db reset` locally; verify trigger creates all three rows on sign-up
-- [ ] `supabase gen types typescript --local > src/types/database.ts`; commit with migration
+- [x] `profiles` table + RLS (select/update own row; insert via trigger only)
+- [x] `player_progress`, `player_rank` tables + RLS
+- [x] `handle_new_user()` trigger on `auth.users` INSERT
+- [x] `seed.sql`: `rank_tiers` rows (can land in same PR or immediately after)
+- [x] `supabase db reset` locally; verify trigger creates all three rows on sign-up
+- [x] `supabase gen types typescript --local > src/types/database.ts`; commit with migration
 
 **3. App client**
 
-- [ ] Install `@supabase/supabase-js`; session storage via `expo-secure-store` (or AsyncStorage for dev-only — prefer SecureStore for prod)
-- [ ] `src/services/supabase.ts` — singleton client, `isSupabaseConfigured` guard
-- [ ] `src/context/AuthContext.tsx` — `session`, `profile`, `loading`, `signIn*` / `signOut`, `onAuthStateChange`
-- [ ] Split from `OnboardingContext`: onboarding = tutorial UX only; auth = identity
-- [ ] `RootNavigator`: `loading` → splash; `!session` → login; `session` → onboarding tutorial or `AppShell`
-- [ ] Replace `mockSignIn` in `OnboardingLoginScreen` with real provider calls
-- [ ] After sign-in: `select` from `profiles` where `id = session.user.id` (retry briefly if trigger is still running)
+- [x] Install `@supabase/supabase-js`; session storage via `expo-secure-store` (or AsyncStorage for dev-only — prefer SecureStore for prod)
+- [x] `src/services/supabase.ts` — singleton client, `isSupabaseConfigured` guard
+- [x] `src/context/AuthContext.tsx` — `session`, `profile`, `loading`, `signIn*` / `signOut`, `onAuthStateChange`
+- [x] Split from `OnboardingContext`: onboarding = tutorial UX only; auth = identity
+- [x] `RootNavigator`: `loading` → splash; `!session` → login; `session` → onboarding tutorial or `AppShell`
+- [x] Replace `mockSignIn` in `OnboardingLoginScreen` with real provider calls
+- [x] After sign-in: `select` from `profiles` where `id = session.user.id` (retry briefly if trigger is still running)
 
 **4. Auth provider specifics (v1 order)**
 
@@ -299,10 +299,10 @@ Onboarding “How it works” → complete → AppShell (logged-in user)
 
 **5. Verify before Phase B**
 
-- [ ] New account in Supabase dashboard → `auth.users` + `profiles` + `player_*` rows exist
-- [ ] Kill and reopen app → session restores; profile loads
-- [ ] Sign out → back to login; no mock auth path left
-- [ ] RLS: user A cannot read/update user B’s `profiles` row
+- [x] New account in Supabase dashboard → `auth.users` + `profiles` + `player_*` rows exist
+- [x] Kill and reopen app → session restores; profile loads
+- [x] Sign out → back to login; no mock auth path left
+- [x] RLS: user A cannot read/update user B’s `profiles` row
 
 #### Suggested `profiles` columns (v1)
 
@@ -361,7 +361,7 @@ create trigger on_auth_user_created
 |---------|----------------|
 | `OnboardingContext.mockSignIn` | `AuthContext.signInWithApple` / `signInWithOAuth` / `signInWithPassword` |
 | `hasCompletedOnboarding` in memory only | Session from Supabase; tutorial flag local or `profiles.onboarding_completed_at` |
-| No `user_id` on activities | `session.user.id` available for Phase B sync |
+| No `user_id` on activities | `session.user.id` used for activity sync (Phase B) |
 | Mock profile / XP UI | Can load real `profiles` + `player_progress` + `player_rank` (display still mock until 03) |
 
 #### Open decisions (Phase A)
@@ -375,9 +375,19 @@ create trigger on_auth_user_created
 
 ### Phase B — Activity sync
 
-- `activities` table matching `StoredActivity`
-- Upload on finish (or “Add to feed”): summary + polyline + optional full records blob in Storage
-- List “my activities”; hydrate post-run from server when online
+- `activities` table matching `StoredActivity` (summary + polyline in Postgres)
+- **Sync on run stop** when logged in; queue locally if offline or sync fails
+- Full `ActivityRecord[]` in Storage: `activities/{user_id}/{activity_id}/track.json`
+- `listServerActivities` for future feed/history hydration
+
+**Shipped in app:** `activitySync.ts`, `activityPolyline.ts`, `activitySyncQueue.ts`, wired in `RunContext` + `AuthContext` flush on login.
+
+**Phase B checklist**
+
+- [x] `activities` migration + RLS + `activities` Storage bucket
+- [x] Sync on run stop when logged in; offline queue + flush on login
+- [x] `supabase gen types` includes `activities` table
+- [ ] Verify on device: row in `activities` + `track.json` in Storage after a run
 
 ### Phase C — Social & teams (read-heavy)
 
@@ -401,9 +411,9 @@ create trigger on_auth_user_created
 
 | Current | After 02 |
 |---------|----------|
-| `OnboardingContext` mock auth | Supabase Auth + `AuthContext` ([Phase A](#phase-a--auth--user-provisioning-first-step)) |
+| `OnboardingContext` mock auth | Supabase Auth + `AuthContext` (Phase A — done) |
 | No user in database | `auth.users` + trigger → `profiles`, `player_progress`, `player_rank` |
-| `activityStorage.ts` only | Local cache + sync queue → Supabase (Phase B) |
+| `activityStorage.ts` only | Local cache + sync on stop → Supabase `activities` + Storage (Phase B — done) |
 | Mock feed / teams | Postgres + RLS (Phase C+) |
 | `activityExchange` stubs | Edge Functions + Storage (Phase E / [04](./04-third-party-integrations.md)) |
 
@@ -411,7 +421,7 @@ create trigger on_auth_user_created
 
 ## Open decisions
 
-1. **Sync trigger:** on stop vs on “Add to feed” only? (Phase B)
+1. ~~**Sync trigger:** on stop vs on “Add to feed” only?~~ **Decided:** sync on run stop (Phase B).
 2. **Polyline format:** encoded polyline in column vs GeoJSON JSONB vs PostGIS later?
 3. **One Supabase project** for dev+prod or separate from day one?
 4. **Email-only auth first** or Apple Sign In required for iOS launch? (Phase A — see [checklist](#implementation-checklist))
@@ -424,4 +434,6 @@ create trigger on_auth_user_created
 
 **Supabase is the right v1 backend** for auth, relational game data, and files — provided we **split activity summaries (SQL) from bulky GPS/FIT (Storage)**, use **reference tables + FKs** for catalogs (not duplicated TS lists), and follow the **migration → gen types → commit** workflow so AI and app stay in sync.
 
-**First implementation step:** Phase A — Supabase Auth sign-up creates `auth.users`; a Postgres trigger provisions `profiles` + default progression rows; the app replaces mock onboarding auth with a real session and profile fetch. Nothing else in milestone 02 ships until that works end-to-end.
+**First implementation step:** Phase A — Supabase Auth sign-up creates `auth.users`; a Postgres trigger provisions `profiles` + default progression rows; the app replaces mock onboarding auth with a real session and profile fetch. **Shipped.**
+
+**Current step:** Phase C — teams, feed posts linked to `activities`, server-backed social read paths.

@@ -19,7 +19,7 @@ Read milestone docs before large features. Update milestone status/deps when sco
 | # | Topic | Status |
 |---|--------|--------|
 | 01 | Activity recording (local) | Done |
-| 02 | Supabase backend | **Next** — Phase A: auth + users in DB |
+| 02 | Supabase backend | **In progress** — Phase A + B done; Phase C next |
 | 03 | XP & rank (separate systems) | Planned |
 | 04 | Garmin / Strava | Planned |
 | 05 | Matchmaking & feed | Planned |
@@ -68,15 +68,19 @@ Never derive rank from level or level from rank. See [03-xp-and-ranking.md](../.
 
 Business logic does not live in screen components.
 
-### 5. Local-first, sync later
+### 5. Local-first, sync on stop
 
 - Record and persist on device first (`activityStorage.ts`).
-- Backend (02): upload summaries + polyline in Postgres; bulky tracks/FIT in **Storage**.
-- Design for offline queue + idempotent `activity_id`; server wins on conflict for validated summaries.
+- On run stop: sync summary + polyline to Postgres; full track to Storage (`activitySync.ts`).
+- Offline or logged-out runs queue locally; flush on login (`activitySyncQueue.ts`).
 
-### 6. Supabase shape (when implementing 02)
+### 6. Supabase shape
 
-**Start with Phase A:** Auth sign-up → `auth.users` → DB trigger → `profiles` + `player_progress` + `player_rank`. No activity sync until a real session works.
+**Phase A (done):** Auth sign-up → `auth.users` → DB trigger → `profiles` + `player_progress` + `player_rank`.
+
+**Phase B (done):** `activities` table + Storage bucket; sync on run stop.
+
+**Phase C (next):** teams, feed, matches on server.
 
 - Postgres: users, teams, matches, feed, `activities` **summary**, progression tables.
 - **User provisioning:** `handle_new_user` trigger on `auth.users` INSERT — not client-side profile creation.
@@ -139,6 +143,7 @@ Before merging significant work, confirm relevant items:
 - [ ] **DB work:** read `supabase/migrations/` + `src/types/database.ts`; regen types if schema changed
 - [ ] **Catalogs:** reference data from DB, not duplicated config lists
 - [ ] **Auth (02 Phase A):** sign-up provisions `profiles` via trigger; no client-only profile insert
+- [ ] **Activity sync (02 Phase B):** run stop uploads `activities` row + Storage track when logged in
 - [ ] Native modules (AsyncStorage, Mapbox) noted if rebuild required
 - [ ] Permissions: location is foreground-only unless milestone says otherwise
 - [ ] No secrets in git; use `EXPO_PUBLIC_*` only for non-sensitive config
@@ -152,7 +157,7 @@ Full risk catalog: [reference.md](reference.md)
 - **Expo 56** — read https://docs.expo.dev/versions/v56.0.0/ before platform APIs.
 - **Mapbox** — dev client build required; not Expo Go.
 - **Env:** `EXPO_PUBLIC_MAPBOX_ACCESS_TOKEN`, `EXPO_PUBLIC_MOCK_GPS` (0 on device).
-- **Supabase** — not wired yet; Phase A: auth + trigger-provisioned profiles ([02](../../milestones/02-supabase-backend.md#phase-a--auth--user-provisioning-first-step)).
+- **Supabase** — Phase A + B live; apply migrations to linked project before testing sync ([02](../../milestones/02-supabase-backend.md)).
 
 ---
 
@@ -160,14 +165,14 @@ Full risk catalog: [reference.md](reference.md)
 
 | Area | Files |
 |------|--------|
-| Recording | `RunContext.tsx`, `activityRecorder.ts`, `activityStorage.ts` |
+| Recording | `RunContext.tsx`, `activityRecorder.ts`, `activityStorage.ts`, `activitySync.ts` |
 | Types | `types/activity.ts` |
 | Charts | `activityStreams.ts`, `chartAxis.ts` |
 | Post-run | `PostRunScreen.tsx`, `buildPostRunSummary.ts` |
 | Maps | `MapboxMapView.tsx`, `locationProvider.ts` |
-| Onboarding (mock auth) | `OnboardingContext.tsx`, `OnboardingLoginScreen.tsx` → replace with `AuthContext` (02 Phase A) |
+| Onboarding / auth | `AuthContext.tsx`, `OnboardingContext.tsx`, `OnboardingLoginScreen.tsx` |
 | XP UI (mock) | `XpGainDrawer.tsx`, `mock/xpGain.ts` |
-| Auth (planned) | `AuthContext.tsx`, `services/supabase.ts` (02 Phase A) |
+| Auth + sync | `AuthContext.tsx`, `services/supabase.ts`, `activitySync.ts`, `activitySyncQueue.ts` |
 | Milestones | `milestones/*.md` |
 | Supabase schema | `supabase/migrations/`, `supabase/SCHEMA.md`, `src/types/database.ts` |
 

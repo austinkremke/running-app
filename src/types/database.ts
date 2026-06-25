@@ -39,6 +39,68 @@ export type Database = {
   }
   public: {
     Tables: {
+      activities: {
+        Row: {
+          created_at: string
+          distance_meters: number
+          duration_seconds: number
+          ended_at: string | null
+          external_id: string | null
+          external_source: string | null
+          id: string
+          match_id: string | null
+          polyline: Json
+          source: string
+          started_at: string
+          summary_json: Json
+          track_storage_path: string | null
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          distance_meters?: number
+          duration_seconds?: number
+          ended_at?: string | null
+          external_id?: string | null
+          external_source?: string | null
+          id: string
+          match_id?: string | null
+          polyline?: Json
+          source: string
+          started_at: string
+          summary_json?: Json
+          track_storage_path?: string | null
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          distance_meters?: number
+          duration_seconds?: number
+          ended_at?: string | null
+          external_id?: string | null
+          external_source?: string | null
+          id?: string
+          match_id?: string | null
+          polyline?: Json
+          source?: string
+          started_at?: string
+          summary_json?: Json
+          track_storage_path?: string | null
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "activities_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       player_progress: {
         Row: {
           total_xp: number

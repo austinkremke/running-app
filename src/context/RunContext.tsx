@@ -17,9 +17,12 @@ import { recordsToGpsPoints } from '../services/activityAdapters';
 import { livePaceLabel, totalDistanceMeters } from '../services/activityMetrics';
 import { appendGpsRecord, createStartRecord } from '../services/activityRecorder';
 import { buildPostRunSummary } from '../services/buildPostRunSummary';
+import { syncActivityToServer } from '../services/activitySync';
 import { formatDistanceMiles, formatDurationClock } from '../services/distanceService';
 import { elapsedSeconds } from '../services/runMetrics';
+import { markActivityPendingSync } from '../storage/activitySyncQueue';
 import { saveActivity } from '../storage/activityStorage';
+import { useAuth } from './AuthContext';
 import type {
   ActivityRecord,
   ActivitySession,
@@ -59,6 +62,8 @@ async function detectActivitySource(): Promise<ActivitySource> {
 }
 
 export function RunProvider({ children }: { children: React.ReactNode }) {
+  const { session: authSession } = useAuth();
+  const userId = authSession?.user?.id ?? null;
   const [session, setSession] = useState<ActivitySession | null>(null);
   const [records, setRecords] = useState<ActivityRecord[]>([]);
   const [tick, setTick] = useState(0);
@@ -157,13 +162,23 @@ export function RunProvider({ children }: { children: React.ReactNode }) {
     };
 
     await saveActivity(finished);
+
+    if (userId) {
+      const syncResult = await syncActivityToServer(finished, userId);
+      if (!syncResult.ok) {
+        console.warn('Activity sync failed; queued for retry.', syncResult.error);
+      }
+    } else {
+      await markActivityPendingSync(finished.session.id);
+    }
+
     setSession(null);
     sessionRef.current = null;
     setRecords([]);
     recordsRef.current = [];
     setLastFinishedRun(finished);
     return finished;
-  }, [session]);
+  }, [session, userId]);
 
   const clearLastFinishedRun = useCallback(() => {
     setLastFinishedRun(null);

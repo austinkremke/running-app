@@ -9,6 +9,7 @@ import {
 } from 'react';
 import type { Session } from '@supabase/supabase-js';
 
+import { flushPendingActivitySync } from '../services/activitySync';
 import {
   fetchUserGameState,
   type UserGameState,
@@ -102,6 +103,10 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       setAuthError(
         error instanceof Error ? error.message : 'Could not load your profile. Try again.',
       );
+    });
+
+    flushPendingActivitySync(session.user.id).catch((error) => {
+      console.warn('Failed to flush pending activity sync', error);
     });
   }, [session, refreshGameState]);
 
