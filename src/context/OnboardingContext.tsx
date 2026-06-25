@@ -1,17 +1,29 @@
-import { createContext, useCallback, useContext, useState, type ReactNode } from 'react';
+import {
+  createContext,
+  useCallback,
+  useContext,
+  useEffect,
+  useState,
+  type ReactNode,
+} from 'react';
 
-export type AuthProvider = 'apple' | 'google' | 'email';
+import { markOnboardingCompleted } from '../services/profileService';
+import {
+  readOnboardingCompleted,
+  writeOnboardingCompleted,
+} from '../storage/onboardingStorage';
+import { useAuth } from './AuthContext';
 
-export type OnboardingStep = 'login' | 'howItWorks';
+export type OnboardingStep = 'login' | 'email' | 'howItWorks';
 
 type OnboardingContextValue = {
   step: OnboardingStep;
   hasCompletedOnboarding: boolean;
+  onboardingReady: boolean;
   showChallengeDrawer: boolean;
   shouldOpenSoloMatch: boolean;
   goToStep: (step: OnboardingStep) => void;
-  mockSignIn: (provider: AuthProvider) => void;
-  completeOnboarding: (options?: { showChallengeDrawer?: boolean }) => void;
+  completeOnboarding: (options?: { showChallengeDrawer?: boolean }) => Promise<void>;
   acceptChallenge: () => void;
   dismissChallenge: () => void;
   consumeSoloMatchNavigation: () => void;
@@ -20,28 +32,68 @@ type OnboardingContextValue = {
 const OnboardingContext = createContext<OnboardingContextValue | null>(null);
 
 export function OnboardingProvider({ children }: { children: ReactNode }) {
+  const { session } = useAuth();
+  const userId = session?.user?.id ?? null;
+
   const [step, setStep] = useState<OnboardingStep>('login');
   const [hasCompletedOnboarding, setHasCompletedOnboarding] = useState(false);
+  const [onboardingReady, setOnboardingReady] = useState(false);
   const [showChallengeDrawer, setShowChallengeDrawer] = useState(false);
   const [shouldOpenSoloMatch, setShouldOpenSoloMatch] = useState(false);
+
+  useEffect(() => {
+    let cancelled = false;
+
+    async function loadOnboardingState() {
+      if (!userId) {
+        setHasCompletedOnboarding(false);
+        setStep('login');
+        setOnboardingReady(true);
+        return;
+      }
+
+      setOnboardingReady(false);
+      const completedLocally = await readOnboardingCompleted(userId);
+      if (cancelled) return;
+
+      setHasCompletedOnboarding(completedLocally);
+      setStep(completedLocally ? 'howItWorks' : 'howItWorks');
+      setOnboardingReady(true);
+    }
+
+    loadOnboardingState().catch((error) => {
+      console.error('Failed to load onboarding state', error);
+      if (!cancelled) {
+        setOnboardingReady(true);
+      }
+    });
+
+    return () => {
+      cancelled = true;
+    };
+  }, [userId]);
 
   const goToStep = useCallback((nextStep: OnboardingStep) => {
     setStep(nextStep);
   }, []);
 
-  const mockSignIn = useCallback(
-    (_provider: AuthProvider) => {
-      goToStep('howItWorks');
-    },
-    [goToStep],
-  );
+  const completeOnboarding = useCallback(
+    async (options?: { showChallengeDrawer?: boolean }) => {
+      setHasCompletedOnboarding(true);
 
-  const completeOnboarding = useCallback((options?: { showChallengeDrawer?: boolean }) => {
-    setHasCompletedOnboarding(true);
-    if (options?.showChallengeDrawer) {
-      setShowChallengeDrawer(true);
-    }
-  }, []);
+      if (userId) {
+        await writeOnboardingCompleted(userId);
+        markOnboardingCompleted(userId).catch((error) => {
+          console.error('Failed to sync onboarding completion', error);
+        });
+      }
+
+      if (options?.showChallengeDrawer) {
+        setShowChallengeDrawer(true);
+      }
+    },
+    [userId],
+  );
 
   const acceptChallenge = useCallback(() => {
     setShowChallengeDrawer(false);
@@ -61,10 +113,10 @@ export function OnboardingProvider({ children }: { children: ReactNode }) {
       value={{
         step,
         hasCompletedOnboarding,
+        onboardingReady,
         showChallengeDrawer,
         shouldOpenSoloMatch,
         goToStep,
-        mockSignIn,
         completeOnboarding,
         acceptChallenge,
         dismissChallenge,

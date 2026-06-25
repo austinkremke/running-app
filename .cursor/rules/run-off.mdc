@@ -1,0 +1,26 @@
+---
+description: Run Off architecture, milestones, and consistency rules for running-app
+alwaysApply: true
+---
+
+# Run Off (running-app)
+
+This workspace folder is **Run Off** — an Expo 56 React Native running app with local activity recording and a planned Supabase backend.
+
+## Before non-trivial work
+
+1. Read the **run-off** skill: `.cursor/skills/run-off/SKILL.md` (patterns, anti-patterns, checklist).
+2. Check **milestone order**: `milestones/README.md` — do not implement later milestones without updating deps.
+3. Follow **Expo 56 docs**: https://docs.expo.dev/versions/v56.0.0/
+
+## Non-negotiables
+
+- **`ActivityRecord`** with cumulative `distanceMeters` is the canonical activity model.
+- **Level (XP) and Rank (competitive)** are separate systems — never couple them.
+- **Charts**: shared distance grid for x-axis and data (`src/utils/chartAxis.ts`).
+- **Navigation**: custom `src/navigation/` — not Expo Router.
+- **Scope**: minimal diffs; match existing code style.
+- **Database**: catalogs in Postgres (`rank_tiers`, …); read `supabase/migrations/` + `src/types/database.ts` before DB work; regenerate types after migrations.
+- **Users in DB**: Auth creates `auth.users`; trigger provisions `profiles` + progression — see milestone 02 Phase A.
+
+Deep risks and file map: `.cursor/skills/run-off/reference.md`

@@ -1,16 +1,19 @@
 import { useEffect, useState } from 'react';
 
 import { OnboardingChallengeDrawer } from '../components/onboarding';
-import { useOnboarding } from '../context';
+import { useAuth, useOnboarding } from '../context';
 import { MOCK_ONBOARDING_NPC } from '../mock/onboardingNpc';
+import { AuthLoadingScreen } from '../screens/onboarding/AuthLoadingScreen';
 import { AppShell } from './AppShell';
 import { OnboardingShell } from './OnboardingShell';
 
 const CHALLENGE_DRAWER_DELAY_MS = 2000;
 
 export function RootNavigator() {
+  const { session, loading: authLoading } = useAuth();
   const {
     hasCompletedOnboarding,
+    onboardingReady,
     step,
     showChallengeDrawer,
     acceptChallenge,
@@ -31,8 +34,12 @@ export function RootNavigator() {
     return () => clearTimeout(timeout);
   }, [showChallengeDrawer]);
 
-  if (!hasCompletedOnboarding) {
-    return <OnboardingShell step={step} />;
+  if (authLoading || (session && !onboardingReady)) {
+    return <AuthLoadingScreen />;
+  }
+
+  if (!session || !hasCompletedOnboarding) {
+    return <OnboardingShell step={session ? (step === 'login' ? 'howItWorks' : step) : 'login'} />;
   }
 
   return (

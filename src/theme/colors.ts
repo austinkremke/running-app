@@ -10,4 +10,5 @@ export const colors = {
   accentPurple: '#9B5CFF',
   accentOrange: '#FF8A3D',
   accentGold: '#F5C842',
+  danger: '#FF5C5C',
 } as const;

@@ -6,7 +6,7 @@ import {
   OnboardingPrimaryButton,
   OnboardingScreenHeader,
 } from '../../components/onboarding';
-import { useOnboarding } from '../../context';
+import { useAuth, useOnboarding } from '../../context';
 import { colors, spacing } from '../../theme';
 
 const FEATURES = [
@@ -38,10 +38,13 @@ const FEATURES = [
 
 export function OnboardingHowItWorksScreen() {
   const { completeOnboarding, goToStep } = useOnboarding();
+  const { session } = useAuth();
 
   return (
     <SafeAreaView style={styles.safe}>
-      <OnboardingScreenHeader onBack={() => goToStep('login')} />
+      <OnboardingScreenHeader
+        onBack={() => goToStep(session ? 'email' : 'login')}
+      />
 
       <ScrollView
         contentContainerStyle={styles.scrollContent}
@@ -69,7 +72,9 @@ export function OnboardingHowItWorksScreen() {
       <View style={styles.footer}>
         <OnboardingPrimaryButton
           label="GET STARTED"
-          onPress={() => completeOnboarding({ showChallengeDrawer: true })}
+          onPress={() => {
+            void completeOnboarding({ showChallengeDrawer: true });
+          }}
         />
       </View>
     </SafeAreaView>

@@ -1,5 +1,9 @@
 import type { OnboardingStep } from '../context';
-import { OnboardingHowItWorksScreen, OnboardingLoginScreen } from '../screens/onboarding';
+import {
+  OnboardingEmailScreen,
+  OnboardingHowItWorksScreen,
+  OnboardingLoginScreen,
+} from '../screens/onboarding';
 
 type OnboardingShellProps = {
   step: OnboardingStep;
@@ -7,6 +11,8 @@ type OnboardingShellProps = {
 
 export function OnboardingShell({ step }: OnboardingShellProps) {
   switch (step) {
+    case 'email':
+      return <OnboardingEmailScreen />;
     case 'howItWorks':
       return <OnboardingHowItWorksScreen />;
     case 'login':
