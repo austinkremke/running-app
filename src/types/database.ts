@@ -101,6 +101,57 @@ export type Database = {
           },
         ]
       }
+      feed_posts: {
+        Row: {
+          activity_id: string
+          audiences: string[]
+          created_at: string
+          description: string
+          id: string
+          location: string
+          photo_url: string | null
+          title: string
+          user_id: string
+        }
+        Insert: {
+          activity_id: string
+          audiences?: string[]
+          created_at?: string
+          description?: string
+          id?: string
+          location?: string
+          photo_url?: string | null
+          title?: string
+          user_id: string
+        }
+        Update: {
+          activity_id?: string
+          audiences?: string[]
+          created_at?: string
+          description?: string
+          id?: string
+          location?: string
+          photo_url?: string | null
+          title?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "feed_posts_activity_id_fkey"
+            columns: ["activity_id"]
+            isOneToOne: true
+            referencedRelation: "activities"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "feed_posts_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       player_progress: {
         Row: {
           total_xp: number
@@ -166,6 +217,7 @@ export type Database = {
           display_name: string
           id: string
           onboarding_completed_at: string | null
+          team_id: string | null
           updated_at: string
         }
         Insert: {
@@ -174,6 +226,7 @@ export type Database = {
           display_name: string
           id: string
           onboarding_completed_at?: string | null
+          team_id?: string | null
           updated_at?: string
         }
         Update: {
@@ -182,9 +235,18 @@ export type Database = {
           display_name?: string
           id?: string
           onboarding_completed_at?: string | null
+          team_id?: string | null
           updated_at?: string
         }
-        Relationships: []
+        Relationships: [
+          {
+            foreignKeyName: "profiles_team_id_fkey"
+            columns: ["team_id"]
+            isOneToOne: false
+            referencedRelation: "teams"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       rank_tiers: {
         Row: {
@@ -210,6 +272,78 @@ export type Database = {
           min_rating?: number
           sort_order?: number
           subtitle?: string | null
+        }
+        Relationships: []
+      }
+      team_members: {
+        Row: {
+          joined_at: string
+          role: string
+          team_id: string
+          user_id: string
+        }
+        Insert: {
+          joined_at?: string
+          role?: string
+          team_id: string
+          user_id: string
+        }
+        Update: {
+          joined_at?: string
+          role?: string
+          team_id?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "team_members_team_id_fkey"
+            columns: ["team_id"]
+            isOneToOne: false
+            referencedRelation: "teams"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "team_members_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: true
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      teams: {
+        Row: {
+          created_at: string
+          id: string
+          logo_accent: string
+          logo_icon: string
+          member_max: number
+          motto: string
+          name: string
+          tag: string
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          logo_accent?: string
+          logo_icon?: string
+          member_max?: number
+          motto?: string
+          name: string
+          tag: string
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          logo_accent?: string
+          logo_icon?: string
+          member_max?: number
+          motto?: string
+          name?: string
+          tag?: string
+          updated_at?: string
         }
         Relationships: []
       }

@@ -47,7 +47,8 @@ Mapbox on device often needs a recent Xcode beta; see project notes in your shel
 | 01 Activity recording (local) | Done |
 | 02 Supabase — Phase A auth | Done |
 | 02 Supabase — Phase B activity sync | Done |
-| 02 Supabase — Phase C teams/feed | Next |
+| 02 Supabase — Phase C teams/feed | Done |
+| 02 Supabase — Phase D matches | Next |
 | 03 XP & rank | Planned |
 | 04 Garmin / Strava | Planned |
 | 05 Matchmaking & feed | Planned |
@@ -66,5 +67,11 @@ Mapbox on device often needs a recent Xcode beta; see project notes in your shel
 1. Run stops → saved locally (`activityStorage.ts`).
 2. If logged in → `activities` row + downsampled `polyline` in Postgres; full track in Storage.
 3. If offline or sync fails → queued locally; flushed on next login.
+
+**Social (Phase C)**
+
+1. Team tab → join a team (seeded `Road Warriors` for dev).
+2. Post-run → “Add to Activity Feed” creates `feed_posts` linked to synced `activities`.
+3. Feed tabs load posts from Postgres (friends tab pending social graph).
 
 Details: [02-supabase-backend.md](milestones/02-supabase-backend.md).

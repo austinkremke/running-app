@@ -19,7 +19,7 @@ Read milestone docs before large features. Update milestone status/deps when sco
 | # | Topic | Status |
 |---|--------|--------|
 | 01 | Activity recording (local) | Done |
-| 02 | Supabase backend | **In progress** — Phase A + B done; Phase C next |
+| 02 | Supabase backend | **In progress** — Phase A–C done; Phase D next |
 | 03 | XP & rank (separate systems) | Planned |
 | 04 | Garmin / Strava | Planned |
 | 05 | Matchmaking & feed | Planned |
@@ -80,7 +80,9 @@ Business logic does not live in screen components.
 
 **Phase B (done):** `activities` table + Storage bucket; sync on run stop.
 
-**Phase C (next):** teams, feed, matches on server.
+**Phase C (done):** `teams`, `team_members`, `feed_posts`; feed + team screens from server.
+
+**Phase D (next):** matches, match participants on server.
 
 - Postgres: users, teams, matches, feed, `activities` **summary**, progression tables.
 - **User provisioning:** `handle_new_user` trigger on `auth.users` INSERT — not client-side profile creation.
@@ -173,6 +175,7 @@ Full risk catalog: [reference.md](reference.md)
 | Onboarding / auth | `AuthContext.tsx`, `OnboardingContext.tsx`, `OnboardingLoginScreen.tsx` |
 | XP UI (mock) | `XpGainDrawer.tsx`, `mock/xpGain.ts` |
 | Auth + sync | `AuthContext.tsx`, `services/supabase.ts`, `activitySync.ts`, `activitySyncQueue.ts` |
+| Social | `feedService.ts`, `teamService.ts`, `socialMappers.ts` |
 | Milestones | `milestones/*.md` |
 | Supabase schema | `supabase/migrations/`, `supabase/SCHEMA.md`, `src/types/database.ts` |
 

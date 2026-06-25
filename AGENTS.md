@@ -22,7 +22,7 @@ Mapbox requires a **dev client** build (`npx expo run:ios`), not Expo Go.
 
 - `ActivityRecord[]` is the source of truth for runs; maps/charts are derived.
 - XP/level and competitive rank are **separate** (see milestone 03).
-- Next backend: **Supabase** (milestone 02) — Phase A + B shipped; Phase C (teams/feed) next.
+- Next backend: **Supabase** (milestone 02) — Phase A–C shipped; Phase D (matches) next.
 - Summaries in Postgres, bulky tracks in Storage (Phase B — live).
 - **Reference catalogs** (`rank_tiers`, etc.) live in **Postgres + seed.sql** — not duplicated TS lists.
 - **User state** = numbers (`competitive_rating`, `total_xp`) — not rank title strings on profiles.

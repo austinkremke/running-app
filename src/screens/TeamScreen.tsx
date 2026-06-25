@@ -1,12 +1,16 @@
-import { ScrollView, StyleSheet, View } from 'react-native';
+import { useState } from 'react';
+import { ActivityIndicator, Alert, ScrollView, StyleSheet, Text, View } from 'react-native';
 
 import {
   TeamActivitySection,
+  TeamJoinPrompt,
   TeamMembersSection,
   TeamStatsSection,
   TeamTopSection,
 } from '../components/team';
-import { MOCK_TEAM } from '../mock';
+import { useAuth, useUserId } from '../context';
+import { useMyTeam } from '../hooks/useMyTeam';
+import { joinTeam, ROAD_WARRIORS_TEAM_ID } from '../services/teamService';
 import { colors, spacing } from '../theme';
 
 type TeamScreenProps = {
@@ -14,7 +18,47 @@ type TeamScreenProps = {
 };
 
 export function TeamScreen({ onOpenTopTeams }: TeamScreenProps) {
-  const team = MOCK_TEAM;
+  const userId = useUserId();
+  const { refreshGameState } = useAuth();
+  const { team, loading, error, refresh } = useMyTeam();
+  const [joining, setJoining] = useState(false);
+
+  async function handleJoinTeam() {
+    if (!userId) return;
+
+    setJoining(true);
+    try {
+      await joinTeam(userId, ROAD_WARRIORS_TEAM_ID);
+      await refreshGameState();
+      await refresh();
+    } catch (joinError) {
+      const message =
+        joinError instanceof Error ? joinError.message : 'Could not join the team.';
+      Alert.alert('Join team failed', message);
+    } finally {
+      setJoining(false);
+    }
+  }
+
+  if (loading) {
+    return (
+      <View style={styles.centered}>
+        <ActivityIndicator color={colors.accentLime} />
+      </View>
+    );
+  }
+
+  if (error) {
+    return (
+      <View style={styles.centered}>
+        <Text style={styles.error}>{error}</Text>
+      </View>
+    );
+  }
+
+  if (!team) {
+    return <TeamJoinPrompt joining={joining} onJoin={() => void handleJoinTeam()} />;
+  }
 
   return (
     <ScrollView
@@ -47,5 +91,17 @@ const styles = StyleSheet.create({
   },
   bottomSpacer: {
     height: spacing.md,
+  },
+  centered: {
+    flex: 1,
+    backgroundColor: colors.background,
+    alignItems: 'center',
+    justifyContent: 'center',
+    paddingHorizontal: spacing.xl,
+  },
+  error: {
+    color: colors.textSecondary,
+    fontSize: 14,
+    textAlign: 'center',
   },
 });

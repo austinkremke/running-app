@@ -83,13 +83,16 @@ activities                    — id, user_id, started_at, ended_at, distance_me
                               — source, summary_json, polyline (jsonb), track_storage_path
                               — Storage: activities/{user_id}/{activity_id}/track.json
 
-teams / team_members
+teams / team_members            — logo, tag, motto; one team per user (v1)
+feed_posts                      — activity_id FK, audiences[], caption fields
+
 matches / match_participants / match_results
-feed_posts / feed_reactions
+feed_reactions                  — later
 ```
 
 **Phase A ships:** `profiles`, `player_progress`, `player_rank`, trigger, RLS, `rank_tiers` seed.  
-**Phase B ships:** `activities` table + `activities` Storage bucket; sync on run stop.
+**Phase B ships:** `activities` table + `activities` Storage bucket; sync on run stop.  
+**Phase C ships:** `teams`, `team_members`, `feed_posts`, `profiles.team_id`; feed + team UI from server.
 
 Full detail: [02-supabase-backend.md](../milestones/02-supabase-backend.md).
 

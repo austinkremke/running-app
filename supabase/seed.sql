@@ -13,3 +13,20 @@ on conflict (id) do update set
   icon = excluded.icon,
   min_rating = excluded.min_rating,
   sort_order = excluded.sort_order;
+
+-- Demo team for Phase C (join from Team tab).
+insert into public.teams (id, name, tag, motto, logo_icon, logo_accent)
+values (
+  '11111111-1111-4111-8111-111111111111',
+  'Road Warriors',
+  'RWAR',
+  'Run together. Win together.',
+  'paw',
+  'lime'
+)
+on conflict (id) do update set
+  name = excluded.name,
+  tag = excluded.tag,
+  motto = excluded.motto,
+  logo_icon = excluded.logo_icon,
+  logo_accent = excluded.logo_accent;

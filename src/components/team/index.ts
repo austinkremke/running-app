@@ -1,4 +1,5 @@
 export { TeamActivitySection } from './TeamActivitySection';
+export { TeamJoinPrompt } from './TeamJoinPrompt';
 export { TeamLogo } from './TeamLogo';
 export { TeamMembersSection } from './TeamMembersSection';
 export { TeamStatsSection } from './TeamStatsSection';

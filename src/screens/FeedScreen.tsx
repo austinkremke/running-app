@@ -1,7 +1,8 @@
-import { FlatList, StyleSheet } from 'react-native';
+import { ActivityIndicator, FlatList, StyleSheet, Text, View } from 'react-native';
 
 import { RunCard } from '../components/feed';
-import { getRunsForTab, type FeedTab } from '../mock';
+import type { FeedTab } from '../mock';
+import { useFeed } from '../hooks/useFeed';
 import { colors, spacing } from '../theme';
 
 type FeedScreenProps = {
@@ -9,7 +10,35 @@ type FeedScreenProps = {
 };
 
 export function FeedScreen({ activeTab }: FeedScreenProps) {
-  const runs = getRunsForTab(activeTab);
+  const { runs, loading, error } = useFeed(activeTab);
+
+  if (loading) {
+    return (
+      <View style={styles.centered}>
+        <ActivityIndicator color={colors.accentLime} />
+      </View>
+    );
+  }
+
+  if (error) {
+    return (
+      <View style={styles.centered}>
+        <Text style={styles.message}>{error}</Text>
+      </View>
+    );
+  }
+
+  if (runs.length === 0) {
+    return (
+      <View style={styles.centered}>
+        <Text style={styles.message}>
+          {activeTab === 'friends'
+            ? 'Friends feed is coming soon.'
+            : 'No runs here yet. Finish a run and tap Add to Activity Feed.'}
+        </Text>
+      </View>
+    );
+  }
 
   return (
     <FlatList
@@ -32,5 +61,18 @@ const styles = StyleSheet.create({
     paddingHorizontal: spacing.sm,
     paddingVertical: spacing.md,
     gap: spacing.md,
+  },
+  centered: {
+    flex: 1,
+    alignItems: 'center',
+    justifyContent: 'center',
+    backgroundColor: colors.background,
+    paddingHorizontal: spacing.xl,
+  },
+  message: {
+    color: colors.textSecondary,
+    fontSize: 14,
+    textAlign: 'center',
+    lineHeight: 20,
   },
 });

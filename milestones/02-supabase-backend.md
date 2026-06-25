@@ -1,7 +1,7 @@
 # Supabase Backend
 
 > **Milestone:** 02  
-> **Status:** In progress — Phase A + B shipped; Phase C next  
+> **Status:** In progress — Phase A + B + C shipped; Phase D next  
 > **Depends on:** [01 Activity recording](./01-activity-recording.md)  
 > **Unblocks:** [03 XP & rank](./03-xp-and-ranking.md), [04 Integrations](./04-third-party-integrations.md), [05 Matchmaking & feed](./05-matchmaking-and-feed.md)
 
@@ -391,8 +391,17 @@ create trigger on_auth_user_created
 
 ### Phase C — Social & teams (read-heavy)
 
-- `teams`, `team_members`, basic team profile from server
-- Feed posts linked to `activities`
+- `teams`, `team_members`, `profiles.team_id`
+- Feed posts linked to `activities` (`feed_posts` with `audiences[]`)
+- **Shipped in app:** `teamService.ts`, `feedService.ts`, `socialMappers.ts`; Feed / Team / Top Teams screens load from Supabase; “Add to feed” creates `feed_posts`
+
+**Phase C checklist**
+
+- [x] `teams` + `team_members` + `feed_posts` migration + RLS
+- [x] Seed demo team (`Road Warriors`) in `seed.sql`
+- [x] Feed tabs query server posts (friends tab empty until social graph ships)
+- [x] Team tab join prompt → `joinTeam`
+- [ ] Apply migration to remote + verify feed post after run
 
 ### Phase D — Match shell on server
 
@@ -414,7 +423,7 @@ create trigger on_auth_user_created
 | `OnboardingContext` mock auth | Supabase Auth + `AuthContext` (Phase A — done) |
 | No user in database | `auth.users` + trigger → `profiles`, `player_progress`, `player_rank` |
 | `activityStorage.ts` only | Local cache + sync on stop → Supabase `activities` + Storage (Phase B — done) |
-| Mock feed / teams | Postgres + RLS (Phase C+) |
+| Mock feed / teams | Postgres + RLS (Phase C — done) |
 | `activityExchange` stubs | Edge Functions + Storage (Phase E / [04](./04-third-party-integrations.md)) |
 
 ---
@@ -436,4 +445,4 @@ create trigger on_auth_user_created
 
 **First implementation step:** Phase A — Supabase Auth sign-up creates `auth.users`; a Postgres trigger provisions `profiles` + default progression rows; the app replaces mock onboarding auth with a real session and profile fetch. **Shipped.**
 
-**Current step:** Phase C — teams, feed posts linked to `activities`, server-backed social read paths.
+**Current step:** Phase D — matches, `match_participants`, persist mock match state on server.

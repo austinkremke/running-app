@@ -5,15 +5,16 @@ import { SafeAreaProvider } from 'react-native-safe-area-context';
 import { PostRunTestButton } from '../components/post-run';
 import { RunBottomDrawer, RunMapArea } from '../components/run';
 import { XpGainDrawer, XpGainTestButtons } from '../components/xp';
-import { useRun } from '../context';
+import { useAuth, useRun } from '../context';
 import {
   MOCK_POST_RUN,
   MOCK_POST_RUN_ROUTE,
   MOCK_XP_GAIN_LEVEL_UP,
   MOCK_XP_GAIN_NORMAL,
 } from '../mock';
-import type { XpGainEvent } from '../mock';
+import type { FeedTab, XpGainEvent } from '../mock';
 import { recordsToGpsPoints } from '../services/activityAdapters';
+import { createFeedPost } from '../services/feedService';
 import { PostRunScreen } from './PostRunScreen';
 import { colors } from '../theme';
 
@@ -22,6 +23,7 @@ type RunScreenProps = {
 };
 
 export function RunScreen({ onBack }: RunScreenProps) {
+  const { gameState } = useAuth();
   const {
     isRecording,
     routePoints,
@@ -64,7 +66,29 @@ export function RunScreen({ onBack }: RunScreenProps) {
     clearLastFinishedRun();
   }
 
-  function handleAddToFeed() {
+  async function handleAddToFeed() {
+    const activityId = lastFinishedRun?.session.id;
+    const userId = gameState?.profile.id;
+
+    if (userId && activityId) {
+      const audiences: FeedTab[] = ['community'];
+      if (gameState.profile.team_id) {
+        audiences.push('team');
+      }
+
+      try {
+        await createFeedPost({
+          userId,
+          activityId,
+          title: 'What a great run!',
+          audiences,
+        });
+      } catch (error) {
+        const message = error instanceof Error ? error.message : 'Could not post to feed.';
+        Alert.alert('Feed post failed', message);
+      }
+    }
+
     closePostRun();
     const summary = lastFinishedRun?.summary;
     openXpDrawer({

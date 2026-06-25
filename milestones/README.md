@@ -21,7 +21,7 @@ When adding a milestone:
 | # | Milestone | Status | Depends on | Unblocks |
 |---|-----------|--------|------------|----------|
 | 01 | [Activity recording](./01-activity-recording.md) | **Done** | — | 02, 03, 04 |
-| 02 | [Supabase backend](./02-supabase-backend.md) | **In progress** — Phase A + B done; Phase C teams/feed next | 01 | 03, 04, 05 |
+| 02 | [Supabase backend](./02-supabase-backend.md) | **In progress** — Phase A–C done; Phase D matches next | 01 | 03, 04, 05 |
 | 03 | [XP & competitive rank](./03-xp-and-ranking.md) | Planned | 01, 02 (partial) | 05 |
 | 04 | [Third-party integrations](./04-third-party-integrations.md) | Planned | 01, 02 | 05 |
 | 05 | [Matchmaking, feed & social sync](./05-matchmaking-and-feed.md) | Planned | 02, 03, 04 | — |
@@ -37,6 +37,7 @@ When adding a milestone:
 02 Supabase backend ─────────────────┐
         │  Phase A: auth + profiles  │
         │  Phase B: activity sync    │
+        │  Phase C: teams + feed     │
         ├──────────────┬─────────────┤
         ▼              ▼             ▼
 03 XP & rank    04 Garmin/Strava   (auth, teams schema)

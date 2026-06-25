@@ -1,9 +1,10 @@
-import { useMemo, useState } from 'react';
-import { FlatList, StyleSheet, View } from 'react-native';
+import { useEffect, useMemo, useState } from 'react';
+import { ActivityIndicator, FlatList, StyleSheet, View } from 'react-native';
 
 import { TabAppHeader } from '../components/header';
 import { TopTeamsSearchRow, TopTeamsTeamCard } from '../components/team/top-teams';
-import { MOCK_TOP_TEAMS, TOP_TEAMS_PAGE_SIZE, type TopTeamsTab, type TopTeamListing } from '../mock';
+import { TOP_TEAMS_PAGE_SIZE, type TopTeamsTab, type TopTeamListing } from '../mock';
+import { listTopTeams } from '../services/teamService';
 import { colors, spacing } from '../theme';
 
 const TOP_TEAMS_TABS = [
@@ -46,10 +47,40 @@ export function TopTeamsScreen() {
   const [activeTab, setActiveTab] = useState<TopTeamsTab>('rankings');
   const [query, setQuery] = useState('');
   const [visibleCount, setVisibleCount] = useState(TOP_TEAMS_PAGE_SIZE);
+  const [teams, setTeams] = useState<TopTeamListing[]>([]);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    let cancelled = false;
+
+    async function loadTeams() {
+      setLoading(true);
+      try {
+        const rows = await listTopTeams();
+        if (!cancelled) {
+          setTeams(rows);
+        }
+      } catch {
+        if (!cancelled) {
+          setTeams([]);
+        }
+      } finally {
+        if (!cancelled) {
+          setLoading(false);
+        }
+      }
+    }
+
+    void loadTeams();
+
+    return () => {
+      cancelled = true;
+    };
+  }, []);
 
   const filteredTeams = useMemo(
-    () => filterTeams(MOCK_TOP_TEAMS, query, activeTab),
-    [activeTab, query],
+    () => filterTeams(teams, query, activeTab),
+    [activeTab, query, teams],
   );
 
   const visibleTeams = useMemo(
@@ -95,16 +126,22 @@ export function TopTeamsScreen() {
         />
       </View>
 
-      <FlatList
-        contentContainerStyle={styles.listContent}
-        data={visibleTeams}
-        keyExtractor={(item) => item.id}
-        onEndReached={loadMore}
-        onEndReachedThreshold={0.4}
-        renderItem={({ item }) => <TopTeamsTeamCard team={item} />}
-        showsVerticalScrollIndicator={false}
-        style={styles.list}
-      />
+      {loading ? (
+        <View style={styles.loading}>
+          <ActivityIndicator color={colors.accentLime} />
+        </View>
+      ) : (
+        <FlatList
+          contentContainerStyle={styles.listContent}
+          data={visibleTeams}
+          keyExtractor={(item) => item.id}
+          onEndReached={loadMore}
+          onEndReachedThreshold={0.4}
+          renderItem={({ item }) => <TopTeamsTeamCard team={item} />}
+          showsVerticalScrollIndicator={false}
+          style={styles.list}
+        />
+      )}
     </View>
   );
 }
@@ -129,5 +166,10 @@ const styles = StyleSheet.create({
     paddingTop: spacing.md,
     paddingBottom: spacing.xl,
     gap: spacing.md,
+  },
+  loading: {
+    flex: 1,
+    alignItems: 'center',
+    justifyContent: 'center',
   },
 });
