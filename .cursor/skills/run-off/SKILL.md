@@ -56,6 +56,7 @@ Mention milestone/phase in the subject (e.g. `milestone 02 Phase C`) and note do
 | 03 | XP & rank (separate systems) | Planned |
 | 04 | Garmin / Strava | Planned |
 | 05 | Matchmaking & feed | Planned |
+| 06 | Account settings, achievements, rank avatar borders, level & paywall gates | Planned |
 
 ---
 

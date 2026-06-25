@@ -6,7 +6,7 @@ Expo 56 React Native running app — local GPS recording, Supabase backend, team
 
 | Doc | Purpose |
 |-----|---------|
-| [milestones/README.md](milestones/README.md) | Roadmap (01 → 05) + status table |
+| [milestones/README.md](milestones/README.md) | Roadmap (01 → 06) + status table |
 | [milestones/02-supabase-backend.md](milestones/02-supabase-backend.md) | Backend phases A–E (auth, sync, teams, feed, matches) |
 | [supabase/SCHEMA.md](supabase/SCHEMA.md) | Database index + migration workflow |
 | [AGENTS.md](AGENTS.md) | Agent / contributor quick rules |

@@ -319,6 +319,12 @@ Over time: `ProfileRank` → competitive tier; `profile.level` → always from `
 - XP awarded via Edge Function after activity sync ([02](./02-supabase-backend.md))
 - Replay activity, anti-cheat, leaderboards, cross-device sync
 
+### Phase 5 — Achievements & progression hooks (feeds [06](./06-account-gating-and-cosmetics.md))
+
+- `achievement_definitions` catalog + unlock evaluation
+- Achievement XP grants via ledger (`source: 'achievement'`)
+- Export level + rank tier readers for level gates and avatar rank borders
+
 ---
 
 ## 8. Tuning checklist (before ship)
@@ -349,6 +355,7 @@ Simulate in a spreadsheet:
 | [01 Activity recording](./01-activity-recording.md) | XP computed from `StoredActivity` / `ActivityRecord[]` |
 | [02 Supabase](./02-supabase-backend.md) | Phase A: `profiles` + trigger + `player_rank` seed defaults; Phase 4 server XP (`player_progress`, `xp_ledger`) |
 | [05 Matchmaking](./05-matchmaking-and-feed.md) | Elo / rank UI and match-linked XP bonuses |
+| [06 Account & gating](./06-account-gating-and-cosmetics.md) | Achievements, rank avatar borders, level gates |
 
 ---
 

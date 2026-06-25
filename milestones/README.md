@@ -24,9 +24,22 @@ When adding a milestone:
 |---|-----------|--------|------------|----------|
 | 01 | [Activity recording](./01-activity-recording.md) | **Done** | — | 02, 03, 04 |
 | 02 | [Supabase backend](./02-supabase-backend.md) | **In progress** — Phase A–D done; Phase E hardening next | 01 | 03, 04, 05 |
-| 03 | [XP & competitive rank](./03-xp-and-ranking.md) | Planned | 01, 02 (partial) | 05 |
+| 03 | [XP & competitive rank](./03-xp-and-ranking.md) | Planned | 01, 02 (partial) | 05, 06 |
 | 04 | [Third-party integrations](./04-third-party-integrations.md) | Planned | 01, 02 | 05 |
 | 05 | [Matchmaking, feed & social sync](./05-matchmaking-and-feed.md) | Planned | 02, 03, 04 | — |
+| 06 | [Account, gating & cosmetics](./06-account-gating-and-cosmetics.md) | Planned | 02, 03 | — |
+
+---
+
+## Also on the roadmap (milestone 06)
+
+| Item | Milestone |
+|------|-----------|
+| Account settings | [06](./06-account-gating-and-cosmetics.md) Phase 1 |
+| Achievements (server-backed) | [06](./06-account-gating-and-cosmetics.md) Phase 2 · XP source in [03](./03-xp-and-ranking.md) |
+| Avatar rank decorative borders | [06](./06-account-gating-and-cosmetics.md) Phase 3 · tiers in [03](./03-xp-and-ranking.md) |
+| Level blocking features | [06](./06-account-gating-and-cosmetics.md) Phase 4 |
+| Paywall blocking features | [06](./06-account-gating-and-cosmetics.md) Phase 5 |
 
 ---
 
@@ -48,7 +61,12 @@ When adding a milestone:
         └──────┬───────┘
                ▼
 05 Matchmaking & feed sync
+        │
+        ▼
+06 Account settings · achievements · rank avatar borders · level & paywall gates
 ```
+
+*(06 can start Phase 1 account settings after 02 Phase A; phases 2–5 need [03](./03-xp-and-ranking.md) progression/rank.)*
 
 ---
 
@@ -66,19 +84,18 @@ When adding a milestone:
 ## What we’re not tracking here
 
 - UI polish, map UX, onboarding tweaks (ship continuously).
-- App Store / RevenueCat / paywall (track separately if needed).
 - Native build / Xcode / Mapbox ops (README or project docs).
 
 ---
 
-## Adding milestone `06+` (template)
+## Adding milestone `07+` (template)
 
-Create `milestones/06-your-slug.md` with this header:
+Create `milestones/07-your-slug.md` with this header:
 
 ```markdown
 # Title
 
-> **Milestone:** 06  
+> **Milestone:** 07  
 > **Status:** Planned  
 > **Depends on:** 02, …  
 > **Unblocks:** …
