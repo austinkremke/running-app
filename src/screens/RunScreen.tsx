@@ -14,7 +14,8 @@ import {
 } from '../mock';
 import type { FeedTab, XpGainEvent } from '../mock';
 import { recordsToGpsPoints } from '../services/activityAdapters';
-import { createFeedPost } from '../services/feedService';
+import { publishActivityToFeed } from '../services/feedService';
+import { getErrorMessage } from '../utils/errors';
 import { PostRunScreen } from './PostRunScreen';
 import { colors } from '../theme';
 
@@ -23,7 +24,7 @@ type RunScreenProps = {
 };
 
 export function RunScreen({ onBack }: RunScreenProps) {
-  const { gameState } = useAuth();
+  const { gameState, session } = useAuth();
   const {
     isRecording,
     routePoints,
@@ -68,25 +69,33 @@ export function RunScreen({ onBack }: RunScreenProps) {
 
   async function handleAddToFeed() {
     const activityId = lastFinishedRun?.session.id;
-    const userId = gameState?.profile.id;
+    const userId = session?.user?.id ?? gameState?.profile.id;
 
-    if (userId && activityId) {
-      const audiences: FeedTab[] = ['community'];
-      if (gameState.profile.team_id) {
-        audiences.push('team');
-      }
+    if (!activityId) {
+      Alert.alert('Feed post failed', 'No finished run to post.');
+      return;
+    }
 
-      try {
-        await createFeedPost({
-          userId,
-          activityId,
-          title: 'What a great run!',
-          audiences,
-        });
-      } catch (error) {
-        const message = error instanceof Error ? error.message : 'Could not post to feed.';
-        Alert.alert('Feed post failed', message);
-      }
+    if (!userId) {
+      Alert.alert('Feed post failed', 'Sign in to post to the feed.');
+      return;
+    }
+
+    const audiences: FeedTab[] = ['community'];
+    if (gameState?.profile.team_id) {
+      audiences.push('team');
+    }
+
+    try {
+      await publishActivityToFeed({
+        userId,
+        activityId,
+        title: 'What a great run!',
+        audiences,
+      });
+    } catch (error) {
+      Alert.alert('Feed post failed', getErrorMessage(error, 'Could not post to feed.'));
+      return;
     }
 
     closePostRun();

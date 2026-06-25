@@ -1,4 +1,14 @@
 import type { FeedTab, Run } from './types';
+import type { GpsPoint } from '../maps/types';
+import { MOCK_POST_RUN_ROUTE } from './postRun';
+
+function offsetRoute(route: GpsPoint[], latOffset: number, lngOffset: number): GpsPoint[] {
+  return route.map((point) => ({
+    ...point,
+    latitude: point.latitude + latOffset,
+    longitude: point.longitude + lngOffset,
+  }));
+}
 
 export const MOCK_RUNS: Run[] = [
   {
@@ -20,6 +30,7 @@ export const MOCK_RUNS: Run[] = [
       pacePerMile: '7:28',
       duration: '45:21',
     },
+    routePoints: offsetRoute(MOCK_POST_RUN_ROUTE, 0.004, -0.006),
     photoUrl:
       'https://images.unsplash.com/photo-1476480862126-209bfaa8edc8?w=400&h=400&fit=crop',
     likes: 42,
@@ -45,6 +56,7 @@ export const MOCK_RUNS: Run[] = [
       pacePerMile: '8:05',
       duration: '33:54',
     },
+    routePoints: offsetRoute(MOCK_POST_RUN_ROUTE, -0.008, 0.012),
     photoUrl:
       'https://images.unsplash.com/photo-1571008887538-b36bb32f4571?w=400&h=400&fit=crop',
     likes: 28,
@@ -70,6 +82,7 @@ export const MOCK_RUNS: Run[] = [
       pacePerMile: '7:12',
       duration: '43:58',
     },
+    routePoints: offsetRoute(MOCK_POST_RUN_ROUTE, 0.012, 0.004),
     photoUrl:
       'https://images.unsplash.com/photo-1552674605-db6ffd4facb5?w=400&h=400&fit=crop',
     likes: 51,

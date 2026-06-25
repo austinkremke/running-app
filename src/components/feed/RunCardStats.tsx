@@ -12,7 +12,7 @@ export function RunCardStats({ stats }: RunCardStatsProps) {
     <View style={styles.container}>
       <StatItem label="Distance" main={stats.distanceMiles.toFixed(2)} unit=" mi" />
       <StatItem label="Pace" main={stats.pacePerMile} unit=" /mi" />
-      <StatItem label="Time" main={stats.duration} unit=" min" />
+      <StatItem label="Time" main={stats.duration} unit={` ${stats.durationUnit ?? 'min'}`} />
     </View>
   );
 }

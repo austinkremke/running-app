@@ -9,6 +9,7 @@ import {
   readPendingActivitySyncIds,
 } from '../storage/activitySyncQueue';
 import { getActivity } from '../storage/activityStorage';
+import { getErrorMessage } from '../utils/errors';
 
 export type ActivitySyncResult =
   | { ok: true; activityId: string }
@@ -82,7 +83,7 @@ export async function syncActivityToServer(
 
     return { ok: true, activityId };
   } catch (error) {
-    const message = error instanceof Error ? error.message : 'Activity sync failed.';
+    const message = getErrorMessage(error, 'Activity sync failed.');
     await markActivityPendingSync(activityId);
     return { ok: false, activityId, error: message };
   }

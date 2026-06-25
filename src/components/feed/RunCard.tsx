@@ -17,7 +17,7 @@ export function RunCard({ run }: RunCardProps) {
     <View style={styles.card}>
       <RunCardHeader location={run.location} postedAt={run.postedAt} user={run.user} />
       <RunCardContent description={run.description} title={run.title} />
-      <RunCardMedia photoUrl={run.photoUrl} />
+      <RunCardMedia photoUrl={run.photoUrl} routePoints={run.routePoints} />
 
       <View style={styles.footerBox}>
         <RunCardStats stats={run.stats} />

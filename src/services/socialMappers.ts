@@ -1,6 +1,8 @@
+import type { GpsPoint } from '../maps/types';
 import type { PostRunSummary, Run, RunStats, Team, TeamLogoAccent, TeamMember, TopTeamListing } from '../mock';
 import type { Tables } from '../types/database';
-import { metersToMiles, formatPace } from './distanceService';
+import { polylineToGpsPoints } from './activityAdapters';
+import { metersToMiles, formatDurationParts, formatPace } from './distanceService';
 import { experienceFromTotalXp, levelFromTotalXp } from './levelCurve';
 import { formatRelativeTime } from '../utils/formatRelativeTime';
 
@@ -32,19 +34,22 @@ function statsFromActivity(activity: ActivityRow): RunStats {
   if (summary) {
     return {
       distanceMiles: summary.distanceMiles,
-      pacePerMile: `${summary.avgPace}${summary.avgPaceUnit}`,
-      duration: `${summary.duration}${summary.durationUnit ? ` ${summary.durationUnit}` : ''}`.trim(),
+      pacePerMile: summary.avgPace,
+      duration: summary.duration,
+      durationUnit: summary.durationUnit,
     };
   }
 
   const distanceMiles = metersToMiles(activity.distance_meters);
   const paceSeconds =
     distanceMiles > 0 ? activity.duration_seconds / distanceMiles : 0;
+  const duration = formatDurationParts(activity.duration_seconds);
 
   return {
     distanceMiles: Number(distanceMiles.toFixed(2)),
-    pacePerMile: paceSeconds > 0 ? `${formatPace(paceSeconds)}/mi` : '--',
-    duration: `${Math.floor(activity.duration_seconds / 60)} min`,
+    pacePerMile: paceSeconds > 0 ? formatPace(paceSeconds) : '--',
+    duration: duration.value,
+    durationUnit: duration.unit,
   };
 }
 
@@ -71,6 +76,7 @@ export function mapFeedPostToRun(
     location: post.location,
     postedAt: formatRelativeTime(post.created_at),
     stats: statsFromActivity(activity),
+    routePoints: polylineToGpsPoints(activity.polyline, activity.started_at),
     photoUrl: post.photo_url ?? undefined,
     likes: 0,
     comments: 0,

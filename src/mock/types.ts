@@ -1,3 +1,5 @@
+import type { GpsPoint } from '../maps/types';
+
 export type FeedTab = 'community' | 'friends' | 'team';
 
 export type RunUser = {
@@ -12,6 +14,7 @@ export type RunStats = {
   distanceMiles: number;
   pacePerMile: string;
   duration: string;
+  durationUnit?: string;
 };
 
 export type Run = {
@@ -22,6 +25,7 @@ export type Run = {
   location: string;
   postedAt: string;
   stats: RunStats;
+  routePoints: GpsPoint[];
   photoUrl?: string;
   likes: number;
   comments: number;

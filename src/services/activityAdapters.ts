@@ -1,4 +1,5 @@
 import type { GpsPoint } from '../maps/types';
+import type { ActivityPolylinePoint } from './activityPolyline';
 import type { ActivityRecord, ActivitySource } from '../types/activity';
 import { haversineMeters } from './distanceService';
 
@@ -12,6 +13,26 @@ export function recordsToGpsPoints(records: ActivityRecord[]): GpsPoint[] {
     altitude: record.altitudeMeters,
     speed: record.speedMps,
   }));
+}
+
+export function polylineToGpsPoints(polyline: unknown, startedAt: string): GpsPoint[] {
+  if (!Array.isArray(polyline) || polyline.length === 0) return [];
+
+  const startMs = new Date(startedAt).getTime();
+
+  return polyline
+    .filter(
+      (point): point is ActivityPolylinePoint =>
+        Array.isArray(point) &&
+        point.length >= 2 &&
+        typeof point[0] === 'number' &&
+        typeof point[1] === 'number',
+    )
+    .map((point, index) => ({
+      longitude: point[0],
+      latitude: point[1],
+      timestamp: new Date(startMs + index * 1000).toISOString(),
+    }));
 }
 
 /** Migrate legacy runs that only stored GpsPoint[]. */

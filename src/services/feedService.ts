@@ -1,5 +1,6 @@
 import type { FeedTab, Run } from '../mock';
 import type { Tables } from '../types/database';
+import { syncActivityById } from './activitySync';
 import { supabase } from './supabase';
 import { mapFeedPostToRun } from './socialMappers';
 
@@ -34,6 +35,15 @@ export async function createFeedPost(input: CreateFeedPostInput): Promise<void> 
   );
 
   if (error) throw error;
+}
+
+export async function publishActivityToFeed(input: CreateFeedPostInput): Promise<void> {
+  const syncResult = await syncActivityById(input.activityId, input.userId);
+  if (!syncResult.ok) {
+    throw new Error(`Could not sync run before posting: ${syncResult.error}`);
+  }
+
+  await createFeedPost(input);
 }
 
 export async function fetchFeedPosts(tab: FeedTab, limit = 50): Promise<Run[]> {
