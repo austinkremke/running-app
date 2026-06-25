@@ -2,7 +2,7 @@
 
 > **Milestone:** 04  
 > **Status:** Planned  
-> **Depends on:** [01 Activity recording](./01-activity-recording.md), [02 Supabase](./02-supabase-backend.md)  
+> **Depends on:** [01 Activity recording](./01-activity-recording.md), [02 Supabase](./02-supabase-backend.md) (Phase A–C for activities + Storage)  
 > **Unblocks:** [05 Matchmaking & feed](./05-matchmaking-and-feed.md)
 
 ---

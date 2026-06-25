@@ -15,6 +15,7 @@ This file is a **human/AI-readable index**. After every migration, update the ta
 3. **Regenerate types** → `supabase gen types typescript --local > src/types/database.ts`.
 4. **Commit together** → migration + `database.ts` (+ `seed.sql` if reference data changed).
 5. **Update this file** if tables or FK relationships changed.
+6. **Docs sync** — run [run-off SKILL checklist](../.cursor/skills/run-off/SKILL.md#docs-sync-on-ship-required): README, milestones, AGENTS, skill.
 
 **Before any DB work**, agents must read migrations + `src/types/database.ts` — not hand-rolled interfaces or mock types.
 
@@ -98,7 +99,17 @@ Full detail: [02-supabase-backend.md](../milestones/02-supabase-backend.md).
 
 ---
 
-## Anti-patterns
+## Shipped tables (detail)
+
+| Table | Notes |
+|-------|--------|
+| `profiles` | `team_id` denormalized from `team_members` (trigger) |
+| `activities` | Summary + `polyline` jsonb; RLS includes feed-shared read |
+| `teams` | Seeded `Road Warriors` (`11111111-1111-4111-8111-111111111111`) |
+| `team_members` | Unique `user_id` — one team per user (v1) |
+| `feed_posts` | `audiences text[]`: `community`, `friends`, `team`; unique `activity_id` |
+
+---
 
 - Duplicating `rank_tiers` (or enums) in `src/config/*.ts` **and** DB — pick DB + generated types.
 - Storing catalog display strings on `profiles` or `player_rank`.

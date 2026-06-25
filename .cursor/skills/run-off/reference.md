@@ -22,6 +22,7 @@ Companion to [SKILL.md](SKILL.md). Read when implementing backend, progression, 
 
 | Risk | Impact | Mitigation |
 |------|--------|------------|
+| **Docs / milestone drift** | README says “planned”; agents ship wrong phase | [Docs sync checklist](SKILL.md#docs-sync-on-ship-required) on every phase ship |
 | **Schema / app drift** | AI writes wrong columns; TS types lie | Migrations in git; `supabase gen types` → `database.ts`; commit together |
 | **Duplicate catalogs** | `rank_tiers` in DB + `RANK_TIERS` in TS out of sync | DB only for reference data; fetch or join; no parallel lists |
 | **Display strings on users** | Rename tier requires updating every profile | Store `competitive_rating`; join `rank_tiers` for labels |
@@ -103,6 +104,8 @@ Companion to [SKILL.md](SKILL.md). Read when implementing backend, progression, 
 | **Rank / tier** | Competitive standing (Elo, percentile) |
 | **Rank tier** | Row in `rank_tiers` catalog (display metadata) |
 | **Progression** | XP + level systems |
+| **Feed post** | `feed_posts` row linked to `activities` |
+| **Audience** | `feed_posts.audiences[]` — which tabs show the post |
 | **Match** | Solo or team competitive event (not a casual run) |
 
 ---

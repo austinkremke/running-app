@@ -10,7 +10,40 @@ description: >-
 
 **Repo:** `running-app` (Run Off) · **Roadmap:** [milestones/README.md](../../milestones/README.md)
 
-Read milestone docs before large features. Update milestone status/deps when scope shifts.
+Read milestone docs before large features. **Update all docs when shipping a phase** — see [Docs sync on ship](#docs-sync-on-ship-required).
+
+---
+
+## Docs sync on ship (required)
+
+When you finish a **milestone**, **milestone 02 phase**, or any PR that changes backend scope or roadmap status, update documentation **in the same commit** before push. Do not leave READMEs stale.
+
+### Checklist (touch every row that applies)
+
+| File | What to update |
+|------|----------------|
+| [README.md](../../README.md) | Status table, stack, backend flows, “still mock” table, key services |
+| [milestones/README.md](../../milestones/README.md) | Roadmap table, dependency diagram, phase notes |
+| [milestones/02-supabase-backend.md](../../milestones/02-supabase-backend.md) | Phase status header, phase checklists, app integration table, “current step” |
+| [milestones/01-activity-recording.md](../../milestones/01-activity-recording.md) | Known gaps / handoff if sync or feed behavior changed |
+| [milestones/03-xp-and-ranking.md](../../milestones/03-xp-and-ranking.md) | Depends-on notes if progression tables or stubs changed |
+| [milestones/05-matchmaking-and-feed.md](../../milestones/05-matchmaking-and-feed.md) | Scope “Today vs Target” if feed/teams/matches moved |
+| [supabase/SCHEMA.md](../../supabase/SCHEMA.md) | Table index, “Phase X ships” lines, workflow step 6 |
+| [AGENTS.md](../../AGENTS.md) | Quick rules, current phase pointer |
+| [SKILL.md](SKILL.md) | Milestone table, Supabase phases, key files, pre-ship checklist |
+| [reference.md](reference.md) | New cross-cutting risks only |
+| [.cursor/rules/run-off.mdc](../../.cursor/rules/run-off.mdc) | One-line backend status if it changed |
+
+### Also when schema changed
+
+1. New migration in `supabase/migrations/`
+2. `supabase gen types` → `src/types/database.ts`
+3. `supabase db push` (remote) or `supabase db reset` (local)
+4. Seed/reference data in `seed.sql` if needed
+
+### Commit message hint
+
+Mention milestone/phase in the subject (e.g. `milestone 02 Phase C`) and note doc updates in the body.
 
 ---
 
@@ -61,8 +94,8 @@ Never derive rank from level or level from rank. See [03-xp-and-ranking.md](../.
 |-------|------|----------------|
 | Types | `src/types/` | `ActivityRecord`, session, progression (later) |
 | Services | `src/services/` | Pure logic: recorder, metrics, streams, XP calc |
-| Storage | `src/storage/` | AsyncStorage; later sync queue → Supabase |
-| Context | `src/context/` | `RunProvider`, auth/progression (later) |
+| Storage | `src/storage/` | AsyncStorage, activity sync queue → Supabase |
+| Context | `src/context/` | `RunProvider`, `AuthProvider` |
 | Maps | `src/maps/` | Swappable providers; registry pattern |
 | UI | `src/components/`, `src/screens/` | Presentation only |
 
@@ -146,6 +179,8 @@ Before merging significant work, confirm relevant items:
 - [ ] **Catalogs:** reference data from DB, not duplicated config lists
 - [ ] **Auth (02 Phase A):** sign-up provisions `profiles` via trigger; no client-only profile insert
 - [ ] **Activity sync (02 Phase B):** run stop uploads `activities` row + Storage track when logged in
+- [ ] **Social (02 Phase C):** feed/team screens use `feedService` / `teamService`; docs synced per checklist above
+- [ ] **Docs sync:** README, milestones, SCHEMA, AGENTS, skill updated for shipped scope
 - [ ] Native modules (AsyncStorage, Mapbox) noted if rebuild required
 - [ ] Permissions: location is foreground-only unless milestone says otherwise
 - [ ] No secrets in git; use `EXPO_PUBLIC_*` only for non-sensitive config
@@ -159,7 +194,7 @@ Full risk catalog: [reference.md](reference.md)
 - **Expo 56** — read https://docs.expo.dev/versions/v56.0.0/ before platform APIs.
 - **Mapbox** — dev client build required; not Expo Go.
 - **Env:** `EXPO_PUBLIC_MAPBOX_ACCESS_TOKEN`, `EXPO_PUBLIC_MOCK_GPS` (0 on device).
-- **Supabase** — Phase A + B live; apply migrations to linked project before testing sync ([02](../../milestones/02-supabase-backend.md)).
+- **Supabase** — Phases A–C live (auth, activities, teams, feed). `supabase db push` after migrations.
 
 ---
 
@@ -175,7 +210,8 @@ Full risk catalog: [reference.md](reference.md)
 | Onboarding / auth | `AuthContext.tsx`, `OnboardingContext.tsx`, `OnboardingLoginScreen.tsx` |
 | XP UI (mock) | `XpGainDrawer.tsx`, `mock/xpGain.ts` |
 | Auth + sync | `AuthContext.tsx`, `services/supabase.ts`, `activitySync.ts`, `activitySyncQueue.ts` |
-| Social | `feedService.ts`, `teamService.ts`, `socialMappers.ts` |
+| Social | `feedService.ts`, `teamService.ts`, `socialMappers.ts`, `hooks/useFeed.ts`, `hooks/useMyTeam.ts` |
+| Level (stub) | `levelCurve.ts` |
 | Milestones | `milestones/*.md` |
 | Supabase schema | `supabase/migrations/`, `supabase/SCHEMA.md`, `src/types/database.ts` |
 
@@ -187,3 +223,4 @@ Full risk catalog: [reference.md](reference.md)
 2. Update [milestones/README.md](../../milestones/README.md) table + dependency diagram.
 3. Add a row to this skill’s milestone table if the roadmap changes.
 4. Add any new **hard rules** to [reference.md](reference.md) if they are cross-cutting.
+5. Run [Docs sync on ship](#docs-sync-on-ship-required) checklist.

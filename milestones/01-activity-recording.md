@@ -27,13 +27,14 @@ Key paths: `src/types/activity.ts`, `src/services/activity*.ts`, `src/context/Ru
 
 ## Known gaps (not this milestone)
 
-- Cloud sync ships in [02 Phase B](./02-supabase-backend.md#phase-b--activity-sync) (local-first + queue).
+- Cloud sync → [02 Phase B](./02-supabase-backend.md#phase-b--activity-sync) (**done**).
+- Feed posts → [02 Phase C](./02-supabase-backend.md#phase-c--social--teams-read-heavy) (**done**).
 - No server-side validation / anti-cheat.
-- XP drawer still mocked on “Add to feed”.
+- XP drawer still mocked on “Add to feed” (no `xp_ledger` writes).
 - Garmin/Strava import not implemented.
 
 ---
 
 ## Handoff to milestone 02
 
-Backend should accept the same **`ActivityRecord[]` + session summary** shape — do not invent a second activity model. Store summaries in Postgres; optional full tracks in Storage.
+Backend accepts the same **`ActivityRecord[]` + session summary** shape. Phases A–C shipped: summaries in Postgres, full tracks in Storage, `feed_posts` on “Add to feed”.

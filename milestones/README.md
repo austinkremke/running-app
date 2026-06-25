@@ -6,7 +6,9 @@ Chronological roadmap for **Run Off** (`running-app`). Each milestone is a self-
 
 **Database / schema:** [supabase/SCHEMA.md](../supabase/SCHEMA.md) — migration workflow, DB-first catalogs (`rank_tiers`), generated `src/types/database.ts`.
 
-**Backend order (milestone 02):** Auth sign-up → `auth.users` → trigger → `profiles` + progression rows → then activity sync. See [02 Phase A](./02-supabase-backend.md#phase-a--auth--user-provisioning-first-step).
+**Backend order (milestone 02):** Auth → activity sync → teams/feed → matches. Phases A–C are **shipped**; Phase D (matches) is **next**. See [02](./02-supabase-backend.md).
+
+**When shipping work:** update docs before commit — checklist in [run-off SKILL § Docs sync](../.cursor/skills/run-off/SKILL.md#docs-sync-on-ship-required).
 
 When adding a milestone:
 
@@ -88,3 +90,11 @@ Create `milestones/06-your-slug.md` with this header:
 ```
 
 Then update this README table and any milestones whose dependencies changed.
+
+---
+
+## When shipping a phase (docs sync)
+
+Do **not** commit feature work without updating docs. Required files and steps: [run-off SKILL — Docs sync on ship](../.cursor/skills/run-off/SKILL.md#docs-sync-on-ship-required).
+
+Minimum: this table, `README.md`, `milestones/02-supabase-backend.md` (if backend), `supabase/SCHEMA.md` (if schema), `AGENTS.md`, and the skill milestone table.

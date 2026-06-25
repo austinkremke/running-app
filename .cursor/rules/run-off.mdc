@@ -5,7 +5,7 @@ alwaysApply: true
 
 # Run Off (running-app)
 
-This workspace folder is **Run Off** — an Expo 56 React Native running app with local activity recording and a planned Supabase backend.
+This workspace folder is **Run Off** — an Expo 56 React Native running app with local activity recording and a **live Supabase backend** (auth, activities, teams, feed).
 
 ## Before non-trivial work
 
@@ -21,6 +21,7 @@ This workspace folder is **Run Off** — an Expo 56 React Native running app wit
 - **Navigation**: custom `src/navigation/` — not Expo Router.
 - **Scope**: minimal diffs; match existing code style.
 - **Database**: catalogs in Postgres (`rank_tiers`, …); read `supabase/migrations/` + `src/types/database.ts` before DB work; regenerate types after migrations.
-- **Users in DB**: Auth creates `auth.users`; trigger provisions `profiles` + progression — see milestone 02 Phase A.
+- **Users in DB**: Auth creates `auth.users`; trigger provisions `profiles` + progression (milestone 02 Phase A).
+- **Docs on ship**: update README + milestones + SCHEMA when shipping a phase — see skill § Docs sync.
 
 Deep risks and file map: `.cursor/skills/run-off/reference.md`

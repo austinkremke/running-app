@@ -186,15 +186,15 @@ OK to keep in app: level curve constants, formatting helpers, `tierFromRating(ra
 ## Suggested schema (v1 sketch)
 
 ```
-profiles          — id → auth.users (display name, avatar, team_id, …)
-activities        — synced from StoredActivity
-teams             — name, tag, …
-team_members      — user_id, team_id, role
-matches           — type_id → match_types, status, started_at, …
+profiles          — id → auth.users (display name, avatar, team_id, …)          [SHIPPED]
+activities        — synced from StoredActivity                                  [SHIPPED]
+teams             — name, tag, motto, logo_icon, logo_accent, member_max        [SHIPPED]
+team_members      — team_id, user_id, role (one team per user v1)               [SHIPPED]
+feed_posts        — activity_id, audiences[], title, description, …             [SHIPPED]
+matches           — type_id → match_types, status, started_at, …                [Phase D]
 match_types       — reference catalog (id, display_name, …)
 match_participants
 match_results
-feed_posts        — activity_id, caption, …
 feed_reactions    — later
 
 -- Milestone 03 (reference + state):
@@ -401,7 +401,7 @@ create trigger on_auth_user_created
 - [x] Seed demo team (`Road Warriors`) in `seed.sql`
 - [x] Feed tabs query server posts (friends tab empty until social graph ships)
 - [x] Team tab join prompt → `joinTeam`
-- [ ] Apply migration to remote + verify feed post after run
+- [x] Apply migration to remote + verify feed post after run
 
 ### Phase D — Match shell on server
 

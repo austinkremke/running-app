@@ -2,7 +2,7 @@
 
 > **Milestone:** 03  
 > **Status:** Planned  
-> **Depends on:** [01 Activity recording](./01-activity-recording.md), [02 Supabase](./02-supabase-backend.md) (Phase B+ for server XP; local-only possible for Phase 1)  
+> **Depends on:** [01 Activity recording](./01-activity-recording.md), [02 Supabase](./02-supabase-backend.md) (Phase A–C shipped; `player_progress` + activities on server)  
 > **Unblocks:** [05 Matchmaking & feed](./05-matchmaking-and-feed.md)
 
 ---
@@ -242,6 +242,8 @@ src/
 ```
 
 Supabase tables: `player_progress`, `player_rank`, `xp_ledger` — see [02](./02-supabase-backend.md).
+
+**Already in repo (Phase C stub):** `src/services/levelCurve.ts` derives level for feed/team display only — not wired to XP awards yet.
 
 ---
 

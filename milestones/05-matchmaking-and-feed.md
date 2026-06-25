@@ -2,14 +2,16 @@
 
 > **Milestone:** 05  
 > **Status:** Planned  
-> **Depends on:** [02 Supabase](./02-supabase-backend.md) (Phase A auth + Phase B activities), [03 XP & rank](./03-xp-and-ranking.md), [04 Integrations](./04-third-party-integrations.md) (optional for v1)  
+> **Depends on:** [02 Supabase](./02-supabase-backend.md) (Phase A–C shipped), [03 XP & rank](./03-xp-and-ranking.md), [04 Integrations](./04-third-party-integrations.md) (optional for v1)  
 > **Unblocks:** —
 
 ---
 
 ## Goal
 
-Replace mock match, feed, and team data with server-backed state: real opponents, persisted results, activity feed, and competitive rank updates — while keeping **level (XP)** and **rank (Elo)** separate per [03](./03-xp-and-ranking.md).
+Replace remaining mock match/social data with server-backed state: real opponents, persisted results, competitive rank updates — while keeping **level (XP)** and **rank (Elo)** separate per [03](./03-xp-and-ranking.md).
+
+**Partially done in milestone 02 Phase C:** `feed_posts`, team join/list, community + team feed tabs. This milestone covers matches, Elo, friends graph, reactions, and polish.
 
 ---
 
@@ -19,9 +21,10 @@ Replace mock match, feed, and team data with server-backed state: real opponents
 |------|-------|--------|
 | Solo / team matches | Mock screens | Postgres `matches` + participants |
 | Match results | Static | Runs linked to `activity_id`; Elo update |
-| Feed | `MOCK_RUNS` | `feed_posts` + synced activities |
+| Feed | **Server** (`feed_posts` + `activities`) — no likes/comments/friends | Reactions, friends tab, richer cards |
+| Teams | **Server** (join, members, top list) — stats/activity mock | Full team stats, activity stream |
 | Team chat | Mock | Realtime or polled messages ([02](./02-supabase-backend.md)) |
-| Leaderboards | Mock top teams | `competitive_rating` + seasonal snapshots |
+| Leaderboards | Top teams from DB; rank still mock in UI | `competitive_rating` + seasonal snapshots |
 
 ---
 
@@ -37,7 +40,7 @@ Replace mock match, feed, and team data with server-backed state: real opponents
 
 ### Phase 3 — Feed from real activities
 
-- “Add to feed” creates `feed_posts`; team/friends tabs query RLS
+- ~~“Add to feed” creates `feed_posts`; team/friends tabs query RLS~~ **Partial (02 Phase C):** create post + community/team tabs; friends + reactions remain
 
 ### Phase 4 — Matchmaking
 
