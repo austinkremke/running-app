@@ -34,7 +34,7 @@ export function FeedScreen({ activeTab }: FeedScreenProps) {
         <Text style={styles.message}>
           {activeTab === 'friends'
             ? 'Friends feed is coming soon.'
-            : 'No runs here yet. Finish a run and tap Add to Activity Feed.'}
+            : 'No runs here yet. Finish a run and tap Lock In Your Run.'}
         </Text>
       </View>
     );

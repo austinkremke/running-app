@@ -14,11 +14,11 @@ export function PostRunFooter({ onAddToFeed }: PostRunFooterProps) {
     <View style={[styles.container, { paddingBottom: Math.max(insets.bottom, spacing.lg) }]}>
       <Pressable
         accessibilityRole="button"
-        accessibilityLabel="Add to activity feed"
+        accessibilityLabel="Lock in your run"
         onPress={onAddToFeed}
         style={({ pressed }) => [styles.button, pressed && styles.pressed]}
       >
-        <Text style={styles.label}>ADD TO ACTIVITY FEED</Text>
+        <Text style={styles.label}>LOCK IN YOUR RUN</Text>
       </Pressable>
     </View>
   );
