@@ -1,3 +1,25 @@
+export type XpGainRunSummary = {
+  distance: string;
+  duration: string;
+  pace: string;
+};
+
+export type XpGainSegment = {
+  key: XpBreakdownLine['key'];
+  label: string;
+  detail?: string;
+  xp: number;
+};
+
+export type XpGainEvent = {
+  xpEarned: number;
+  startingLevel: number;
+  startingXp: number;
+  xpToNextLevel: number;
+  runSummary?: XpGainRunSummary;
+  breakdown: XpGainSegment[];
+};
+
 export type XpSource = 'run' | 'match' | 'achievement' | 'onboarding' | 'bonus';
 
 export type XpBreakdownLine = {

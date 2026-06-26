@@ -29,7 +29,7 @@ export function XpGainDrawer({ visible, event, onClose }: XpGainDrawerProps) {
           <Text style={styles.continueLabel}>Continue</Text>
         </Pressable>
       }
-      heightRatio={0.67}
+      heightRatio={0.78}
       onClose={onClose}
       visible={visible}
     >

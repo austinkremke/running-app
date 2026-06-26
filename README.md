@@ -72,7 +72,7 @@ Mapbox on device often needs a recent Xcode beta; see project notes in your shel
 |------|--------|
 | Match / matchmaking lineup UI | Mock (lineup tab); **active match screens from server** |
 | Me tab profile | Name/avatar from server; **level + XP bar real** (local); rank/achievements/stats still mock |
-| Post-run XP drawer | **Real** XP from `xpCalculator` on “Add to feed” (local ledger) |
+| Post-run XP drawer | **Real** staged breakdown + segmented bar fill on “Lock in your run” |
 | Achievements on Me tab | Mock list (server catalog → milestone 06) |
 | Feed likes / comments | UI only (zeros) |
 | Friends feed tab | Empty (no social graph yet) |

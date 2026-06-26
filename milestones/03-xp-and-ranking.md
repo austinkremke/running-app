@@ -327,11 +327,12 @@ Over time: `ProfileRank` → competitive tier; `profile.level` → always from `
 
 Duplicate awards for the same `activity_id` are blocked. Zero-XP attempts do not write ledger entries.
 
-### Phase 2 — Breakdown & polish
+### Phase 2 — Breakdown & polish **shipped (local UI)**
 
-- XP breakdown lines **in drawer UI** (“+340 distance, +42 pace, ×1.1 streak”) — calculator + ledger already store breakdown
-- ~~Streak + first-run-today tracking~~ **Partial (Phase 1):** tracked in `progressionStorage`; polish + display in Phase 2
-- Personal rolling avg pace for pace bonus **shipped** in Phase 1; needs more runs to activate
+- XP breakdown lines **in drawer UI** with staged reveal + segmented bar fill — calculator breakdown wired via `buildXpGainSegments`
+- Tap to skip animation
+- ~~Streak + first-run-today tracking~~ **Partial (Phase 1):** tracked in `progressionStorage`; shown in breakdown copy
+- Personal rolling avg pace for pace bonus **shipped** in Phase 1; detail line when history exists
 
 ### Phase 3 — Rank system (still separate)
 

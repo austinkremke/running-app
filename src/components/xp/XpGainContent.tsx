@@ -1,9 +1,10 @@
-import { StyleSheet, Text, View } from 'react-native';
+import { Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
 
 import type { XpGainEvent } from '../../mock';
 import { colors, spacing } from '../../theme';
 import { AnimatedXpProgressBar } from './AnimatedXpProgressBar';
 import { ConfettiBurst } from './ConfettiBurst';
+import { XpBreakdownList } from './XpBreakdownList';
 import { XpGainSummary } from './XpGainSummary';
 import { XpLevelDisplay } from './XpLevelDisplay';
 import { XpLevelUpBanner } from './XpLevelUpBanner';
@@ -24,49 +25,85 @@ export function XpGainContent({ event, visible }: XpGainContentProps) {
     earnedOpacity,
     displayLevel,
     displayXp,
+    displayEarnedXp,
     xpToNextLevel,
     xpRemaining,
     showConfetti,
     levelPulse,
     showLevelUpBanner,
+    phase,
+    visibleLineCount,
+    activeLineIndex,
+    skipToEnd,
   } = useXpGainAnimation(event, visible);
 
+  const segments =
+    event.breakdown.length > 0
+      ? event.breakdown
+      : event.xpEarned > 0
+        ? [{ key: 'distance' as const, label: 'Run XP', xp: event.xpEarned }]
+        : [];
+
   return (
-    <View style={styles.container}>
-      <ConfettiBurst active={showConfetti} />
+    <Pressable
+      accessibilityHint="Tap to skip XP animation"
+      accessibilityRole="button"
+      onPress={skipToEnd}
+      style={styles.pressable}
+    >
+      <ScrollView
+        bounces={false}
+        contentContainerStyle={styles.container}
+        showsVerticalScrollIndicator={false}
+      >
+        <ConfettiBurst active={showConfetti} />
 
-      <XpGainSummary
-        earnedOpacity={earnedOpacity}
-        runSummary={event.runSummary}
-        xpEarned={event.xpEarned}
-      />
+        <XpGainSummary
+          earnedOpacity={earnedOpacity}
+          runSummary={event.runSummary}
+          xpEarned={displayEarnedXp}
+        />
 
-      <View style={styles.card}>
-        <XpLevelDisplay level={displayLevel} pulse={levelPulse} />
+        <XpBreakdownList
+          activeLineIndex={activeLineIndex}
+          segments={segments}
+          visibleLineCount={visibleLineCount}
+        />
 
-        <View style={styles.progressSection}>
-          <View style={styles.headerRow}>
-            <Text style={styles.sectionLabel}>Experience</Text>
-            <Text style={styles.xpText}>
-              <Text style={styles.xpCurrent}>{formatXp(displayXp)}</Text>
-              <Text style={styles.xpTotal}> / {formatXp(xpToNextLevel)} XP</Text>
-            </Text>
+        <View style={styles.card}>
+          <XpLevelDisplay level={displayLevel} pulse={levelPulse} />
+
+          <View style={styles.progressSection}>
+            <View style={styles.headerRow}>
+              <Text style={styles.sectionLabel}>Experience</Text>
+              <Text style={styles.xpText}>
+                <Text style={styles.xpCurrent}>{formatXp(displayXp)}</Text>
+                <Text style={styles.xpTotal}> / {formatXp(xpToNextLevel)} XP</Text>
+              </Text>
+            </View>
+
+            <AnimatedXpProgressBar progress={progress} height={14} />
+
+            <Text style={styles.remaining}>{formatXp(xpRemaining)} XP to next level</Text>
           </View>
 
-          <AnimatedXpProgressBar progress={progress} height={14} />
-
-          <Text style={styles.remaining}>{formatXp(xpRemaining)} XP to next level</Text>
+          <XpLevelUpBanner level={displayLevel} visible={showLevelUpBanner} />
         </View>
 
-        <XpLevelUpBanner level={displayLevel} visible={showLevelUpBanner} />
-      </View>
-    </View>
+        {phase !== 'done' && phase !== 'idle' ? (
+          <Text style={styles.skipHint}>Tap anywhere to skip</Text>
+        ) : null}
+      </ScrollView>
+    </Pressable>
   );
 }
 
 const styles = StyleSheet.create({
-  container: {
+  pressable: {
     flex: 1,
+  },
+  container: {
+    flexGrow: 1,
     gap: spacing.lg,
     paddingBottom: spacing.sm,
   },
@@ -109,5 +146,12 @@ const styles = StyleSheet.create({
     color: colors.textSecondary,
     fontSize: 10,
     marginTop: spacing.xs,
+  },
+  skipHint: {
+    color: colors.textSecondary,
+    fontSize: 10,
+    textAlign: 'center',
+    fontWeight: '600',
+    letterSpacing: 0.3,
   },
 });

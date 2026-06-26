@@ -1,9 +1,10 @@
-import type { XpGainRunSummary } from '../../mock';
+import type { XpGainRunSummary } from '../../types/progression';
 import type { StoredProgression, XpLedgerEntry } from '../../types/progression';
 import type { StoredActivity } from '../../types/activity';
 import { readProgression, appendLedgerEntry } from '../../storage/progressionStorage';
 import { averagePaceSecondsPerMile } from '../activityMetrics';
 import { buildXpGainEvent } from './buildXpGainEvent';
+import { buildXpGainSegments } from './buildXpGainSegments';
 import { computeXpFromActivity } from './xpCalculator';
 
 export type AwardRunXpResult = {
@@ -98,15 +99,18 @@ export async function awardRunXp(
   const awardDate = todayKey();
   const awardedToday = progression.lastAwardDate === awardDate;
   const nextStreak = nextStreakDays(progression, awardDate);
+  const xpUserStats = {
+    streakDays: nextStreak,
+    rollingAvgPaceSec: progression.rollingAvgPaceSec,
+    awardedToday,
+  };
   const { totalXp: xpEarned, breakdown } = computeXpFromActivity(
     activity,
-    {
-      streakDays: nextStreak,
-      rollingAvgPaceSec: progression.rollingAvgPaceSec,
-      awardedToday,
-    },
+    xpUserStats,
     userId,
   );
+  const runSummary = runSummaryFromActivity(activity);
+  const gainSegments = buildXpGainSegments(breakdown, activity, xpUserStats);
 
   const beforeTotalXp = progression.totalXp;
   const afterTotalXp = beforeTotalXp + xpEarned;
@@ -115,7 +119,7 @@ export async function awardRunXp(
   if (xpEarned === 0) {
     return {
       xpEarned: 0,
-      event: buildXpGainEvent(beforeTotalXp, 0, runSummaryFromActivity(activity)),
+      event: buildXpGainEvent(beforeTotalXp, 0, runSummary),
       progression,
       alreadyAwarded: false,
     };
@@ -138,7 +142,7 @@ export async function awardRunXp(
 
   return {
     xpEarned,
-    event: buildXpGainEvent(beforeTotalXp, xpEarned, runSummaryFromActivity(activity)),
+    event: buildXpGainEvent(beforeTotalXp, xpEarned, runSummary, gainSegments),
     progression: nextProgression,
     alreadyAwarded: false,
   };

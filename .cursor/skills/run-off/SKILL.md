@@ -54,7 +54,7 @@ Mention milestone/phase in the subject (e.g. `milestone 02 Phase C`) and note do
 |---|--------|--------|
 | 01 | Activity recording (local) | Done |
 | 02 | Supabase backend | **In progress** — Phase A–D done; Phase E next |
-| 03 | XP & rank (separate systems) | **In progress** — Phase 1 local XP shipped |
+| 03 | XP & rank (separate systems) | **In progress** — Phase 1–2 local XP + breakdown UI shipped |
 | 04 | Garmin / Strava | Planned |
 | 05 | Matchmaking & feed | Planned |
 | 06 | Account settings, achievements, rank avatar borders, level & paywall gates | Planned |

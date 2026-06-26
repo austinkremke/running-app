@@ -44,19 +44,7 @@ export type ProfileExperience = {
   nextLevel: number;
 };
 
-export type XpGainRunSummary = {
-  distance: string;
-  duration: string;
-  pace: string;
-};
-
-export type XpGainEvent = {
-  xpEarned: number;
-  startingLevel: number;
-  startingXp: number;
-  xpToNextLevel: number;
-  runSummary?: XpGainRunSummary;
-};
+export type { XpGainEvent, XpGainRunSummary, XpGainSegment } from '../types/progression';
 
 export type AchievementVariant = 'purple' | 'lime' | 'gold';
 

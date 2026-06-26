@@ -16,7 +16,7 @@ function formatXp(value: number): string {
 export function XpGainSummary({ xpEarned, earnedOpacity, runSummary }: XpGainSummaryProps) {
   return (
     <View style={styles.container}>
-      <Text style={styles.eyebrow}>Run Complete</Text>
+      <Text style={styles.eyebrow}>Run Locked In</Text>
       <Animated.Text style={[styles.earned, { opacity: earnedOpacity }]}>
         +{formatXp(xpEarned)} XP
       </Animated.Text>
