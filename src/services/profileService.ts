@@ -1,5 +1,6 @@
 import type { Tables } from '../types/database';
 import { supabase } from './supabase';
+import { avatarUrlFromMetadata, syncProfileAvatarIfMissing } from './profileAvatar';
 
 export type Profile = Tables<'profiles'>;
 export type PlayerProgress = Tables<'player_progress'>;
@@ -46,6 +47,16 @@ export async function fetchUserGameState(userId: string): Promise<UserGameState 
     if (!progress || !rank) {
       await sleep(PROFILE_RETRY_MS[attempt] ?? 1000);
       continue;
+    }
+
+    const {
+      data: { user },
+    } = await supabase.auth.getUser();
+    const metadataAvatar = avatarUrlFromMetadata(user?.user_metadata);
+
+    if (metadataAvatar && !profile.avatar_url) {
+      await syncProfileAvatarIfMissing(userId, metadataAvatar);
+      profile.avatar_url = metadataAvatar;
     }
 
     return { profile, progress, rank };

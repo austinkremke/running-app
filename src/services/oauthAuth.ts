@@ -2,6 +2,7 @@ import { Platform } from 'react-native';
 import { sha256 } from 'js-sha256';
 
 import { getGoogleClientIds, isGoogleAuthConfigured } from '../config/auth';
+import { syncProfileAvatar } from './profileAvatar';
 import { supabase } from './supabase';
 
 function formatProviderAuthError(message: string): string {
@@ -225,10 +226,21 @@ export async function signInWithGoogleNative(): Promise<void> {
   }
 
   const displayName = response.data.user.name?.trim();
-  if (displayName && data.user) {
-    await syncProfileDisplayName(data.user.id, displayName).catch((profileError) => {
-      console.warn('Failed to sync Google display name', profileError);
-    });
+  const photoUrl = response.data.user.photo?.trim();
+
+  if (data.user) {
+    if (displayName) {
+      await syncProfileDisplayName(data.user.id, displayName).catch((profileError) => {
+        console.warn('Failed to sync Google display name', profileError);
+      });
+    }
+
+    if (photoUrl) {
+      await client.auth.updateUser({ data: { avatar_url: photoUrl, picture: photoUrl } });
+      await syncProfileAvatar(data.user.id, photoUrl).catch((profileError) => {
+        console.warn('Failed to sync Google avatar', profileError);
+      });
+    }
   }
 }
 

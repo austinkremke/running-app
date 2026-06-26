@@ -8,8 +8,9 @@ import {
   ProfileAvatarButton,
   TabAppHeader,
 } from '../components/header';
-import { useOnboarding } from '../context';
+import { useAuth, useOnboarding } from '../context';
 import type { FeedTab, MatchTab } from '../mock';
+import { initialsFromDisplayName } from '../services/profileAvatar';
 import { FeedScreen } from '../screens/FeedScreen';
 import { MatchScreen } from '../screens/MatchScreen';
 import { RunScreen } from '../screens/RunScreen';
@@ -32,6 +33,7 @@ const MATCH_TABS = [
 ] as const;
 
 export function AppShell() {
+  const { gameState } = useAuth();
   const { shouldOpenSoloMatch, consumeSoloMatchNavigation } = useOnboarding();
   const [activeRoute, setActiveRoute] = useState<AppRoute>('feed');
   const [runReturnRoute, setRunReturnRoute] = useState<AppRoute>('feed');
@@ -231,7 +233,13 @@ export function AppShell() {
       );
     }
 
-    return <ProfileAvatarButton initials="AK" onPress={() => {}} />;
+    return (
+      <ProfileAvatarButton
+        imageUri={gameState?.profile.avatar_url ?? undefined}
+        initials={initialsFromDisplayName(gameState?.profile.display_name)}
+        onPress={() => setActiveRoute('me')}
+      />
+    );
   }
 
   return (

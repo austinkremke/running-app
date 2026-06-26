@@ -89,7 +89,8 @@ feed_posts                      — activity_id FK, audiences[], caption fields
 
 matches / match_participants / match_results
 match_types                     — reference catalog (seed)
-feed_reactions                  — later
+feed_reactions                  — Phase 1 (05): post_id, user_id, reaction (like)
+feed_comments                   — Phase 1 (05): post_id, user_id, body, created_at
 ```
 
 **Phase A ships:** `profiles`, `player_progress`, `player_rank`, trigger, RLS, `rank_tiers` seed.  

@@ -63,7 +63,7 @@ Mapbox on device often needs a recent Xcode beta; see project notes in your shel
 | 02 Supabase — Phase E hardening | **Next** |
 | 03 XP & rank | **In progress** — Phase 1 local XP shipped |
 | 04 Garmin / Strava | Planned |
-| 05 Matchmaking & feed | Planned (partial overlap with 02 Phase C/D) |
+| 05 Matchmaking & feed | **Next** — Phase 1 likes & comments ([05](./milestones/05-matchmaking-and-feed.md)) |
 | 06 Account, gating & cosmetics | Planned |
 
 ### Still mock / placeholder (honest)
@@ -74,7 +74,7 @@ Mapbox on device often needs a recent Xcode beta; see project notes in your shel
 | Me tab profile | Name/avatar from server; **level + XP bar real** (local); rank/achievements/stats still mock |
 | Post-run XP drawer | **Real** staged breakdown + segmented bar fill on “Lock in your run” |
 | Achievements on Me tab | Mock list (server catalog → milestone 06) |
-| Feed likes / comments | UI only (zeros) |
+| Feed likes / comments | **Next** ([05 Phase 1](./milestones/05-matchmaking-and-feed.md)); UI stubbed at 0 today |
 | Friends feed tab | Empty (no social graph yet) |
 | Team stats / team activity feed | Placeholder sections |
 | Team match roster names | Mix of seeded `state_json` + real `team_members` overlay |

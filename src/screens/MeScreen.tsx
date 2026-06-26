@@ -17,7 +17,7 @@ export function MeScreen() {
   const profile = {
     ...MOCK_PROFILE,
     name: gameState?.profile.display_name ?? MOCK_PROFILE.name,
-    avatarUrl: gameState?.profile.avatar_url ?? MOCK_PROFILE.avatarUrl,
+    avatarUrl: gameState?.profile.avatar_url ?? undefined,
     level,
     experience,
   };
