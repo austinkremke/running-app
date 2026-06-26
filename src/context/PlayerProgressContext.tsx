@@ -16,7 +16,6 @@ import {
   loadProgressionForUser,
   type AwardRunXpResult,
 } from '../services/progression/progressionService';
-import { writeProgression } from '../storage/progressionStorage';
 import { useAuth } from './AuthContext';
 
 type PlayerProgressContextValue = {
@@ -31,7 +30,7 @@ type PlayerProgressContextValue = {
 const PlayerProgressContext = createContext<PlayerProgressContextValue | null>(null);
 
 export function PlayerProgressProvider({ children }: { children: ReactNode }) {
-  const { session, gameState } = useAuth();
+  const { session, gameState, refreshGameState } = useAuth();
   const userId = session?.user?.id ?? null;
   const [totalXp, setTotalXp] = useState(0);
   const [loading, setLoading] = useState(true);
@@ -45,20 +44,13 @@ export function PlayerProgressProvider({ children }: { children: ReactNode }) {
 
     setLoading(true);
     try {
-      const serverTotalXp = gameState?.progress.total_xp ?? 0;
-      const progression = await loadProgressionForUser(userId, serverTotalXp);
-
-      if (progression.totalXp > serverTotalXp && serverTotalXp > 0) {
-        await writeProgression(userId, progression);
-      } else if (serverTotalXp > progression.totalXp) {
-        await writeProgression(userId, { ...progression, totalXp: serverTotalXp });
-      }
-
-      setTotalXp(Math.max(progression.totalXp, serverTotalXp));
+      const progression = await loadProgressionForUser(userId, gameState?.progress.total_xp ?? 0);
+      setTotalXp(progression.totalXp);
+      await refreshGameState();
     } finally {
       setLoading(false);
     }
-  }, [gameState?.progress.total_xp, userId]);
+  }, [gameState?.progress.total_xp, refreshGameState, userId]);
 
   useEffect(() => {
     void refreshProgress();
@@ -72,9 +64,10 @@ export function PlayerProgressProvider({ children }: { children: ReactNode }) {
 
       const result = await awardRunXp(userId, activity);
       setTotalXp(result.progression.totalXp);
+      await refreshGameState();
       return result;
     },
-    [userId],
+    [refreshGameState, userId],
   );
 
   const level = useMemo(() => levelFromTotalXp(totalXp), [totalXp]);

@@ -28,7 +28,7 @@ Mapbox requires a **dev client** build (`npx expo run:ios`), not Expo Go.
 - Summaries in Postgres, bulky tracks in Storage.
 - Feed + team screens read from Supabase (`feedService`, `teamService`); feed cards show static route maps from `activities.polyline`.
 - Post-run “Add to feed” uses `publishActivityToFeed` (sync activity, then `feed_posts` insert).
-- XP awards on “Add to feed” via `PlayerProgressContext` (local AsyncStorage); run `npm test` after changing `xpCalculator` / `xpRewards`.
+- XP awards on “Lock in your run” via `award_run_xp` RPC (server recompute); local cache in AsyncStorage; run `npm test` after XP formula changes.
 - **Reference catalogs** (`rank_tiers`, etc.) live in **Postgres + seed.sql** — not duplicated TS lists.
 - **User state** = numbers (`competitive_rating`, `total_xp`) — not rank title strings on profiles.
 - **Schema changes:** migration → `supabase gen types` → commit `database.ts` with SQL → **update all READMEs** (see skill).

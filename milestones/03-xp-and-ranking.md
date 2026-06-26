@@ -340,10 +340,13 @@ Duplicate awards for the same `activity_id` are blocked. Zero-XP attempts do not
 - Replace mock `ProfileRank` / solo `info.rank` with real tier + rating
 - Top Teams / leaderboards use competitive rating, not level
 
-### Phase 4 — Server-authoritative
+### Phase 4 — Server-authoritative **shipped**
 
-- XP awarded via Edge Function after activity sync ([02](./02-supabase-backend.md))
-- Replay activity, anti-cheat, leaderboards, cross-device sync
+- `award_run_xp(activity_id)` Postgres RPC recomputes XP from synced `activities` row
+- `xp_ledger` + extended `player_progress` (`streak_days`, `last_award_date`, `rolling_avg_pace_sec`)
+- Feed/teams read `player_progress.total_xp` (RLS: authenticated read-all)
+- `bootstrap_progression_from_local` one-time import when server XP is 0 and local > 0
+- Client falls back to local-only award if RPC unavailable (offline / migration pending)
 
 ### Phase 5 — Achievements & progression hooks (feeds [06](./06-account-gating-and-cosmetics.md))
 

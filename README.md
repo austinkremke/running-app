@@ -111,7 +111,7 @@ Mapbox on device often needs a recent Xcode beta; see project notes in your shel
 1. Post-run → “Add to Activity Feed” → `publishActivityToFeed` then `awardRunXp`.
 2. `xpCalculator` scores distance, pace vs rolling avg, elevation, streak, first-run-today.
 3. `totalXp` + ledger persisted in AsyncStorage per user (`progressionStorage.ts`); Me tab + XP drawer read `PlayerProgressContext`.
-4. Server `player_progress.total_xp` unchanged until Phase 4 sync.
+4. Server `player_progress.total_xp` updated via `award_run_xp` RPC on lock-in (Phase 4).
 
 Details: [03-xp-and-ranking.md](milestones/03-xp-and-ranking.md).
 

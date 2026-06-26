@@ -319,16 +319,25 @@ export type Database = {
       }
       player_progress: {
         Row: {
+          last_award_date: string | null
+          rolling_avg_pace_sec: number | null
+          streak_days: number
           total_xp: number
           updated_at: string
           user_id: string
         }
         Insert: {
+          last_award_date?: string | null
+          rolling_avg_pace_sec?: number | null
+          streak_days?: number
           total_xp?: number
           updated_at?: string
           user_id: string
         }
         Update: {
+          last_award_date?: string | null
+          rolling_avg_pace_sec?: number | null
+          streak_days?: number
           total_xp?: number
           updated_at?: string
           user_id?: string
@@ -512,12 +521,64 @@ export type Database = {
         }
         Relationships: []
       }
+      xp_ledger: {
+        Row: {
+          amount: number
+          awarded_at: string
+          breakdown_json: Json
+          id: string
+          source: string
+          source_id: string | null
+          user_id: string
+        }
+        Insert: {
+          amount: number
+          awarded_at?: string
+          breakdown_json?: Json
+          id?: string
+          source: string
+          source_id?: string | null
+          user_id: string
+        }
+        Update: {
+          amount?: number
+          awarded_at?: string
+          breakdown_json?: Json
+          id?: string
+          source?: string
+          source_id?: string | null
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "xp_ledger_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
     }
     Views: {
       [_ in never]: never
     }
     Functions: {
-      [_ in never]: never
+      award_run_xp: {
+        Args: {
+          p_activity_id: string
+        }
+        Returns: Json
+      }
+      bootstrap_progression_from_local: {
+        Args: {
+          p_last_award_date?: string
+          p_rolling_avg_pace_sec?: number
+          p_streak_days?: number
+          p_total_xp: number
+        }
+        Returns: Json
+      }
     }
     Enums: {
       [_ in never]: never

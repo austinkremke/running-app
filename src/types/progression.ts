@@ -20,7 +20,7 @@ export type XpGainEvent = {
   breakdown: XpGainSegment[];
 };
 
-export type XpSource = 'run' | 'match' | 'achievement' | 'onboarding' | 'bonus';
+export type XpSource = 'run' | 'match' | 'achievement' | 'onboarding' | 'bonus' | 'migration';
 
 export type XpBreakdownLine = {
   key: 'distance' | 'pace' | 'elevation' | 'duration' | 'streak' | 'first-run-today' | 'match-win';

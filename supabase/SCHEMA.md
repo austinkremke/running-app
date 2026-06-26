@@ -96,6 +96,8 @@ feed_reactions                  — later
 **Phase B ships:** `activities` table + `activities` Storage bucket; sync on run stop.  
 **Phase C ships:** `teams`, `team_members`, `feed_posts`, `profiles.team_id`; feed + team UI from server; feed route preview from `activities.polyline`.  
 **Phase D ships:** `match_types`, `matches`, `match_participants`; active match screens + `activities.match_id`.  
+**Phase 4 ships:** `xp_ledger`, `award_run_xp` / `bootstrap_progression_from_local` RPCs, progression columns on `player_progress`, social read-all RLS for levels on feed.
+
 **Post–Phase D RLS fixes:** `20250615000001_fix_match_participants_rls.sql`, `20250616000001_fix_feed_posts_rls.sql` — security definer helpers to avoid policy recursion.
 
 Full detail: [02-supabase-backend.md](../milestones/02-supabase-backend.md).
@@ -123,6 +125,8 @@ Full detail: [02-supabase-backend.md](../milestones/02-supabase-backend.md).
 | `feed_posts` | `audiences text[]`: `community`, `friends`, `team`; unique `activity_id` |
 | `matches` | `kind` team/solo, `state_json` UI shell, `ends_at` for countdown |
 | `match_participants` | `user_id`, `side`, `points`; solo enroll on first view |
+| `xp_ledger` | Per-award audit trail; idempotent run awards via partial unique index |
+| `player_progress` | `total_xp`, `streak_days`, `last_award_date`, `rolling_avg_pace_sec` |
 
 ---
 
