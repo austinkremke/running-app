@@ -15,6 +15,7 @@ import {
 import type { FeedTab, XpGainEvent } from '../mock';
 import { recordsToGpsPoints } from '../services/activityAdapters';
 import { publishActivityToFeed } from '../services/feedService';
+import { makeMockRunActivity } from '../services/progression/mockRunActivity';
 import { getErrorMessage } from '../utils/errors';
 import { PostRunScreen } from './PostRunScreen';
 import { colors } from '../theme';
@@ -66,6 +67,27 @@ export function RunScreen({ onBack }: RunScreenProps) {
     setPostRunVisible(false);
     setPreviewPostRun(false);
     clearLastFinishedRun();
+  }
+
+  async function handleDevOneMileXp() {
+    const userId = session?.user?.id ?? gameState?.profile.id;
+    if (!userId) {
+      Alert.alert('Dev XP preview', 'Sign in to preview XP awards.');
+      return;
+    }
+
+    const activity = makeMockRunActivity({
+      distanceMiles: 1,
+      paceSecondsPerMile: 9 * 60,
+      sessionId: `dev-one-mile-${Date.now()}`,
+    });
+
+    try {
+      const result = await awardRunXp(activity);
+      openXpDrawer(result.event);
+    } catch (error) {
+      Alert.alert('Dev XP preview failed', getErrorMessage(error, 'Could not preview XP.'));
+    }
   }
 
   async function handleAddToFeed() {
@@ -169,6 +191,9 @@ export function RunScreen({ onBack }: RunScreenProps) {
               <XpGainTestButtons
                 onTestLevelUp={() => openXpDrawer(MOCK_XP_GAIN_LEVEL_UP)}
                 onTestNormal={() => openXpDrawer(MOCK_XP_GAIN_NORMAL)}
+                onTestOneMile={() => {
+                  void handleDevOneMileXp();
+                }}
               />
             </>
           ) : null

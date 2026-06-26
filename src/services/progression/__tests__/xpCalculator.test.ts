@@ -195,7 +195,7 @@ describe('computeXpFromActivity', () => {
         rollingAvgPaceSec: 8 * 60,
       });
 
-      expect(result.breakdown.find((line) => line.key === 'pace')?.xp).toBeGreaterThan(0);
+      expect(result.breakdown.find((line) => line.key === 'pace')?.xp).toBe(4);
     });
 
     it('awards no pace XP when slower than rolling average', () => {

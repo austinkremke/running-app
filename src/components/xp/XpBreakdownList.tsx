@@ -10,6 +10,22 @@ type XpBreakdownListProps = {
   activeLineIndex: number;
 };
 
+function rowState(
+  index: number,
+  visibleLineCount: number,
+  activeLineIndex: number,
+): 'pending' | 'active' | 'done' {
+  if (index >= visibleLineCount) {
+    return 'pending';
+  }
+
+  if (index === activeLineIndex) {
+    return 'active';
+  }
+
+  return 'done';
+}
+
 export function XpBreakdownList({
   segments,
   visibleLineCount,
@@ -23,11 +39,11 @@ export function XpBreakdownList({
     <View style={styles.container}>
       <Text style={styles.heading}>XP Breakdown</Text>
       <View style={styles.list}>
-        {segments.slice(0, visibleLineCount).map((segment, index) => (
+        {segments.map((segment, index) => (
           <XpBreakdownRow
             key={`${segment.key}-${index}`}
             segment={segment}
-            state={index === activeLineIndex ? 'active' : 'done'}
+            state={rowState(index, visibleLineCount, activeLineIndex)}
           />
         ))}
       </View>

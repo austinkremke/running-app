@@ -175,7 +175,7 @@ Input: `StoredActivity` (records + session summary).
 
 ```typescript
 distanceXp  = miles * 100
-paceXp      = paceBonus(miles, avgPaceSec, userRollingAvgPaceSec)  // 0–15% of distanceXp
+paceXp      = paceBonus(miles, avgPaceSec, userRollingAvgPaceSec)  // 0–30% of distanceXp
 elevationXp = floor(elevationGainFt / 50) * 2
 subtotal    = distanceXp + paceXp + elevationXp
 multiplier  = streakMultiplier(consecutiveDays)
@@ -314,7 +314,7 @@ Over time: `ProfileRank` → competitive tier; `profile.level` → always from `
 | Base rate | 100 XP / mi (diminishing below 0.25 mi) |
 | First run today | +50 XP |
 | Streak | +5% / day, cap 7 days |
-| Pace bonus | Up to +15% of distance XP vs personal rolling avg |
+| Pace bonus | Up to +30% of distance XP vs personal rolling avg |
 | Per-run cap | 5,000 XP |
 
 **Reference totals (first run of day, flat, no pace history):**

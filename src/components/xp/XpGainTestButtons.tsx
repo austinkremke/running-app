@@ -3,14 +3,27 @@ import { Pressable, StyleSheet, Text, View } from 'react-native';
 import { colors, spacing } from '../../theme';
 
 type XpGainTestButtonsProps = {
+  onTestOneMile: () => void;
   onTestNormal: () => void;
   onTestLevelUp: () => void;
 };
 
-export function XpGainTestButtons({ onTestNormal, onTestLevelUp }: XpGainTestButtonsProps) {
+export function XpGainTestButtons({
+  onTestOneMile,
+  onTestNormal,
+  onTestLevelUp,
+}: XpGainTestButtonsProps) {
   return (
     <View style={styles.container}>
       <Text style={styles.label}>XP Animation (dev)</Text>
+      <Pressable
+        accessibilityLabel="Test 1 mile 9 minute pace XP gain"
+        onPress={onTestOneMile}
+        style={({ pressed }) => [styles.button, styles.buttonPrimary, pressed && styles.pressed]}
+      >
+        <Text style={[styles.buttonLabel, styles.buttonLabelPrimary]}>1 mi · 9:00/mi</Text>
+        <Text style={styles.buttonHint}>Real calculator + your progression</Text>
+      </Pressable>
       <View style={styles.row}>
         <Pressable
           accessibilityLabel="Test normal XP gain"
@@ -61,6 +74,12 @@ const styles = StyleSheet.create({
     borderColor: 'rgba(227, 255, 106, 0.4)',
     backgroundColor: 'rgba(227, 255, 106, 0.08)',
   },
+  buttonPrimary: {
+    borderColor: colors.accentLime,
+    backgroundColor: 'rgba(227, 255, 106, 0.12)',
+    paddingVertical: spacing.md,
+    gap: 2,
+  },
   buttonLabel: {
     color: colors.textPrimary,
     fontSize: 11,
@@ -68,6 +87,15 @@ const styles = StyleSheet.create({
   },
   buttonLabelAccent: {
     color: colors.accentLime,
+  },
+  buttonLabelPrimary: {
+    color: colors.accentLime,
+    fontSize: 12,
+  },
+  buttonHint: {
+    color: colors.textSecondary,
+    fontSize: 9,
+    fontWeight: '600',
   },
   pressed: {
     opacity: 0.85,

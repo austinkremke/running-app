@@ -7,5 +7,5 @@ export const FIRST_RUN_TODAY_BONUS = 50;
 export const ELEVATION_XP_PER_50_FT = 2;
 export const MAX_STREAK_DAYS = 7;
 export const STREAK_MULTIPLIER_PER_DAY = 0.05;
-export const MAX_PACE_BONUS_RATIO = 0.15;
+export const MAX_PACE_BONUS_RATIO = 0.3;
 export const MAX_LEDGER_ENTRIES = 20;
