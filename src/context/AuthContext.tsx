@@ -98,6 +98,12 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       return;
     }
 
+    if (__DEV__) {
+      console.log(
+        `[Run Off] EXPO_PUBLIC_DEV_XP_USER_ID=${session.user.id}`,
+      );
+    }
+
     refreshGameState().catch((error: unknown) => {
       console.error('Failed to load profile', error);
       setAuthError(

@@ -24,7 +24,7 @@ When adding a milestone:
 |---|-----------|--------|------------|----------|
 | 01 | [Activity recording](./01-activity-recording.md) | **Done** | — | 02, 03, 04 |
 | 02 | [Supabase backend](./02-supabase-backend.md) | **In progress** — Phase A–D done; Phase E hardening next | 01 | 03, 04, 05, 06 |
-| 03 | [XP & competitive rank](./03-xp-and-ranking.md) | Planned | 01, 02 (partial) | 05, 06 |
+| 03 | [XP & competitive rank](./03-xp-and-ranking.md) | **In progress** — Phase 1 local XP shipped | 01, 02 (partial) | 05, 06 |
 | 04 | [Third-party integrations](./04-third-party-integrations.md) | Planned | 01, 02 | 05 |
 | 05 | [Matchmaking, feed & social sync](./05-matchmaking-and-feed.md) | Planned | 02, 03, 04 | — |
 | 06 | [Account, gating & cosmetics](./06-account-gating-and-cosmetics.md) | Planned | 02, 03 | — |

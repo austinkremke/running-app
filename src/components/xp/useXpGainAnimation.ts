@@ -2,6 +2,7 @@ import { useEffect, useRef, useState } from 'react';
 import { Animated } from 'react-native';
 
 import type { XpGainEvent } from '../../mock';
+import { cumulativeXpForLevel, experienceFromTotalXp } from '../../services/levelCurve';
 
 type XpGainPhase = 'idle' | 'running' | 'levelUp' | 'done';
 
@@ -127,6 +128,8 @@ export function useXpGainAnimation(event: XpGainEvent | null, visible: boolean) 
 
           setShowConfetti(false);
           currentXp = 0;
+          levelThreshold = experienceFromTotalXp(cumulativeXpForLevel(level)).nextLevelXp;
+          setXpToNextLevel(levelThreshold);
           setDisplayXp(0);
           progress.setValue(0);
           await delay(250);

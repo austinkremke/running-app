@@ -1,7 +1,7 @@
 # XP & Leveling + Competitive Rank
 
 > **Milestone:** 03  
-> **Status:** Planned  
+> **Status:** In progress — Phase 1 (local progression) shipped  
 > **Depends on:** [01 Activity recording](./01-activity-recording.md), [02 Supabase](./02-supabase-backend.md) (Phase A–C shipped; `player_progress` + activities on server)  
 > **Unblocks:** [05 Matchmaking & feed](./05-matchmaking-and-feed.md)
 
@@ -243,7 +243,7 @@ src/
 
 Supabase tables: `player_progress`, `player_rank`, `xp_ledger` — see [02](./02-supabase-backend.md).
 
-**Already in repo (Phase C stub):** `src/services/levelCurve.ts` derives level for feed/team display only — not wired to XP awards yet.
+**Already in repo (Phase C stub):** `src/services/levelCurve.ts` derives level for feed/team display — **Phase 1 wires awards** via `PlayerProgressContext` (local); server sync in Phase 4.
 
 ---
 
@@ -259,7 +259,7 @@ Stop run → PostRunScreen → "Add to activity feed"
   → persist PlayerProgress (local + sync to Supabase)
 ```
 
-Replace `MOCK_XP_GAIN_NORMAL` in `RunScreen.handleAddToFeed`.
+Replace `MOCK_XP_GAIN_NORMAL` in `RunScreen.handleAddToFeed`. **Done** — real `awardRunXp` + `XpGainDrawer` event from `buildXpGainEvent`.
 
 ### Me tab
 
@@ -295,18 +295,43 @@ Over time: `ProfileRank` → competitive tier; `profile.level` → always from `
 
 ## 7. Rollout phases
 
-### Phase 1 — Core progression (local)
+### Phase 1 — Core progression (local) **shipped**
 
 - `levelCurve` + `xpCalculator` + `PlayerProgressContext`
 - Award XP on “Add to feed” from real `StoredActivity`
 - Persist `totalXp` + last N ledger entries in AsyncStorage
 - Wire `XpGainDrawer` + `ExperienceCard` + profile level display
+- Unit tests: `npm test` → `src/services/progression/__tests__/xpCalculator.test.ts`
+
+**Shipped in app:** `src/config/xpRewards.ts`, `src/services/progression/*`, `src/storage/progressionStorage.ts`, `PlayerProgressContext`, real XP on `RunScreen.handleAddToFeed`, Me tab level/XP bar.
+
+**Rules (v1):**
+
+| Rule | Value |
+|------|--------|
+| Min distance (production) | 0.10 mi display (`distanceMiles.toFixed(2)`) |
+| Min distance (dev bypass) | 0.01 mi when `EXPO_PUBLIC_DEV_XP_USER_ID` matches signed-in user in `__DEV__` |
+| Base rate | 100 XP / mi (diminishing below 0.25 mi) |
+| First run today | +50 XP |
+| Streak | +5% / day, cap 7 days |
+| Pace bonus | Up to +15% of distance XP vs personal rolling avg |
+| Per-run cap | 5,000 XP |
+
+**Reference totals (first run of day, flat, no pace history):**
+
+| Run | Total XP |
+|-----|----------|
+| 0.01 mi (dev bypass only) | 50 (distance floors to 0; first-run bonus only) |
+| 0.10 mi | 54 |
+| 1.0 mi @ 9:00/mi | 155 |
+
+Duplicate awards for the same `activity_id` are blocked. Zero-XP attempts do not write ledger entries.
 
 ### Phase 2 — Breakdown & polish
 
-- XP breakdown lines in drawer (“+340 distance, +42 pace, ×1.1 streak”)
-- Streak + first-run-today tracking
-- Personal rolling avg pace for pace bonus
+- XP breakdown lines **in drawer UI** (“+340 distance, +42 pace, ×1.1 streak”) — calculator + ledger already store breakdown
+- ~~Streak + first-run-today tracking~~ **Partial (Phase 1):** tracked in `progressionStorage`; polish + display in Phase 2
+- Personal rolling avg pace for pace bonus **shipped** in Phase 1; needs more runs to activate
 
 ### Phase 3 — Rank system (still separate)
 

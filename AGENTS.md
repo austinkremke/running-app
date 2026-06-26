@@ -8,6 +8,7 @@
 | [.cursor/skills/run-off/SKILL.md](.cursor/skills/run-off/SKILL.md) | Architecture, patterns, anti-patterns, pre-ship + **docs sync** checklist |
 | [.cursor/skills/run-off/reference.md](.cursor/skills/run-off/reference.md) | Full risk catalog, terminology |
 | [milestones/README.md](milestones/README.md) | Chronological roadmap (01 → 06) |
+| [milestones/03-xp-and-ranking.md](milestones/03-xp-and-ranking.md) | XP formula, phases, unit tests |
 | [milestones/06-account-gating-and-cosmetics.md](milestones/06-account-gating-and-cosmetics.md) | Account settings, achievements, gates, cosmetics |
 | [supabase/SCHEMA.md](supabase/SCHEMA.md) | DB index + migration/types workflow |
 
@@ -22,12 +23,12 @@ Mapbox requires a **dev client** build (`npx expo run:ios`), not Expo Go.
 ## Quick rules
 
 - `ActivityRecord[]` is the source of truth for runs; maps/charts are derived.
-- XP/level and competitive rank are **separate** (see milestone 03).
+- XP/level and competitive rank are **separate** (see milestone 03). Level/XP persist locally until Phase 4 server sync.
 - **Milestone 02:** Phase A–D shipped; **Phase E hardening** is next.
 - Summaries in Postgres, bulky tracks in Storage.
 - Feed + team screens read from Supabase (`feedService`, `teamService`); feed cards show static route maps from `activities.polyline`.
 - Post-run “Add to feed” uses `publishActivityToFeed` (sync activity, then `feed_posts` insert).
-- Match/Me XP UI still mock; achievements on Me tab still mock (milestone 06).
+- XP awards on “Add to feed” via `PlayerProgressContext` (local AsyncStorage); run `npm test` after changing `xpCalculator` / `xpRewards`.
 - **Reference catalogs** (`rank_tiers`, etc.) live in **Postgres + seed.sql** — not duplicated TS lists.
 - **User state** = numbers (`competitive_rating`, `total_xp`) — not rank title strings on profiles.
 - **Schema changes:** migration → `supabase gen types` → commit `database.ts` with SQL → **update all READMEs** (see skill).

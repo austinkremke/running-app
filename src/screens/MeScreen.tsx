@@ -6,11 +6,21 @@ import {
   OverallStatsSection,
   ProfileTopSection,
 } from '../components/me';
+import { useAuth, usePlayerProgress } from '../context';
 import { MOCK_PROFILE } from '../mock';
 import { colors, spacing } from '../theme';
 
 export function MeScreen() {
-  const profile = MOCK_PROFILE;
+  const { gameState } = useAuth();
+  const { level, experience } = usePlayerProgress();
+
+  const profile = {
+    ...MOCK_PROFILE,
+    name: gameState?.profile.display_name ?? MOCK_PROFILE.name,
+    avatarUrl: gameState?.profile.avatar_url ?? MOCK_PROFILE.avatarUrl,
+    level,
+    experience,
+  };
 
   return (
     <ScrollView

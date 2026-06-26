@@ -26,7 +26,7 @@ When you finish a **milestone**, **milestone 02 phase**, or any PR that changes 
 | [milestones/README.md](../../milestones/README.md) | Roadmap table, dependency diagram, phase notes |
 | [milestones/02-supabase-backend.md](../../milestones/02-supabase-backend.md) | Phase status header, phase checklists, app integration table, “current step” |
 | [milestones/01-activity-recording.md](../../milestones/01-activity-recording.md) | Known gaps / handoff if sync or feed behavior changed |
-| [milestones/03-xp-and-ranking.md](../../milestones/03-xp-and-ranking.md) | Depends-on notes if progression tables or stubs changed |
+| [milestones/03-xp-and-ranking.md](../../milestones/03-xp-and-ranking.md) | Phase status, formula reference, test command |
 | [milestones/05-matchmaking-and-feed.md](../../milestones/05-matchmaking-and-feed.md) | Scope “Today vs Target” if feed/teams/matches moved |
 | [milestones/06-account-gating-and-cosmetics.md](../../milestones/06-account-gating-and-cosmetics.md) | If account/gating/achievement scope changed |
 | [supabase/SCHEMA.md](../../supabase/SCHEMA.md) | Table index, “Phase X ships” lines, workflow step 6 |
@@ -54,7 +54,7 @@ Mention milestone/phase in the subject (e.g. `milestone 02 Phase C`) and note do
 |---|--------|--------|
 | 01 | Activity recording (local) | Done |
 | 02 | Supabase backend | **In progress** — Phase A–D done; Phase E next |
-| 03 | XP & rank (separate systems) | Planned |
+| 03 | XP & rank (separate systems) | **In progress** — Phase 1 local XP shipped |
 | 04 | Garmin / Strava | Planned |
 | 05 | Matchmaking & feed | Planned |
 | 06 | Account settings, achievements, rank avatar borders, level & paywall gates | Planned |
@@ -183,8 +183,8 @@ Before merging significant work, confirm relevant items:
 - [ ] **Activity sync (02 Phase B):** run stop uploads `activities` row + Storage track when logged in
 - [ ] **Social (02 Phase C):** feed/team screens use `feedService` / `teamService`; feed cards render route from `polyline`
 - [ ] **Matches (02 Phase D):** active team/solo screens from `matchService`; `match_id` on synced activities
+- [ ] **Progression (03 Phase 1):** `awardRunXp` on feed post; `npm test` passes after XP formula changes
 - [ ] **Docs sync:** README, milestones, SCHEMA, AGENTS, skill updated for shipped scope
-- [ ] Native modules (AsyncStorage, Mapbox) noted if rebuild required
 - [ ] Permissions: location is foreground-only unless milestone says otherwise
 - [ ] No secrets in git; use `EXPO_PUBLIC_*` only for non-sensitive config
 
@@ -211,10 +211,12 @@ Full risk catalog: [reference.md](reference.md)
 | Post-run | `PostRunScreen.tsx`, `buildPostRunSummary.ts` |
 | Maps | `MapboxMapView.tsx`, `StaticRouteMapPreview.tsx`, `locationProvider.ts` |
 | Onboarding / auth | `AuthContext.tsx`, `OnboardingContext.tsx`, `OnboardingLoginScreen.tsx` |
-| XP UI (mock) | `XpGainDrawer.tsx`, `mock/xpGain.ts` |
+| XP UI | `XpGainDrawer.tsx`, `PlayerProgressContext.tsx`, `services/progression/*` |
 | Auth + sync | `AuthContext.tsx`, `services/supabase.ts`, `activitySync.ts`, `activitySyncQueue.ts` |
 | Social | `feedService.ts` (`publishActivityToFeed`), `teamService.ts`, `socialMappers.ts`, `activityAdapters.ts` (`polylineToGpsPoints`) |
 | Matches | `matchService.ts`, `matchMappers.ts`, `useActiveTeamMatch.ts`, `useActiveSoloMatch.ts` |
+| Progression | `PlayerProgressContext.tsx`, `services/progression/*`, `progressionStorage.ts`, `config/xpRewards.ts` |
+| Tests | `npm test`, `src/services/progression/__tests__/` |
 | Milestones | `milestones/*.md` |
 | Supabase schema | `supabase/migrations/`, `supabase/SCHEMA.md`, `src/types/database.ts` |
 

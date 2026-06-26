@@ -34,6 +34,7 @@ Copy `.env.example` → `.env`. Required today:
 - `EXPO_PUBLIC_SUPABASE_URL`
 - `EXPO_PUBLIC_SUPABASE_ANON_KEY`
 - `EXPO_PUBLIC_GOOGLE_IOS_CLIENT_ID` / `EXPO_PUBLIC_GOOGLE_WEB_CLIENT_ID` (Google sign-in)
+- `EXPO_PUBLIC_DEV_XP_USER_ID` — optional; `__DEV__` only: lowers XP min distance to 0.01 mi for your user UUID (see `.env.example`)
 
 Social auth setup: [docs/auth-setup.md](docs/auth-setup.md)
 
@@ -41,6 +42,7 @@ Social auth setup: [docs/auth-setup.md](docs/auth-setup.md)
 
 ```bash
 npm install
+npm test                # XP calculator unit tests (ts-jest)
 npx expo start          # Metro
 npx expo run:ios        # Mapbox dev client (device/simulator)
 ```
@@ -59,7 +61,7 @@ Mapbox on device often needs a recent Xcode beta; see project notes in your shel
 | 02 Supabase — Phase C teams/feed | **Done** |
 | 02 Supabase — Phase D matches | **Done** |
 | 02 Supabase — Phase E hardening | **Next** |
-| 03 XP & rank | Planned |
+| 03 XP & rank | **In progress** — Phase 1 local XP shipped |
 | 04 Garmin / Strava | Planned |
 | 05 Matchmaking & feed | Planned (partial overlap with 02 Phase C/D) |
 | 06 Account, gating & cosmetics | Planned |
@@ -69,7 +71,8 @@ Mapbox on device often needs a recent Xcode beta; see project notes in your shel
 | Area | State |
 |------|--------|
 | Match / matchmaking lineup UI | Mock (lineup tab); **active match screens from server** |
-| Me tab profile, XP drawer on feed | Mock UI (XP not written to server) |
+| Me tab profile | Name/avatar from server; **level + XP bar real** (local); rank/achievements/stats still mock |
+| Post-run XP drawer | **Real** XP from `xpCalculator` on “Add to feed” (local ledger) |
 | Achievements on Me tab | Mock list (server catalog → milestone 06) |
 | Feed likes / comments | UI only (zeros) |
 | Friends feed tab | Empty (no social graph yet) |
@@ -103,6 +106,15 @@ Mapbox on device often needs a recent Xcode beta; see project notes in your shel
 2. Open Solo Match → enrolls in demo solo match; home runner from your profile.
 3. Runs started during an active match get `activities.match_id` on sync.
 
+**Progression (03 Phase 1 — local)**
+
+1. Post-run → “Add to Activity Feed” → `publishActivityToFeed` then `awardRunXp`.
+2. `xpCalculator` scores distance, pace vs rolling avg, elevation, streak, first-run-today.
+3. `totalXp` + ledger persisted in AsyncStorage per user (`progressionStorage.ts`); Me tab + XP drawer read `PlayerProgressContext`.
+4. Server `player_progress.total_xp` unchanged until Phase 4 sync.
+
+Details: [03-xp-and-ranking.md](milestones/03-xp-and-ranking.md).
+
 ## Key services
 
 | Area | Files |
@@ -112,6 +124,6 @@ Mapbox on device often needs a recent Xcode beta; see project notes in your shel
 | Social | `feedService.ts` (`publishActivityToFeed`), `teamService.ts`, `socialMappers.ts` |
 | Feed route preview | `StaticRouteMapPreview.tsx`, `polylineToGpsPoints` in `activityAdapters.ts` |
 | Matches | `matchService.ts`, `matchMappers.ts`, `hooks/useActiveTeamMatch.ts`, `hooks/useActiveSoloMatch.ts` |
-| Level (display stub) | `levelCurve.ts` — full XP in milestone 03 |
+| Progression | `PlayerProgressContext.tsx`, `services/progression/*`, `storage/progressionStorage.ts` |
 
 Details: [02-supabase-backend.md](milestones/02-supabase-backend.md).

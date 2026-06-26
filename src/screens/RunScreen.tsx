@@ -5,7 +5,7 @@ import { SafeAreaProvider } from 'react-native-safe-area-context';
 import { PostRunTestButton } from '../components/post-run';
 import { RunBottomDrawer, RunMapArea } from '../components/run';
 import { XpGainDrawer, XpGainTestButtons } from '../components/xp';
-import { useAuth, useRun } from '../context';
+import { useAuth, usePlayerProgress, useRun } from '../context';
 import {
   MOCK_POST_RUN,
   MOCK_POST_RUN_ROUTE,
@@ -25,6 +25,7 @@ type RunScreenProps = {
 
 export function RunScreen({ onBack }: RunScreenProps) {
   const { gameState, session } = useAuth();
+  const { awardRunXp } = usePlayerProgress();
   const {
     isRecording,
     routePoints,
@@ -68,10 +69,11 @@ export function RunScreen({ onBack }: RunScreenProps) {
   }
 
   async function handleAddToFeed() {
-    const activityId = lastFinishedRun?.session.id;
+    const finishedRun = lastFinishedRun;
+    const activityId = finishedRun?.session.id;
     const userId = session?.user?.id ?? gameState?.profile.id;
 
-    if (!activityId) {
+    if (!activityId || !finishedRun) {
       Alert.alert('Feed post failed', 'No finished run to post.');
       return;
     }
@@ -98,18 +100,17 @@ export function RunScreen({ onBack }: RunScreenProps) {
       return;
     }
 
+    let xpResult;
+    try {
+      xpResult = await awardRunXp(finishedRun);
+    } catch (error) {
+      Alert.alert('XP award failed', getErrorMessage(error, 'Could not award XP for this run.'));
+      closePostRun();
+      return;
+    }
+
     closePostRun();
-    const summary = lastFinishedRun?.summary;
-    openXpDrawer({
-      ...MOCK_XP_GAIN_NORMAL,
-      runSummary: summary
-        ? {
-            distance: `${summary.distanceMiles.toFixed(2)} mi`,
-            duration: summary.duration,
-            pace: `${summary.avgPace}${summary.avgPaceUnit}`,
-          }
-        : MOCK_XP_GAIN_NORMAL.runSummary,
-    });
+    openXpDrawer(xpResult.event);
   }
 
   async function handleStartRun() {
