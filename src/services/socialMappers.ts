@@ -3,6 +3,7 @@ import type { PostRunSummary, Run, RunStats, Team, TeamLogoAccent, TeamMember, T
 import type { Tables } from '../types/database';
 import { polylineToGpsPoints } from './activityAdapters';
 import { metersToMiles, formatDurationParts, formatPace } from './distanceService';
+import type { FeedEngagementSummary } from './feedEngagementService';
 import { experienceFromTotalXp, levelFromTotalXp } from './levelCurve';
 import { formatRelativeTime } from '../utils/formatRelativeTime';
 
@@ -58,6 +59,7 @@ export function mapFeedPostToRun(
   profile: ProfileRow & { player_progress?: { total_xp: number } | null },
   activity: ActivityRow,
   teamName: string | null,
+  engagement: FeedEngagementSummary = { likeCount: 0, commentCount: 0, likedByMe: false },
 ): Run {
   const totalXp = profile.player_progress?.total_xp ?? 0;
   const audiences = post.audiences ?? ['community'];
@@ -78,8 +80,9 @@ export function mapFeedPostToRun(
     stats: statsFromActivity(activity),
     routePoints: polylineToGpsPoints(activity.polyline, activity.started_at),
     photoUrl: post.photo_url ?? undefined,
-    likes: 0,
-    comments: 0,
+    likes: engagement.likeCount,
+    comments: engagement.commentCount,
+    likedByMe: engagement.likedByMe,
     feedTabs: audiences.filter(
       (tab): tab is Run['feedTabs'][number] =>
         tab === 'community' || tab === 'friends' || tab === 'team',

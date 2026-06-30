@@ -20,6 +20,7 @@ export type {
   ActiveTeamMatch,
   ChallengeFriend,
   FeedTab,
+  FeedComment,
   ProposedChallenge,
   Matchmaking,
   MatchRunner,

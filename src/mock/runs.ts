@@ -35,6 +35,7 @@ export const MOCK_RUNS: Run[] = [
       'https://images.unsplash.com/photo-1476480862126-209bfaa8edc8?w=400&h=400&fit=crop',
     likes: 42,
     comments: 6,
+    likedByMe: false,
     feedTabs: ['community', 'friends', 'team'],
   },
   {
@@ -61,6 +62,7 @@ export const MOCK_RUNS: Run[] = [
       'https://images.unsplash.com/photo-1571008887538-b36bb32f4571?w=400&h=400&fit=crop',
     likes: 28,
     comments: 4,
+    likedByMe: false,
     feedTabs: ['community', 'friends'],
   },
   {
@@ -87,6 +89,7 @@ export const MOCK_RUNS: Run[] = [
       'https://images.unsplash.com/photo-1552674605-db6ffd4facb5?w=400&h=400&fit=crop',
     likes: 51,
     comments: 9,
+    likedByMe: false,
     feedTabs: ['community', 'team'],
   },
 ];

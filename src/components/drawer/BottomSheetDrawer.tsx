@@ -1,8 +1,8 @@
-import { ReactNode, useEffect, useRef } from 'react';
+import { ReactNode, useEffect, useRef, useState } from 'react';
 import {
   Animated,
   Dimensions,
-  KeyboardAvoidingView,
+  Keyboard,
   Modal,
   PanResponder,
   Platform,
@@ -17,6 +17,7 @@ import { colors, spacing } from '../../theme';
 const SCREEN_HEIGHT = Dimensions.get('window').height;
 const DISMISS_THRESHOLD = 100;
 const HANDLE_ZONE_HEIGHT = 48;
+const TOP_CLEARANCE = spacing.sm;
 
 type BottomSheetDrawerProps = {
   visible: boolean;
@@ -38,16 +39,50 @@ export function BottomSheetDrawer({
   accessibilityLabel = 'Close drawer',
 }: BottomSheetDrawerProps) {
   const insets = useSafeAreaInsets();
-  const drawerHeight = SCREEN_HEIGHT * heightRatio;
-  const translateY = useRef(new Animated.Value(drawerHeight)).current;
+  const [keyboardHeight, setKeyboardHeight] = useState(0);
+  const preferredHeight = SCREEN_HEIGHT * heightRatio;
+  const keyboardOffset = keyboardAvoiding ? keyboardHeight : 0;
+  const maxHeight =
+    keyboardOffset > 0
+      ? SCREEN_HEIGHT - keyboardOffset - insets.top - TOP_CLEARANCE
+      : SCREEN_HEIGHT - insets.top - TOP_CLEARANCE;
+  const drawerHeight = Math.min(preferredHeight, maxHeight);
+  const translateY = useRef(new Animated.Value(preferredHeight)).current;
   const isClosing = useRef(false);
   const dragStartY = useRef(0);
   const touchStartInHandleZone = useRef(false);
 
   useEffect(() => {
+    if (!keyboardAvoiding) {
+      return;
+    }
+
+    const showEvent = Platform.OS === 'ios' ? 'keyboardWillShow' : 'keyboardDidShow';
+    const hideEvent = Platform.OS === 'ios' ? 'keyboardWillHide' : 'keyboardDidHide';
+
+    const showSub = Keyboard.addListener(showEvent, (event) => {
+      setKeyboardHeight(event.endCoordinates.height);
+    });
+    const hideSub = Keyboard.addListener(hideEvent, () => {
+      setKeyboardHeight(0);
+    });
+
+    return () => {
+      showSub.remove();
+      hideSub.remove();
+    };
+  }, [keyboardAvoiding]);
+
+  useEffect(() => {
+    if (!visible) {
+      setKeyboardHeight(0);
+    }
+  }, [visible]);
+
+  useEffect(() => {
     if (visible) {
       isClosing.current = false;
-      translateY.setValue(drawerHeight);
+      translateY.setValue(preferredHeight);
       Animated.spring(translateY, {
         toValue: 0,
         useNativeDriver: true,
@@ -55,7 +90,7 @@ export function BottomSheetDrawer({
         stiffness: 220,
       }).start();
     }
-  }, [drawerHeight, translateY, visible]);
+  }, [preferredHeight, translateY, visible]);
 
   function dismissDrawer(onComplete?: () => void) {
     if (isClosing.current) {
@@ -64,7 +99,7 @@ export function BottomSheetDrawer({
 
     isClosing.current = true;
     Animated.timing(translateY, {
-      toValue: drawerHeight,
+      toValue: preferredHeight,
       duration: 240,
       useNativeDriver: true,
     }).start(() => {
@@ -124,7 +159,8 @@ export function BottomSheetDrawer({
         styles.drawer,
         {
           height: drawerHeight,
-          paddingBottom: Math.max(insets.bottom, spacing.md),
+          marginBottom: keyboardOffset,
+          paddingBottom: keyboardOffset > 0 ? spacing.md : Math.max(insets.bottom, spacing.md),
           transform: [{ translateY }],
         },
       ]}
@@ -141,28 +177,14 @@ export function BottomSheetDrawer({
 
   return (
     <Modal animationType="none" onRequestClose={() => dismissDrawer()} transparent visible>
-      {keyboardAvoiding ? (
-        <KeyboardAvoidingView
-          behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
-          style={styles.overlay}
-        >
-          <Pressable
-            accessibilityLabel={accessibilityLabel}
-            onPress={() => dismissDrawer()}
-            style={styles.backdrop}
-          />
-          {drawer}
-        </KeyboardAvoidingView>
-      ) : (
-        <View style={styles.overlay}>
-          <Pressable
-            accessibilityLabel={accessibilityLabel}
-            onPress={() => dismissDrawer()}
-            style={styles.backdrop}
-          />
-          {drawer}
-        </View>
-      )}
+      <View style={styles.overlay}>
+        <Pressable
+          accessibilityLabel={accessibilityLabel}
+          onPress={() => dismissDrawer()}
+          style={styles.backdrop}
+        />
+        {drawer}
+      </View>
     </Modal>
   );
 }

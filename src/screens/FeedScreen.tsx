@@ -1,6 +1,7 @@
-import { ActivityIndicator, FlatList, StyleSheet, Text, View } from 'react-native';
+import { ActivityIndicator, Alert, FlatList, StyleSheet, Text, View } from 'react-native';
+import { useState } from 'react';
 
-import { RunCard } from '../components/feed';
+import { FeedCommentsDrawer, RunCard } from '../components/feed';
 import type { FeedTab } from '../mock';
 import { useFeed } from '../hooks/useFeed';
 import { colors, spacing } from '../theme';
@@ -10,7 +11,19 @@ type FeedScreenProps = {
 };
 
 export function FeedScreen({ activeTab }: FeedScreenProps) {
-  const { runs, loading, error } = useFeed(activeTab);
+  const { runs, loading, error, toggleLike, bumpCommentCount, likingPostId } = useFeed(activeTab);
+  const [commentsPostId, setCommentsPostId] = useState<string | null>(null);
+
+  async function handleToggleLike(postId: string) {
+    try {
+      await toggleLike(postId);
+    } catch (likeError) {
+      Alert.alert(
+        'Like failed',
+        likeError instanceof Error ? likeError.message : 'Could not update like.',
+      );
+    }
+  }
 
   if (loading) {
     return (
@@ -41,14 +54,36 @@ export function FeedScreen({ activeTab }: FeedScreenProps) {
   }
 
   return (
-    <FlatList
-      contentContainerStyle={styles.content}
-      data={runs}
-      keyExtractor={(item) => item.id}
-      renderItem={({ item }) => <RunCard run={item} />}
-      showsVerticalScrollIndicator={false}
-      style={styles.list}
-    />
+    <>
+      <FlatList
+        contentContainerStyle={styles.content}
+        data={runs}
+        keyExtractor={(item) => item.id}
+        renderItem={({ item }) => (
+          <RunCard
+            engagementDisabled={likingPostId === item.id}
+            onOpenComments={() => setCommentsPostId(item.id)}
+            onToggleLike={() => {
+              void handleToggleLike(item.id);
+            }}
+            run={item}
+          />
+        )}
+        showsVerticalScrollIndicator={false}
+        style={styles.list}
+      />
+
+      <FeedCommentsDrawer
+        onClose={() => setCommentsPostId(null)}
+        onCommentAdded={() => {
+          if (commentsPostId) {
+            bumpCommentCount(commentsPostId);
+          }
+        }}
+        postId={commentsPostId}
+        visible={commentsPostId != null}
+      />
+    </>
   );
 }
 

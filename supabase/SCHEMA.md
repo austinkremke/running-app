@@ -89,17 +89,19 @@ feed_posts                      — activity_id FK, audiences[], caption fields
 
 matches / match_participants / match_results
 match_types                     — reference catalog (seed)
-feed_reactions                  — Phase 1 (05): post_id, user_id, reaction (like)
-feed_comments                   — Phase 1 (05): post_id, user_id, body, created_at
+feed_reactions                  — post_id, user_id, reaction (like); PK (post_id, user_id)
+feed_comments                   — post_id, user_id, body, created_at
 ```
 
 **Phase A ships:** `profiles`, `player_progress`, `player_rank`, trigger, RLS, `rank_tiers` seed.  
 **Phase B ships:** `activities` table + `activities` Storage bucket; sync on run stop.  
 **Phase C ships:** `teams`, `team_members`, `feed_posts`, `profiles.team_id`; feed + team UI from server; feed route preview from `activities.polyline`.  
 **Phase D ships:** `match_types`, `matches`, `match_participants`; active match screens + `activities.match_id`.  
-**Phase 4 ships:** `xp_ledger`, `award_run_xp` / `bootstrap_progression_from_local` RPCs, progression columns on `player_progress`, social read-all RLS for levels on feed.
+**Phase 4 ships:** `xp_ledger`, `award_run_xp` / `bootstrap_progression_from_local` RPCs, progression columns on `player_progress`, social read-all RLS for levels on feed.  
+**05 Phase 1 ships:** `feed_reactions`, `feed_comments`, `can_view_feed_post` RLS helper; engagement counts aggregated in feed fetch.
 
-**Post–Phase D RLS fixes:** `20250615000001_fix_match_participants_rls.sql`, `20250616000001_fix_feed_posts_rls.sql` — security definer helpers to avoid policy recursion.
+**Post–Phase D RLS fixes:** `20250615000001_fix_match_participants_rls.sql`, `20250616000001_fix_feed_posts_rls.sql` — security definer helpers to avoid policy recursion.  
+**05 Phase 1:** `20250618000001_feed_likes_comments.sql`.
 
 Full detail: [02-supabase-backend.md](../milestones/02-supabase-backend.md).
 
@@ -112,6 +114,7 @@ Full detail: [02-supabase-backend.md](../milestones/02-supabase-backend.md).
 | `is_match_participant`, `can_view_match` | `matches` / `match_participants` SELECT |
 | `user_owns_activity` | `feed_posts` INSERT |
 | `activity_has_visible_feed_post` | `activities` SELECT (feed-shared) |
+| `can_view_feed_post` | `feed_reactions` / `feed_comments` SELECT + INSERT |
 
 ---
 

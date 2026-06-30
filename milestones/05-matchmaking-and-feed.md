@@ -1,7 +1,7 @@
 # Matchmaking, Feed & Social Sync
 
 > **Milestone:** 05  
-> **Status:** **Next** — Phase 1 feed likes & comments  
+> **Status:** **In progress** — Phase 1 feed likes & comments **shipped**; Phase 2 Elo next  
 > **Depends on:** [02 Supabase](./02-supabase-backend.md) (Phase A–D shipped; Phase C `feed_posts` required for Phase 1)  
 > **Unblocks:** —
 
@@ -21,7 +21,7 @@ Replace remaining mock match/social data with server-backed state: real opponent
 |------|-------|--------|
 | Solo / team matches | Mock lineup tab | **Active** match screens from Postgres; lineup still mock |
 | Match results | Static | Runs linked to `activity_id`; Elo update |
-| Feed | **Server** posts + **static route maps**; **likes/comments UI stubbed (0)** | **Persisted likes & comments** on `feed_posts` |
+| Feed | **Server** posts + **static route maps**; **persisted likes & comments** | Friends graph, richer cards |
 | Teams | **Server** (join, members, top list) — stats/activity mock | Full team stats, activity stream |
 | Team chat | Mock | Realtime or polled messages ([02](./02-supabase-backend.md)) |
 | Leaderboards | Top teams from DB; rank still mock in UI | `competitive_rating` + seasonal snapshots |
@@ -30,23 +30,9 @@ Replace remaining mock match/social data with server-backed state: real opponent
 
 ## Rollout phases
 
-### Phase 1 — Feed likes & comments **(next)**
+### Phase 1 — Feed likes & comments **shipped**
 
-**Priority:** Ship before Elo/matchmaking — high user-visible value; only needs existing `feed_posts` + auth.
-
-**Database**
-
-- `feed_reactions` — `(post_id, user_id)` unique; `reaction` enum v1: `like` only
-- `feed_comments` — `id`, `post_id`, `user_id`, `body`, `created_at`
-- RLS: authenticated read on posts user can see; insert/delete own reaction; insert own comment; read comments on visible posts
-- Optional: denormalized `like_count` / `comment_count` on `feed_posts` or aggregate in query
-
-**App**
-
-- `feedService.ts` — `toggleLike(postId)`, `listComments(postId)`, `addComment(postId, body)`
-- Extend feed fetch to return counts + `liked_by_me`
-- Wire `RunCard` footer (today hardcoded `likes: 0`, `comments: 0` in `socialMappers.ts`)
-- Comment sheet / thread UI (v1: bottom sheet list + compose)
+**Shipped:** `feed_reactions`, `feed_comments`, RLS via `can_view_feed_post`, `feedEngagementService.ts`, optimistic like toggle + `FeedCommentsDrawer` on `RunCard`.
 
 **Out of scope for Phase 1**
 
@@ -56,7 +42,7 @@ Replace remaining mock match/social data with server-backed state: real opponent
 
 ---
 
-### Phase 2 — Elo & rank UI
+### Phase 2 — Elo & rank UI **(next)**
 
 - `rankCalculator` on server; Me tab **RANK** from `player_rank` ([03](./03-xp-and-ranking.md))
 
@@ -97,4 +83,4 @@ Replace remaining mock match/social data with server-backed state: real opponent
 
 ## Summary
 
-**Ship next:** persisted **likes + comments** on feed posts (schema + RLS + `RunCard` UI). Then Elo, friends, matchmaking.
+**Ship next:** Elo + rank UI (Phase 2), then friends feed, matchmaking.

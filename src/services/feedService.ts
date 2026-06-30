@@ -1,6 +1,7 @@
 import type { FeedTab, Run } from '../mock';
 import type { Tables } from '../types/database';
 import { syncActivityById } from './activitySync';
+import { fetchFeedEngagementSummaries } from './feedEngagementService';
 import { supabase } from './supabase';
 import { mapFeedPostToRun } from './socialMappers';
 
@@ -46,7 +47,11 @@ export async function publishActivityToFeed(input: CreateFeedPostInput): Promise
   await createFeedPost(input);
 }
 
-export async function fetchFeedPosts(tab: FeedTab, limit = 50): Promise<Run[]> {
+export async function fetchFeedPosts(
+  tab: FeedTab,
+  viewerUserId: string | null = null,
+  limit = 50,
+): Promise<Run[]> {
   if (!supabase) return [];
 
   const { data, error } = await supabase
@@ -72,6 +77,9 @@ export async function fetchFeedPosts(tab: FeedTab, limit = 50): Promise<Run[]> {
   if (error) throw error;
   if (!data) return [];
 
+  const postIds = data.map((row) => row.id);
+  const engagementByPostId = await fetchFeedEngagementSummaries(postIds, viewerUserId);
+
   return data
     .map((row) => {
       const profile = row.profiles as
@@ -88,12 +96,18 @@ export async function fetchFeedPosts(tab: FeedTab, limit = 50): Promise<Run[]> {
         : profile.player_progress;
       const teamRecord = profile.teams;
       const teamName = Array.isArray(teamRecord) ? teamRecord[0]?.name : teamRecord?.name;
+      const engagement = engagementByPostId[row.id] ?? {
+        likeCount: 0,
+        commentCount: 0,
+        likedByMe: false,
+      };
 
       return mapFeedPostToRun(
         row,
         { ...profile, player_progress: progress ?? null },
         activity,
         teamName ?? null,
+        engagement,
       );
     })
     .filter((run): run is Run => run !== null);

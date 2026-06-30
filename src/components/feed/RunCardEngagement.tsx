@@ -1,24 +1,52 @@
 import { Ionicons } from '@expo/vector-icons';
-import { StyleSheet, Text, View } from 'react-native';
+import { Pressable, StyleSheet, Text, View } from 'react-native';
 
 import { colors, spacing } from '../../theme';
 
 type RunCardEngagementProps = {
   likes: number;
   comments: number;
+  likedByMe: boolean;
+  disabled?: boolean;
+  onToggleLike?: () => void;
+  onOpenComments?: () => void;
 };
 
-export function RunCardEngagement({ likes, comments }: RunCardEngagementProps) {
+export function RunCardEngagement({
+  likes,
+  comments,
+  likedByMe,
+  disabled = false,
+  onToggleLike,
+  onOpenComments,
+}: RunCardEngagementProps) {
   return (
     <View style={styles.container}>
-      <View style={styles.stat}>
-        <Ionicons color={colors.accentLime} name="heart-outline" size={20} />
+      <Pressable
+        accessibilityLabel={likedByMe ? 'Unlike post' : 'Like post'}
+        accessibilityRole="button"
+        disabled={disabled || !onToggleLike}
+        onPress={onToggleLike}
+        style={({ pressed }) => [styles.stat, pressed && styles.pressed]}
+      >
+        <Ionicons
+          color={likedByMe ? colors.accentLime : colors.accentLime}
+          name={likedByMe ? 'heart' : 'heart-outline'}
+          size={20}
+        />
         <Text style={styles.likeCount}>{likes}</Text>
-      </View>
-      <View style={styles.stat}>
+      </Pressable>
+
+      <Pressable
+        accessibilityLabel="View comments"
+        accessibilityRole="button"
+        disabled={!onOpenComments}
+        onPress={onOpenComments}
+        style={({ pressed }) => [styles.stat, pressed && styles.pressed]}
+      >
         <Ionicons color={colors.textPrimary} name="chatbubble-outline" size={20} />
         <Text style={styles.commentCount}>{comments}</Text>
-      </View>
+      </Pressable>
     </View>
   );
 }
@@ -34,6 +62,9 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     gap: 4,
+  },
+  pressed: {
+    opacity: 0.7,
   },
   likeCount: {
     color: colors.accentLime,

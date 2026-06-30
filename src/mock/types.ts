@@ -29,7 +29,18 @@ export type Run = {
   photoUrl?: string;
   likes: number;
   comments: number;
+  likedByMe: boolean;
   feedTabs: FeedTab[];
+};
+
+export type FeedComment = {
+  id: string;
+  postId: string;
+  userId: string;
+  authorName: string;
+  authorAvatarUrl?: string;
+  body: string;
+  postedAt: string;
 };
 
 export type ProfileRank = {

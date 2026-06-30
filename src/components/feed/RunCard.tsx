@@ -10,9 +10,17 @@ import { RunCardStats } from './RunCardStats';
 
 type RunCardProps = {
   run: Run;
+  engagementDisabled?: boolean;
+  onToggleLike?: () => void;
+  onOpenComments?: () => void;
 };
 
-export function RunCard({ run }: RunCardProps) {
+export function RunCard({
+  run,
+  engagementDisabled = false,
+  onToggleLike,
+  onOpenComments,
+}: RunCardProps) {
   return (
     <View style={styles.card}>
       <RunCardHeader location={run.location} postedAt={run.postedAt} user={run.user} />
@@ -22,7 +30,14 @@ export function RunCard({ run }: RunCardProps) {
       <View style={styles.footerBox}>
         <RunCardStats stats={run.stats} />
         <View style={styles.footerDivider} />
-        <RunCardEngagement comments={run.comments} likes={run.likes} />
+        <RunCardEngagement
+          comments={run.comments}
+          disabled={engagementDisabled}
+          likedByMe={run.likedByMe}
+          likes={run.likes}
+          onOpenComments={onOpenComments}
+          onToggleLike={onToggleLike}
+        />
       </View>
     </View>
   );
