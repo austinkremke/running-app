@@ -42,7 +42,9 @@ export function ProfileTopSection({ profile }: ProfileTopSectionProps) {
               <View style={styles.rankMeta}>
                 <Text style={styles.label}>RANK</Text>
                 <Text style={styles.rankTitle}>{profile.rank.title}</Text>
-                <Text style={styles.rankSubtitle}>{profile.rank.subtitle}</Text>
+                {profile.rank.subtitle ? (
+                  <Text style={styles.rankSubtitle}>{profile.rank.subtitle}</Text>
+                ) : null}
               </View>
             </View>
           </View>

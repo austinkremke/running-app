@@ -2,9 +2,10 @@ import { useEffect, useState } from 'react';
 import { Alert, Modal, StyleSheet, View } from 'react-native';
 import { SafeAreaProvider } from 'react-native-safe-area-context';
 
-import { PostRunTestButton } from '../components/post-run';
 import { RunBottomDrawer, RunMapArea } from '../components/run';
-import { XpGainDrawer, XpGainTestButtons } from '../components/xp';
+import { XpGainDrawer } from '../components/xp';
+// import { PostRunTestButton } from '../components/post-run';
+// import { XpGainTestButtons } from '../components/xp';
 import { useAuth, usePlayerProgress, useRun } from '../context';
 import {
   MOCK_POST_RUN,
@@ -185,18 +186,19 @@ export function RunScreen({ onBack }: RunScreenProps) {
         onStopRun={handleStopRun}
         paceLabel={paceLabel}
         footer={
-          __DEV__ ? (
-            <>
-              <PostRunTestButton onPress={openMockPostRun} />
-              <XpGainTestButtons
-                onTestLevelUp={() => openXpDrawer(MOCK_XP_GAIN_LEVEL_UP)}
-                onTestNormal={() => openXpDrawer(MOCK_XP_GAIN_NORMAL)}
-                onTestOneMile={() => {
-                  void handleDevOneMileXp();
-                }}
-              />
-            </>
-          ) : null
+          // __DEV__ ? (
+          //   <>
+          //     <PostRunTestButton onPress={openMockPostRun} />
+          //     <XpGainTestButtons
+          //       onTestLevelUp={() => openXpDrawer(MOCK_XP_GAIN_LEVEL_UP)}
+          //       onTestNormal={() => openXpDrawer(MOCK_XP_GAIN_NORMAL)}
+          //       onTestOneMile={() => {
+          //         void handleDevOneMileXp();
+          //       }}
+          //     />
+          //   </>
+          // ) : null
+          null
         }
       />
       <XpGainDrawer event={xpEvent} onClose={closeXpDrawer} visible={xpDrawerVisible} />

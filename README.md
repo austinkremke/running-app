@@ -61,9 +61,9 @@ Mapbox on device often needs a recent Xcode beta; see project notes in your shel
 | 02 Supabase — Phase C teams/feed | **Done** |
 | 02 Supabase — Phase D matches | **Done** |
 | 02 Supabase — Phase E hardening | **Next** |
-| 03 XP & rank | **In progress** — Phase 1 local XP shipped |
+| 03 XP & rank | **In progress** — Phase 1–2 + Phase 4 server XP shipped |
 | 04 Garmin / Strava | Planned |
-| 05 Matchmaking & feed | **In progress** — Phase 1 likes & comments shipped ([05](./milestones/05-matchmaking-and-feed.md)) |
+| 05 Matchmaking & feed | **In progress** — Phase 1–2 shipped ([05](./milestones/05-matchmaking-and-feed.md)) |
 | 06 Account, gating & cosmetics | Planned |
 
 ### Still mock / placeholder (honest)
@@ -71,7 +71,7 @@ Mapbox on device often needs a recent Xcode beta; see project notes in your shel
 | Area | State |
 |------|--------|
 | Match / matchmaking lineup UI | Mock (lineup tab); **active match screens from server** |
-| Me tab profile | Name/avatar from server; **level + XP bar real** (local); rank/achievements/stats still mock |
+| Me tab profile | Name/avatar from server; **level + XP bar real**; **rank tier + rating from server**; achievements/stats still mock |
 | Post-run XP drawer | **Real** staged breakdown + segmented bar fill on “Lock in your run” |
 | Achievements on Me tab | Mock list (server catalog → milestone 06) |
 | Feed likes / comments | **Shipped** — toggle like + comments drawer ([05 Phase 1](./milestones/05-matchmaking-and-feed.md)) |
@@ -99,6 +99,7 @@ Mapbox on device often needs a recent Xcode beta; see project notes in your shel
 1. Team tab → join a team (seeded **Road Warriors** for dev).
 2. Post-run → “Add to Activity Feed” syncs the activity if needed, then creates `feed_posts` linked to `activities`.
 3. Feed tabs load posts from Postgres; each card shows a **static route map** from the activity `polyline` (friends tab pending social graph).
+4. Feed engagement: toggle like (`feed_reactions`) and comment thread (`feed_comments`) on visible posts ([05 Phase 1](./milestones/05-matchmaking-and-feed.md)).
 
 **Matches (Phase D)**
 
@@ -106,12 +107,12 @@ Mapbox on device often needs a recent Xcode beta; see project notes in your shel
 2. Open Solo Match → enrolls in demo solo match; home runner from your profile.
 3. Runs started during an active match get `activities.match_id` on sync.
 
-**Progression (03 Phase 1 — local)**
+**Progression (03 — local UI + server awards)**
 
-1. Post-run → “Add to Activity Feed” → `publishActivityToFeed` then `awardRunXp`.
-2. `xpCalculator` scores distance, pace vs rolling avg, elevation, streak, first-run-today.
-3. `totalXp` + ledger persisted in AsyncStorage per user (`progressionStorage.ts`); Me tab + XP drawer read `PlayerProgressContext`.
-4. Server `player_progress.total_xp` updated via `award_run_xp` RPC on lock-in (Phase 4).
+1. Post-run → “Lock in your run” → `award_run_xp` RPC recomputes XP on server from activity data.
+2. `xpCalculator` scores distance, pace vs rolling avg, elevation, streak, first-run-today (same formula client + server).
+3. Local cache in AsyncStorage (`progressionStorage.ts`) for Me tab + XP drawer; server `player_progress.total_xp` is authority after lock-in.
+4. Feed cards show level from server `player_progress.total_xp` on post author profiles.
 
 Details: [03-xp-and-ranking.md](milestones/03-xp-and-ranking.md).
 
@@ -121,7 +122,7 @@ Details: [03-xp-and-ranking.md](milestones/03-xp-and-ranking.md).
 |------|--------|
 | Auth | `AuthContext.tsx`, `services/supabase.ts`, `services/profileService.ts` |
 | Activities | `activitySync.ts`, `activityPolyline.ts`, `activitySyncQueue.ts` |
-| Social | `feedService.ts` (`publishActivityToFeed`), `teamService.ts`, `socialMappers.ts` |
+| Social | `feedService.ts`, `feedEngagementService.ts`, `rankService.ts`, `teamService.ts`, `socialMappers.ts` |
 | Feed route preview | `StaticRouteMapPreview.tsx`, `polylineToGpsPoints` in `activityAdapters.ts` |
 | Matches | `matchService.ts`, `matchMappers.ts`, `hooks/useActiveTeamMatch.ts`, `hooks/useActiveSoloMatch.ts` |
 | Progression | `PlayerProgressContext.tsx`, `services/progression/*`, `storage/progressionStorage.ts` |

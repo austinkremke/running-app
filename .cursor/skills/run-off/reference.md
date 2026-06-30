@@ -41,7 +41,7 @@ Companion to [SKILL.md](SKILL.md). Read when implementing backend, progression, 
 | Risk | Impact | Mitigation |
 |------|--------|------------|
 | **Level ↔ rank coupling** | Pay-to-win feel, wrong matchmaking | Separate services and tables; enforce in code review |
-| **Client-trusted XP** | Farming | Local OK for Phase 1; Edge Function award after activity sync (Phase 4) |
+| **Client-trusted XP** | Farming | `award_run_xp` RPC recomputes on server (03 Phase 4 shipped); local cache is display/offline only |
 | **Inflation** | Level 50 in a week | Tune `levelCurve`; min distance; per-run cap; spreadsheet sims |
 | **Level 99 reachable** | No long-term aspiration | Exponential curve; 99 practically unreachable by design |
 | **Unclear earnings** | Users don’t trust system | `XpBreakdownLine[]` in ledger and drawer UI |

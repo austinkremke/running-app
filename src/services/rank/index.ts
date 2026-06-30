@@ -1,0 +1,11 @@
+export { applyEloMatchResult as applyEloMatchResultLocal } from './eloCalculator';
+export { eloExpectedScore, eloRatingDelta } from './eloCalculator';
+export { tierFromRating, mapRankTierRow } from './tierFromRating';
+export { rankTierIconToIonicon } from './rankTierIcons';
+export {
+  applyEloMatchResult,
+  buildProfileRank,
+  buildRankDisplay,
+  fetchRankTiers,
+  type EloMatchResult,
+} from './rankService';

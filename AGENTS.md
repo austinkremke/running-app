@@ -23,10 +23,11 @@ Mapbox requires a **dev client** build (`npx expo run:ios`), not Expo Go.
 ## Quick rules
 
 - `ActivityRecord[]` is the source of truth for runs; maps/charts are derived.
-- XP/level and competitive rank are **separate** (see milestone 03). Level/XP persist locally until Phase 4 server sync.
+- XP/level and competitive rank are **separate** (see milestone 03). XP awards are **server-authoritative** via `award_run_xp` RPC; local AsyncStorage cache for offline UX.
 - **Milestone 02:** Phase A–D shipped; **Phase E hardening** is next.
+- **Milestone 05:** Phase 1–2 shipped (feed engagement + rank UI); `apply_elo_match_result` for rating changes.
 - Summaries in Postgres, bulky tracks in Storage.
-- Feed + team screens read from Supabase (`feedService`, `teamService`); feed cards show static route maps from `activities.polyline`.
+- Feed + team screens read from Supabase (`feedService`, `teamService`); feed cards show static route maps from `activities.polyline`; likes/comments persisted on `feed_posts`.
 - Post-run “Add to feed” uses `publishActivityToFeed` (sync activity, then `feed_posts` insert).
 - XP awards on “Lock in your run” via `award_run_xp` RPC (server recompute); local cache in AsyncStorage; run `npm test` after XP formula changes.
 - **Reference catalogs** (`rank_tiers`, etc.) live in **Postgres + seed.sql** — not duplicated TS lists.

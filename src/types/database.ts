@@ -639,6 +639,14 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
+      apply_elo_match_result: {
+        Args: {
+          p_k_factor?: number
+          p_loser_user_id: string
+          p_winner_user_id: string
+        }
+        Returns: Json
+      }
       award_run_xp: {
         Args: {
           p_activity_id: string

@@ -1,7 +1,7 @@
 # XP & Leveling + Competitive Rank
 
 > **Milestone:** 03  
-> **Status:** In progress — Phase 1 (local progression) shipped  
+> **Status:** In progress — Phase 1–2 + Phase 4 server XP shipped  
 > **Depends on:** [01 Activity recording](./01-activity-recording.md), [02 Supabase](./02-supabase-backend.md) (Phase A–C shipped; `player_progress` + activities on server)  
 > **Unblocks:** [05 Matchmaking & feed](./05-matchmaking-and-feed.md)
 
@@ -243,7 +243,7 @@ src/
 
 Supabase tables: `player_progress`, `player_rank`, `xp_ledger` — see [02](./02-supabase-backend.md).
 
-**Already in repo (Phase C stub):** `src/services/levelCurve.ts` derives level for feed/team display — **Phase 1 wires awards** via `PlayerProgressContext` (local); server sync in Phase 4.
+**Already in repo:** `src/services/levelCurve.ts` derives level for feed/team display — **Phase 1 wires awards** via `PlayerProgressContext` (local cache); **Phase 4** syncs `player_progress.total_xp` via `award_run_xp` RPC on lock-in.
 
 ---
 
@@ -334,11 +334,11 @@ Duplicate awards for the same `activity_id` are blocked. Zero-XP attempts do not
 - ~~Streak + first-run-today tracking~~ **Partial (Phase 1):** tracked in `progressionStorage`; shown in breakdown copy
 - Personal rolling avg pace for pace bonus **shipped** in Phase 1; detail line when history exists
 
-### Phase 3 — Rank system (still separate)
+### Phase 3 — Rank system **partial (05 Phase 2 UI shipped)**
 
-- `PlayerRank` + Elo from match results ([05](./05-matchmaking-and-feed.md))
-- Replace mock `ProfileRank` / solo `info.rank` with real tier + rating
-- Top Teams / leaderboards use competitive rating, not level
+- Me tab + solo match tab read **`player_rank` + `rank_tiers`** (`useRankDisplay`, `rankService`)
+- Server Elo via **`apply_elo_match_result`** RPC; clients cannot self-update `player_rank`
+- Still TODO: auto-invoke Elo on match completion; global percentile; team leaderboard aggregates
 
 ### Phase 4 — Server-authoritative **shipped**
 

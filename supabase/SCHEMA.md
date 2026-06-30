@@ -98,10 +98,12 @@ feed_comments                   — post_id, user_id, body, created_at
 **Phase C ships:** `teams`, `team_members`, `feed_posts`, `profiles.team_id`; feed + team UI from server; feed route preview from `activities.polyline`.  
 **Phase D ships:** `match_types`, `matches`, `match_participants`; active match screens + `activities.match_id`.  
 **Phase 4 ships:** `xp_ledger`, `award_run_xp` / `bootstrap_progression_from_local` RPCs, progression columns on `player_progress`, social read-all RLS for levels on feed.  
-**05 Phase 1 ships:** `feed_reactions`, `feed_comments`, `can_view_feed_post` RLS helper; engagement counts aggregated in feed fetch.
+**05 Phase 1 ships:** `feed_reactions`, `feed_comments`, `can_view_feed_post` RLS helper; engagement counts aggregated in feed fetch.  
+**05 Phase 2 ships:** `apply_elo_match_result` RPC; client `player_rank` updates revoked; tier resolved from `rank_tiers` at read time.
 
 **Post–Phase D RLS fixes:** `20250615000001_fix_match_participants_rls.sql`, `20250616000001_fix_feed_posts_rls.sql` — security definer helpers to avoid policy recursion.  
-**05 Phase 1:** `20250618000001_feed_likes_comments.sql`.
+**05 Phase 1:** `20250618000001_feed_likes_comments.sql`.  
+**05 Phase 2:** `20250619000001_elo_rank_rpc.sql`.
 
 Full detail: [02-supabase-backend.md](../milestones/02-supabase-backend.md).
 
@@ -115,6 +117,7 @@ Full detail: [02-supabase-backend.md](../milestones/02-supabase-backend.md).
 | `user_owns_activity` | `feed_posts` INSERT |
 | `activity_has_visible_feed_post` | `activities` SELECT (feed-shared) |
 | `can_view_feed_post` | `feed_reactions` / `feed_comments` SELECT + INSERT |
+| `apply_elo_match_result` | Elo rating + season W/L updates on `player_rank` (participants only) |
 
 ---
 

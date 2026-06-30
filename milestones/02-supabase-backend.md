@@ -191,11 +191,12 @@ activities        — synced from StoredActivity                                
 teams             — name, tag, motto, logo_icon, logo_accent, member_max        [SHIPPED]
 team_members      — team_id, user_id, role (one team per user v1)               [SHIPPED]
 feed_posts        — activity_id, audiences[], title, description, …             [SHIPPED]
-matches           — type_id → match_types, status, started_at, …                [Phase D]
-match_types       — reference catalog (id, display_name, …)
-match_participants
-match_results
-feed_reactions    — later
+matches           — type_id → match_types, status, started_at, …                [SHIPPED]
+match_types       — reference catalog (id, display_name, …)                     [SHIPPED]
+match_participants                                                                [SHIPPED]
+match_results                                                                     [planned]
+feed_reactions    — post_id, user_id, reaction (like)                               [05 Phase 1]
+feed_comments     — post_id, user_id, body, created_at                            [05 Phase 1]
 
 -- Milestone 03 (reference + state):
 rank_tiers        — id, display_name, subtitle, icon, min_rating, sort_order (SEED)
@@ -440,6 +441,7 @@ create trigger on_auth_user_created
 | No user in database | `auth.users` + trigger → `profiles`, `player_progress`, `player_rank` |
 | `activityStorage.ts` only | Local cache + sync on stop → Supabase `activities` + Storage (Phase B — done) |
 | Mock feed / teams | Postgres + RLS (Phase C — done); route map on feed cards from `polyline` |
+| Feed likes / comments stubbed | Persisted `feed_reactions` + `feed_comments` ([05 Phase 1](../../milestones/05-matchmaking-and-feed.md) — done) |
 | Mock active match screens | Server `matches` + `state_json` (Phase D — done); lineup tab still mock |
 | `activityExchange` stubs | Edge Functions + Storage (Phase E / [04](./04-third-party-integrations.md)) |
 

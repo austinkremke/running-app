@@ -7,12 +7,14 @@ import {
   ProfileTopSection,
 } from '../components/me';
 import { useAuth, usePlayerProgress } from '../context';
+import { useRankDisplay } from '../hooks/useRankDisplay';
 import { MOCK_PROFILE } from '../mock';
 import { colors, spacing } from '../theme';
 
 export function MeScreen() {
   const { gameState } = useAuth();
   const { level, experience } = usePlayerProgress();
+  const { profileRank } = useRankDisplay();
 
   const profile = {
     ...MOCK_PROFILE,
@@ -20,6 +22,7 @@ export function MeScreen() {
     avatarUrl: gameState?.profile.avatar_url ?? undefined,
     level,
     experience,
+    rank: profileRank,
   };
 
   return (

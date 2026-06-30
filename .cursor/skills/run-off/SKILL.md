@@ -56,7 +56,7 @@ Mention milestone/phase in the subject (e.g. `milestone 02 Phase C`) and note do
 | 02 | Supabase backend | **In progress** — Phase A–D done; Phase E next |
 | 03 | XP & rank (separate systems) | **In progress** — Phase 1–2 + Phase 4 server XP shipped |
 | 04 | Garmin / Strava | Planned |
-| 05 | Matchmaking & feed | **In progress** — Phase 1 likes & comments shipped |
+| 05 | Matchmaking & feed | **In progress** — Phase 1–2 shipped |
 | 06 | Account settings, achievements, rank avatar borders, level & paywall gates | Planned |
 
 ---
@@ -182,8 +182,10 @@ Before merging significant work, confirm relevant items:
 - [ ] **Auth (02 Phase A):** sign-up provisions `profiles` via trigger; no client-only profile insert
 - [ ] **Activity sync (02 Phase B):** run stop uploads `activities` row + Storage track when logged in
 - [ ] **Social (02 Phase C):** feed/team screens use `feedService` / `teamService`; feed cards render route from `polyline`
+- [ ] **Feed engagement (05 Phase 1):** likes/comments via `feedEngagementService`; optimistic toggle + comments drawer
+- [ ] **Rank (05 Phase 2):** Me tab + solo match from `player_rank` + `rank_tiers`; Elo via `apply_elo_match_result` RPC only
 - [ ] **Matches (02 Phase D):** active team/solo screens from `matchService`; `match_id` on synced activities
-- [ ] **Progression (03 Phase 1):** `awardRunXp` on feed post; `npm test` passes after XP formula changes
+- [ ] **Progression (03):** `award_run_xp` RPC on lock-in; local cache sync; `npm test` passes after XP formula changes
 - [ ] **Docs sync:** README, milestones, SCHEMA, AGENTS, skill updated for shipped scope
 - [ ] Permissions: location is foreground-only unless milestone says otherwise
 - [ ] No secrets in git; use `EXPO_PUBLIC_*` only for non-sensitive config
@@ -213,7 +215,7 @@ Full risk catalog: [reference.md](reference.md)
 | Onboarding / auth | `AuthContext.tsx`, `OnboardingContext.tsx`, `OnboardingLoginScreen.tsx` |
 | XP UI | `XpGainDrawer.tsx`, `PlayerProgressContext.tsx`, `services/progression/*` |
 | Auth + sync | `AuthContext.tsx`, `services/supabase.ts`, `activitySync.ts`, `activitySyncQueue.ts` |
-| Social | `feedService.ts` (`publishActivityToFeed`), `teamService.ts`, `socialMappers.ts`, `activityAdapters.ts` (`polylineToGpsPoints`) |
+| Social | `feedService.ts`, `feedEngagementService.ts`, `rankService.ts`, `teamService.ts`, `socialMappers.ts`, `FeedCommentsDrawer.tsx`, `activityAdapters.ts` (`polylineToGpsPoints`) |
 | Matches | `matchService.ts`, `matchMappers.ts`, `useActiveTeamMatch.ts`, `useActiveSoloMatch.ts` |
 | Progression | `PlayerProgressContext.tsx`, `services/progression/*`, `progressionStorage.ts`, `config/xpRewards.ts` |
 | Tests | `npm test`, `src/services/progression/__tests__/` |

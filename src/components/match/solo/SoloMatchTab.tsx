@@ -3,6 +3,8 @@ import { Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
 
 import { MOCK_CHALLENGE_FRIENDS, MOCK_SOLO_MATCHMAKING } from '../../../mock';
 import type { ProposedChallenge } from '../../../mock';
+import { useAuth, usePlayerProgress } from '../../../context';
+import { useRankDisplay } from '../../../hooks/useRankDisplay';
 import { colors, spacing } from '../../../theme';
 import { ChallengeFriendDrawer } from './ChallengeFriendDrawer';
 import { ProposedChallengeCard } from './ProposedChallengeCard';
@@ -18,6 +20,9 @@ type SoloMatchTabProps = {
 
 export function SoloMatchTab({ onViewActiveMatch }: SoloMatchTabProps) {
   const soloConfig = MOCK_SOLO_MATCHMAKING;
+  const { gameState } = useAuth();
+  const { level } = usePlayerProgress();
+  const { profileRank, seasonRecord } = useRankDisplay();
   const [drawerVisible, setDrawerVisible] = useState(false);
   const [selectedFriendId, setSelectedFriendId] = useState<string | null>(null);
   const [proposedChallenge, setProposedChallenge] = useState<ProposedChallenge | null>(null);
@@ -81,11 +86,11 @@ export function SoloMatchTab({ onViewActiveMatch }: SoloMatchTabProps) {
         </Pressable>
 
         <SoloProfileCard
-          avatarUrl={soloConfig.avatarUrl}
-          level={soloConfig.level}
-          name={soloConfig.name}
-          rankIcon={soloConfig.rankIcon}
-          rankTitle={soloConfig.rankTitle}
+          avatarUrl={gameState?.profile.avatar_url ?? soloConfig.avatarUrl}
+          level={level}
+          name={gameState?.profile.display_name ?? soloConfig.name}
+          rankIcon={profileRank.icon}
+          rankTitle={profileRank.title}
         />
         {isSearching ? (
           <SearchingForOpponentCard onCancel={handleCancelSearch} />
@@ -93,7 +98,7 @@ export function SoloMatchTab({ onViewActiveMatch }: SoloMatchTabProps) {
           <SoloMatchFormatCard format={soloConfig.matchFormat} />
         )}
 
-        <SoloSeasonRecordCard record={soloConfig.seasonRecord} />
+        <SoloSeasonRecordCard record={seasonRecord} />
 
         {proposedChallenge ? (
           <ProposedChallengeCard challenge={proposedChallenge} onCancel={handleCancelChallenge} />

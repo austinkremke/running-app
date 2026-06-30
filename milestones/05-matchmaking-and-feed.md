@@ -1,7 +1,7 @@
 # Matchmaking, Feed & Social Sync
 
 > **Milestone:** 05  
-> **Status:** **In progress** — Phase 1 feed likes & comments **shipped**; Phase 2 Elo next  
+> **Status:** **In progress** — Phase 1–2 shipped; Phase 3 friends feed next  
 > **Depends on:** [02 Supabase](./02-supabase-backend.md) (Phase A–D shipped; Phase C `feed_posts` required for Phase 1)  
 > **Unblocks:** —
 
@@ -11,7 +11,7 @@
 
 Replace remaining mock match/social data with server-backed state: real opponents, persisted results, competitive rank updates — while keeping **level (XP)** and **rank (Elo)** separate per [03](./03-xp-and-ranking.md).
 
-**Partially done in milestone 02:** `feed_posts`, team join/list, community + team feed tabs, active match screens (Phase D), static route maps on feed cards. This milestone covers **feed engagement (likes/comments)**, Elo, friends graph, matchmaking queue, and polish.
+**Partially done in milestone 02:** `feed_posts`, team join/list, community + team feed tabs, active match screens (Phase D), static route maps on feed cards. **Phase 1 shipped:** persisted likes & comments. **Remaining:** Elo, friends graph, matchmaking queue, and polish.
 
 ---
 
@@ -24,7 +24,7 @@ Replace remaining mock match/social data with server-backed state: real opponent
 | Feed | **Server** posts + **static route maps**; **persisted likes & comments** | Friends graph, richer cards |
 | Teams | **Server** (join, members, top list) — stats/activity mock | Full team stats, activity stream |
 | Team chat | Mock | Realtime or polled messages ([02](./02-supabase-backend.md)) |
-| Leaderboards | Top teams from DB; rank still mock in UI | `competitive_rating` + seasonal snapshots |
+| Leaderboards | Top teams from DB; **solo Me rank from server**; team rank card still synthetic | `competitive_rating` aggregates + seasonal snapshots |
 
 ---
 
@@ -42,11 +42,17 @@ Replace remaining mock match/social data with server-backed state: real opponent
 
 ---
 
-### Phase 2 — Elo & rank UI **(next)**
+### Phase 2 — Elo & rank UI **shipped**
 
-- `rankCalculator` on server; Me tab **RANK** from `player_rank` ([03](./03-xp-and-ranking.md))
+**Shipped:** `apply_elo_match_result` RPC (server Elo), revoked client `player_rank` updates, `rankService` + `tierFromRating`, `useRankDisplay` hook; Me tab RANK + Solo match tab profile/season record from `player_rank` + `rank_tiers`.
 
-### Phase 3 — Friends feed & richer cards
+**Out of scope for Phase 2**
+
+- Match completion auto-invoking Elo (wire when match results ship in Phase 4)
+- Global percentile / leaderboard rank on active match screen
+- Team rank card / top teams from real competitive aggregates
+
+### Phase 3 — Friends feed & richer cards **(next)**
 
 - Friends graph + friends tab (currently placeholder copy)
 - Richer post cards (photos, pace highlights)
@@ -83,4 +89,4 @@ Replace remaining mock match/social data with server-backed state: real opponent
 
 ## Summary
 
-**Ship next:** Elo + rank UI (Phase 2), then friends feed, matchmaking.
+**Ship next:** Friends feed + richer cards (Phase 3), then matchmaking queue.

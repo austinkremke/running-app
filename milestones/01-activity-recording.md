@@ -30,7 +30,7 @@ Key paths: `src/types/activity.ts`, `src/services/activity*.ts`, `src/context/Ru
 - Cloud sync → [02 Phase B](./02-supabase-backend.md#phase-b--activity-sync) (**done**).
 - Feed posts → [02 Phase C](./02-supabase-backend.md#phase-c--social--teams-read-heavy) (**done**).
 - No server-side validation / anti-cheat.
-- Real XP on “Add to feed” (local) → [03 Phase 1](./03-xp-and-ranking.md); server `xp_ledger` in Phase 4.
+- Real XP on “Lock in your run” → [03](./03-xp-and-ranking.md) (`award_run_xp` RPC + local cache); server `xp_ledger` shipped in Phase 4.
 - Garmin/Strava import not implemented.
 
 ---
