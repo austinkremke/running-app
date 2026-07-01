@@ -1,6 +1,8 @@
 import type {
   ActiveSoloMatch,
   ActiveTeamMatch,
+  SoloMatchActivity,
+  SoloMatchComparisonStat,
   SoloMatchRunner,
   TeamMatchAccent,
   TeamMatchActivity,
@@ -9,9 +11,13 @@ import type {
   TeamMatchTeam,
   TeamLogoAccent,
 } from '../mock';
-import { MOCK_ACTIVE_SOLO_MATCH } from '../mock/soloActiveMatch';
 import type { Tables } from '../types/database';
 import { experienceFromTotalXp, levelFromTotalXp } from './levelCurve';
+import {
+  formatMatchDistanceMiles,
+  formatMatchDuration,
+  matchPointsForDistanceMeters,
+} from './match/matchScoring';
 
 type MatchRow = Tables<'matches'>;
 type TeamRow = Tables<'teams'>;
@@ -33,14 +39,6 @@ type StoredMember = {
   pacePerMile?: string;
   isLeader?: boolean;
   avatarUrl?: string;
-};
-
-type SoloMatchState = Partial<
-  Pick<ActiveSoloMatch, 'info' | 'stats' | 'activities' | 'highlights'>
-> & {
-  awayRunner?: SoloMatchRunner;
-  homePoints?: number;
-  awayPoints?: number;
 };
 
 const LOGO_ACCENTS = new Set<TeamLogoAccent>(['lime', 'purple', 'gold', 'silver', 'cyan', 'blue']);
@@ -197,32 +195,170 @@ export function mapTeamMatchRow(
 
 export function mapSoloMatchRow(
   match: MatchRow,
-  profile: Tables<'profiles'>,
-  progress: { total_xp: number } | null,
-  participantPoints = 0,
+  homeProfile: Tables<'profiles'>,
+  homeProgress: { total_xp: number } | null,
+  homePoints: number,
+  awayProfile: Tables<'profiles'>,
+  awayProgress: { total_xp: number } | null,
+  awayPoints: number,
+  activities: Tables<'activities'>[] = [],
+  matchType?: Tables<'match_types'> | null,
+  homeRating = 1000,
 ): ActiveSoloMatch {
-  const state = (match.state_json ?? {}) as SoloMatchState;
-  const totalXp = progress?.total_xp ?? 0;
-  const level = levelFromTotalXp(totalXp);
-  const awayRunner = state.awayRunner ?? MOCK_ACTIVE_SOLO_MATCH.awayRunner;
+  const homeLevel = levelFromTotalXp(homeProgress?.total_xp ?? 0);
+  const awayLevel = levelFromTotalXp(awayProgress?.total_xp ?? 0);
+
+  const homeDistance = sumDistanceForUser(activities, homeProfile.id);
+  const awayDistance = sumDistanceForUser(activities, awayProfile.id);
+  const homeDuration = sumDurationForUser(activities, homeProfile.id);
+  const awayDuration = sumDurationForUser(activities, awayProfile.id);
+
+  const mappedActivities = mapSoloActivities(activities, homeProfile.id);
+  const totalDistance = homeDistance + awayDistance;
 
   return {
     id: match.id,
-    homeRunner: {
-      id: profile.id,
-      name: profile.display_name,
-      level,
-      avatarUrl: profile.avatar_url ?? MOCK_ACTIVE_SOLO_MATCH.homeRunner.avatarUrl,
-      totalPoints: participantPoints || MOCK_ACTIVE_SOLO_MATCH.homeRunner.totalPoints,
-      accent: 'lime',
-    },
-    awayRunner,
+    homeRunner: buildSoloRunner(homeProfile, homeLevel, homePoints, 'lime'),
+    awayRunner: buildSoloRunner(awayProfile, awayLevel, awayPoints, 'purple'),
     countdown: countdownFromEndsAt(match.ends_at),
-    info: state.info ?? MOCK_ACTIVE_SOLO_MATCH.info,
-    stats: state.stats?.length ? state.stats : MOCK_ACTIVE_SOLO_MATCH.stats,
-    activities: state.activities?.length ? state.activities : MOCK_ACTIVE_SOLO_MATCH.activities,
-    highlights: state.highlights?.length ? state.highlights : MOCK_ACTIVE_SOLO_MATCH.highlights,
+    info: {
+      rank: homeRating,
+      rankPercentile: 'Season rating',
+      matchType: matchType?.display_name ?? 'Distance',
+      matchTypeIcon: 'footsteps',
+      entryFee: 0,
+      entryFeeLabel: 'Ranked duel',
+    },
+    stats: buildSoloComparisonStats(homeDistance, awayDistance, homeDuration, awayDuration, totalDistance),
+    activities: mappedActivities,
+    highlights: buildSoloHighlights(mappedActivities, homePoints, awayPoints),
   };
+}
+
+function buildSoloRunner(
+  profile: Tables<'profiles'>,
+  level: number,
+  totalPoints: number,
+  accent: TeamMatchAccent,
+): SoloMatchRunner {
+  return {
+    id: profile.id,
+    name: profile.display_name,
+    level,
+    avatarUrl: profile.avatar_url ?? '',
+    totalPoints,
+    accent,
+  };
+}
+
+function sumDistanceForUser(activities: Tables<'activities'>[], userId: string): number {
+  return activities
+    .filter((activity) => activity.user_id === userId)
+    .reduce((sum, activity) => sum + (activity.distance_meters ?? 0), 0);
+}
+
+function sumDurationForUser(activities: Tables<'activities'>[], userId: string): number {
+  return activities
+    .filter((activity) => activity.user_id === userId)
+    .reduce((sum, activity) => sum + (activity.duration_seconds ?? 0), 0);
+}
+
+function mapSoloActivities(
+  activities: Tables<'activities'>[],
+  homeUserId: string,
+): SoloMatchActivity[] {
+  return [...activities]
+    .sort(
+      (left, right) =>
+        new Date(right.started_at).getTime() - new Date(left.started_at).getTime(),
+    )
+    .slice(0, 5)
+    .map((activity) => ({
+      id: activity.id,
+      dayLabel: formatActivityDayLabel(activity.started_at),
+      distanceMiles: (activity.distance_meters ?? 0) / 1609.34,
+      durationLabel: formatMatchDuration(activity.duration_seconds ?? 0),
+      pointsEarned: matchPointsForDistanceMeters(activity.distance_meters ?? 0),
+      accent: activity.user_id === homeUserId ? 'lime' : 'purple',
+    }));
+}
+
+function formatActivityDayLabel(startedAt: string): string {
+  const started = new Date(startedAt);
+  const today = new Date();
+  const startedDay = new Date(started.getFullYear(), started.getMonth(), started.getDate());
+  const todayDay = new Date(today.getFullYear(), today.getMonth(), today.getDate());
+  const diffDays = Math.round((todayDay.getTime() - startedDay.getTime()) / 86_400_000);
+
+  if (diffDays === 0) {
+    return 'Today';
+  }
+
+  if (diffDays === 1) {
+    return 'Yesterday';
+  }
+
+  return started.toLocaleDateString(undefined, { month: 'short', day: 'numeric' });
+}
+
+function buildSoloComparisonStats(
+  homeDistance: number,
+  awayDistance: number,
+  homeDuration: number,
+  awayDuration: number,
+  totalDistance: number,
+): SoloMatchComparisonStat[] {
+  const distanceDenominator = Math.max(totalDistance, 1);
+
+  return [
+    {
+      id: 'distance',
+      label: 'Distance',
+      icon: 'footsteps-outline',
+      homeValue: formatMatchDistanceMiles(homeDistance),
+      awayValue: formatMatchDistanceMiles(awayDistance),
+      homeProgress: homeDistance / distanceDenominator,
+    },
+    {
+      id: 'time',
+      label: 'Moving time',
+      icon: 'time-outline',
+      homeValue: formatMatchDuration(homeDuration),
+      awayValue: formatMatchDuration(awayDuration),
+      homeProgress: Math.max(homeDuration, awayDuration) > 0 ? homeDuration / Math.max(homeDuration, awayDuration) : 0.5,
+    },
+  ];
+}
+
+function buildSoloHighlights(
+  activities: SoloMatchActivity[],
+  homePoints: number,
+  awayPoints: number,
+): ActiveSoloMatch['highlights'] {
+  const longest = [...activities].sort((left, right) => right.distanceMiles - left.distanceMiles)[0];
+
+  return [
+    {
+      id: 'scoreboard',
+      icon: 'trophy-outline',
+      label: 'Match score',
+      value: `${homePoints} - ${awayPoints}`,
+      subtext: 'Points from synced runs',
+      accent: homePoints >= awayPoints ? 'lime' : 'purple',
+    },
+    ...(longest
+      ? [
+          {
+            id: 'longest-run',
+            icon: 'footsteps-outline',
+            label: 'Longest run',
+            value: `${longest.distanceMiles.toFixed(1)} mi`,
+            subtext: longest.dayLabel,
+            accent: longest.accent,
+          },
+        ]
+      : []),
+  ];
 }
 
 export function mapMatchmakingFromTeam(team: TeamRow, memberCount: number) {

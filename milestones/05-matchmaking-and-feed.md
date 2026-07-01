@@ -1,7 +1,7 @@
 # Matchmaking, Feed & Social Sync
 
 > **Milestone:** 05  
-> **Status:** **In progress** — Phase 1–3 shipped; Phase 4 matchmaking next  
+> **Status:** **In progress** — Phase 1–4 shipped; Phase 5 real-time polish next  
 > **Depends on:** [02 Supabase](./02-supabase-backend.md) (Phase A–D shipped; Phase C `feed_posts` required for Phase 1)  
 > **Unblocks:** —
 
@@ -11,7 +11,7 @@
 
 Replace remaining mock match/social data with server-backed state: real opponents, persisted results, competitive rank updates — while keeping **level (XP)** and **rank (Elo)** separate per [03](./03-xp-and-ranking.md).
 
-**Partially done in milestone 02:** `feed_posts`, team join/list, community + team feed tabs, active match screens (Phase D), static route maps on feed cards. **Phase 1 shipped:** persisted likes & comments. **Phase 2 shipped:** Elo rank UI. **Phase 3 shipped:** friends graph + friends feed + richer cards. **Remaining:** matchmaking queue and polish.
+**Partially done in milestone 02:** `feed_posts`, team join/list, community + team feed tabs, active match screens (Phase D), static route maps on feed cards. **Phase 1 shipped:** persisted likes & comments. **Phase 2 shipped:** Elo rank UI. **Phase 3 shipped:** friends graph + friends feed + richer cards. **Phase 4 shipped:** solo matchmaking queue + pairing, activity scoring, match completion → Elo. **Remaining:** real-time polish.
 
 ---
 
@@ -19,9 +19,9 @@ Replace remaining mock match/social data with server-backed state: real opponent
 
 | Area | Today | Target |
 |------|-------|--------|
-| Solo / team matches | Mock lineup tab | **Active** match screens from Postgres; lineup still mock |
-| Match results | Static | Runs linked to `activity_id`; Elo update |
-| Feed | **Server** posts + **static route maps**; **persisted likes & comments**; **friends feed**; pace highlights + photo layout | Matchmaking queue, richer social polish |
+| Solo / team matches | **Solo** queue + paired 1v1 from server; team lineup still mock | **Active** match screens from Postgres; team lineup still mock |
+| Match results | **Solo** runs credit match points; due matches finalize → Elo | Runs linked to `activity_id`; Elo update |
+| Feed | **Server** posts + **static route maps**; **persisted likes & comments**; **friends feed**; pace highlights + photo layout | Real-time polish |
 | Teams | **Server** (join, members, top list) — stats/activity mock | Full team stats, activity stream |
 | Team chat | Mock | Realtime or polled messages ([02](./02-supabase-backend.md)) |
 | Leaderboards | Top teams from DB; **solo Me rank from server**; team rank card still synthetic | `competitive_rating` aggregates + seasonal snapshots |
@@ -60,7 +60,11 @@ Replace remaining mock match/social data with server-backed state: real opponent
 
 *Note: “Feed from real activities” shipped in [02 Phase C](./02-supabase-backend.md) — create post + community/team tabs + route maps.*
 
-### Phase 4 — Matchmaking
+### Phase 4 — Matchmaking **shipped**
+
+**Shipped:** `match_queue` + `enqueue_solo_matchmaking` / `cancel_solo_matchmaking` / `get_solo_matchmaking_status` RPCs; rating-band pairing (±400); `credit_match_activity` on synced runs (≥0.1 mi); `finalize_solo_match` → `apply_elo_match_result_system`; solo tab Find Match UI; real opponent on active solo screen; `first_win` / `ten_wins` achievements active.
+
+**Manual QA (needs two accounts):** User A and B both tap **Find Match** on Solo tab (or A waits, B joins) → both should land in the same active 1v1. Each logs a run ≥0.1 mi while matched → points update on scoreboard. After `ends_at` (or call finalize via opening match after window), winner gets Elo + season win.
 
 - Queue / pairing worker (not in Supabase alone); power from rank, not level
 
@@ -90,4 +94,4 @@ Replace remaining mock match/social data with server-backed state: real opponent
 
 ## Summary
 
-**Ship next:** Matchmaking queue (Phase 4), then real-time polish.
+**Ship next:** Real-time polish (Phase 5).

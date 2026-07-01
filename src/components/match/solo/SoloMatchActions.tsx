@@ -10,14 +10,16 @@ type SoloMatchActionsProps = {
   onFindMatch: () => void;
   onChallengeFriend: () => void;
   status?: SoloMatchActionStatus;
+  disabled?: boolean;
 };
 
 export function SoloMatchActions({
   onFindMatch,
   onChallengeFriend,
   status = 'idle',
+  disabled = false,
 }: SoloMatchActionsProps) {
-  const actionsDisabled = status !== 'idle';
+  const actionsDisabled = disabled || status !== 'idle';
 
   const findSubtext =
     status === 'searching'

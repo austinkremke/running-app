@@ -106,6 +106,7 @@ achievement_events              — user_id, event_type (review, notifications, 
 **05 Phase 1 ships:** `feed_reactions`, `feed_comments`, `can_view_feed_post` RLS helper; engagement counts aggregated in feed fetch.  
 **05 Phase 2 ships:** `apply_elo_match_result` RPC; client `player_rank` updates revoked; tier resolved from `rank_tiers` at read time.  
 **05 Phase 3 ships:** `friendships`, `add_friend` RPC, friends feed RLS; `can_view_feed_post` includes friends audience.  
+**05 Phase 4 (shipped):** `match_queue`, solo matchmaking RPCs, `credit_match_activity`, `finalize_solo_match` → Elo. See [05-matchmaking-and-feed.md](../milestones/05-matchmaking-and-feed.md#phase-4--matchmaking-shipped).  
 **06 Phase 2 (shipped):** `achievement_definitions`, `user_achievements`, `achievement_events`; `evaluate_achievements` + `record_achievement_event` RPCs. See [06-account-gating-and-cosmetics.md](../milestones/06-account-gating-and-cosmetics.md#phase-2--achievements).  
 **06 Phase 1 (shipped):** `avatars` storage bucket, `delete_own_account` RPC.
 
@@ -113,6 +114,7 @@ achievement_events              — user_id, event_type (review, notifications, 
 **05 Phase 1:** `20250618000001_feed_likes_comments.sql`.  
 **05 Phase 2:** `20250619000001_elo_rank_rpc.sql`.  
 **05 Phase 3:** `20250621000001_friends_graph.sql`.  
+**05 Phase 4:** `20250623000001_matchmaking.sql`, `20250623000002_match_activities_rls.sql`.  
 **06 Phase 2:** `20250620000001_achievements.sql`.  
 **06 Phase 1:** `20250622000001_account_settings.sql`.
 
@@ -133,6 +135,11 @@ Full detail: [02-supabase-backend.md](../milestones/02-supabase-backend.md).
 | `apply_elo_match_result` | Elo rating + season W/L updates on `player_rank` (participants only) |
 | `add_friend` | Bidirectional friendship rows for friends feed + `add_friend` achievement |
 | `delete_own_account` | Permanently delete `auth.users` row for current user (cascades app data) |
+| `enqueue_solo_matchmaking` | Join solo queue; pair by competitive rating band |
+| `cancel_solo_matchmaking` | Leave solo queue while waiting |
+| `get_solo_matchmaking_status` | Queue / active-match state for current user |
+| `credit_match_activity` | Award match points for a synced run (idempotent) |
+| `finalize_solo_match` | Complete due solo match and apply Elo |
 | `evaluate_achievements` | Check + grant eligible achievement unlocks + XP |
 | `record_achievement_event` | One-time client events (share, review, follow, notifications) |
 

@@ -352,6 +352,52 @@ export type Database = {
           },
         ]
       }
+      match_activity_credits: {
+        Row: {
+          activity_id: string
+          created_at: string
+          match_id: string
+          points_awarded: number
+          user_id: string
+        }
+        Insert: {
+          activity_id: string
+          created_at?: string
+          match_id: string
+          points_awarded: number
+          user_id: string
+        }
+        Update: {
+          activity_id?: string
+          created_at?: string
+          match_id?: string
+          points_awarded?: number
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "match_activity_credits_activity_id_fkey"
+            columns: ["activity_id"]
+            isOneToOne: true
+            referencedRelation: "activities"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "match_activity_credits_match_id_fkey"
+            columns: ["match_id"]
+            isOneToOne: false
+            referencedRelation: "matches"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "match_activity_credits_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       match_participants: {
         Row: {
           created_at: string
@@ -406,6 +452,64 @@ export type Database = {
           },
           {
             foreignKeyName: "match_participants_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      match_queue: {
+        Row: {
+          competitive_rating: number
+          created_at: string
+          id: string
+          kind: string
+          match_id: string | null
+          match_type_id: string
+          status: string
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          competitive_rating: number
+          created_at?: string
+          id?: string
+          kind?: string
+          match_id?: string | null
+          match_type_id: string
+          status?: string
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          competitive_rating?: number
+          created_at?: string
+          id?: string
+          kind?: string
+          match_id?: string | null
+          match_type_id?: string
+          status?: string
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "match_queue_match_id_fkey"
+            columns: ["match_id"]
+            isOneToOne: false
+            referencedRelation: "matches"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "match_queue_match_type_id_fkey"
+            columns: ["match_type_id"]
+            isOneToOne: false
+            referencedRelation: "match_types"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "match_queue_user_id_fkey"
             columns: ["user_id"]
             isOneToOne: false
             referencedRelation: "profiles"
@@ -810,6 +914,14 @@ export type Database = {
         }
         Returns: Json
       }
+      apply_elo_match_result_system: {
+        Args: {
+          p_k_factor?: number
+          p_loser_user_id: string
+          p_winner_user_id: string
+        }
+        Returns: Json
+      }
       are_friends: {
         Args: { p_user_a: string; p_user_b: string }
         Returns: boolean
@@ -826,13 +938,25 @@ export type Database = {
       }
       can_view_feed_post: { Args: { p_post_id: string }; Returns: boolean }
       can_view_match: { Args: { p_match_id: string }; Returns: boolean }
+      cancel_solo_matchmaking: { Args: never; Returns: Json }
+      credit_match_activity: { Args: { p_activity_id: string }; Returns: Json }
       cumulative_xp_for_level: { Args: { p_level: number }; Returns: number }
       delete_own_account: { Args: never; Returns: undefined }
       elo_expected_score: {
         Args: { p_rating_a: number; p_rating_b: number }
         Returns: number
       }
+      enqueue_solo_matchmaking: {
+        Args: { p_match_type_id?: string }
+        Returns: Json
+      }
       evaluate_achievements: { Args: { p_user_id?: string }; Returns: Json }
+      finalize_due_solo_matches_for_user: {
+        Args: { p_user_id?: string }
+        Returns: number
+      }
+      finalize_solo_match: { Args: { p_match_id: string }; Returns: Json }
+      get_solo_matchmaking_status: { Args: never; Returns: Json }
       grant_achievement: {
         Args: { p_achievement_id: string; p_user_id: string }
         Returns: Json
@@ -842,10 +966,19 @@ export type Database = {
         Returns: boolean
       }
       level_from_total_xp: { Args: { p_total_xp: number }; Returns: number }
+      match_points_for_distance: {
+        Args: { p_distance_meters: number }
+        Returns: number
+      }
       record_achievement_event: {
         Args: { p_event_type: string; p_metadata?: Json }
         Returns: Json
       }
+      solo_match_duration_interval: {
+        Args: { p_match_type_id: string }
+        Returns: string
+      }
+      try_pair_solo_queue: { Args: never; Returns: string }
       user_meets_achievement: {
         Args: {
           p_definition: Database["public"]["Tables"]["achievement_definitions"]["Row"]

@@ -197,8 +197,8 @@ Community badges use **honor-system v1**: user completes in-app action (opens st
 |----|--------------|----------|-----------|
 | `join_team` | Join the Crew | `team_joined` | yes |
 | `first_match` | Throw Down | `match_enrolled_count` ≥ 1 | yes |
-| `first_win` | First Blood | `match_win_count` ≥ 1 | **no** — until match completion → Elo ([05 Phase 4](./05-matchmaking-and-feed.md)) |
-| `ten_wins` | Ten Wins | `match_win_count` ≥ 10 | **no** |
+| `first_win` | First Blood | `match_win_count` ≥ 1 | yes — [05 Phase 4](./05-matchmaking-and-feed.md) shipped |
+| `ten_wins` | Ten Wins | `match_win_count` ≥ 10 | yes |
 | `silver_rank` | Silver | `competitive_rating_min` ≥ 1200 | yes |
 | `gold_rank` | Gold | `competitive_rating_min` ≥ 1400 | yes |
 
@@ -211,7 +211,7 @@ Community badges use **honor-system v1**: user completes in-app action (opens st
 | `level_twenty_five` | Level 25 | `level_reached` ≥ 25 |
 | `level_fifty` | Level 50 | `level_reached` ≥ 50 |
 
-**Active at launch:** ~30 achievements. **Inactive in seed (`is_active: false`):** `first_win`, `ten_wins`.
+**Active at launch:** ~32 achievements. **Inactive in seed (`is_active: false`):** none (match-win badges activated in 05 Phase 4).
 
 #### Implementation sub-phases (Phase 2)
 
@@ -244,7 +244,7 @@ Achievement XP is **one-time only** — supplementary to run XP, not a farming l
 
 | Ready today | Blocked on future work |
 |-------------|------------------------|
-| Runs, distance, pace, streak, level, feed, likes, comments, team, match enroll, rank rating, add friend | `first_win`, `ten_wins` → match completion (05 Phase 4) |
+| Runs, distance, pace, streak, level, feed, likes, comments, team, match enroll, rank rating, add friend, match wins | — |
 
 #### Phase 2 open decisions
 

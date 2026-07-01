@@ -1,13 +1,14 @@
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
 
-import { MOCK_CHALLENGE_FRIENDS, MOCK_SOLO_MATCHMAKING } from '../../../mock';
-import type { ProposedChallenge } from '../../../mock';
+import { MOCK_SOLO_MATCHMAKING } from '../../../mock';
+import type { TeamMatchFormat } from '../../../mock';
 import { useAuth, usePlayerProgress } from '../../../context';
+import { useActiveSoloMatch } from '../../../hooks/useActiveSoloMatch';
 import { useRankDisplay } from '../../../hooks/useRankDisplay';
+import { useSoloMatchmaking } from '../../../hooks/useSoloMatchmaking';
+import { fetchSoloMatchType } from '../../../services/matchService';
 import { colors, spacing } from '../../../theme';
-import { ChallengeFriendDrawer } from './ChallengeFriendDrawer';
-import { ProposedChallengeCard } from './ProposedChallengeCard';
 import { SearchingForOpponentCard } from './SearchingForOpponentCard';
 import { SoloMatchActions } from './SoloMatchActions';
 import { SoloMatchFormatCard } from './SoloMatchFormatCard';
@@ -18,56 +19,68 @@ type SoloMatchTabProps = {
   onViewActiveMatch?: () => void;
 };
 
+const DEFAULT_FORMAT: TeamMatchFormat = MOCK_SOLO_MATCHMAKING.matchFormat;
+
 export function SoloMatchTab({ onViewActiveMatch }: SoloMatchTabProps) {
   const soloConfig = MOCK_SOLO_MATCHMAKING;
   const { gameState } = useAuth();
   const { level } = usePlayerProgress();
   const { profileRank, seasonRecord } = useRankDisplay();
-  const [drawerVisible, setDrawerVisible] = useState(false);
-  const [selectedFriendId, setSelectedFriendId] = useState<string | null>(null);
-  const [proposedChallenge, setProposedChallenge] = useState<ProposedChallenge | null>(null);
-  const [isSearching, setIsSearching] = useState(false);
+  const { match: activeMatch, refresh: refreshActiveMatch } = useActiveSoloMatch();
+  const {
+    isSearching,
+    actionLoading,
+    findMatch,
+    cancelSearch,
+    hasActiveMatch,
+    refresh: refreshMatchmaking,
+  } = useSoloMatchmaking();
+  const [matchFormat, setMatchFormat] = useState<TeamMatchFormat>(DEFAULT_FORMAT);
 
-  function handleOpenDrawer() {
-    setSelectedFriendId(null);
-    setDrawerVisible(true);
-  }
+  useEffect(() => {
+    void (async () => {
+      try {
+        const matchType = await fetchSoloMatchType();
+        if (!matchType) {
+          return;
+        }
 
-  function handleCloseDrawer() {
-    setDrawerVisible(false);
-    setSelectedFriendId(null);
-  }
+        setMatchFormat({
+          title: matchType.display_name,
+          durationLabel: matchType.duration_label,
+          winCondition: matchType.win_condition,
+          overview: matchType.overview,
+          scoringDetails: matchType.scoring_details,
+        });
+      } catch {
+        // Keep default format when offline.
+      }
+    })();
+  }, []);
 
-  function handleSendInvite() {
-    const friend = MOCK_CHALLENGE_FRIENDS.find((item) => item.id === selectedFriendId);
-    if (!friend) {
-      return;
+  useEffect(() => {
+    if (hasActiveMatch) {
+      void refreshActiveMatch();
     }
+  }, [hasActiveMatch, refreshActiveMatch]);
 
-    setProposedChallenge({
-      friend,
-      sentAt: new Date().toISOString(),
-    });
-    setSelectedFriendId(null);
+  async function handleFindMatch() {
+    await findMatch();
+    await refreshMatchmaking();
+    await refreshActiveMatch();
   }
 
-  function handleCancelChallenge() {
-    setProposedChallenge(null);
+  async function handleCancelSearch() {
+    await cancelSearch();
   }
 
-  function handleFindMatch() {
-    setIsSearching(true);
+  async function handleViewActiveMatch() {
+    await refreshActiveMatch();
+    onViewActiveMatch?.();
   }
 
-  function handleCancelSearch() {
-    setIsSearching(false);
-  }
-
-  const actionStatus = proposedChallenge
-    ? 'challenge_pending'
-    : isSearching
-      ? 'searching'
-      : 'idle';
+  const actionStatus = isSearching ? 'searching' : 'idle';
+  const showActiveMatchCard = Boolean(activeMatch) || hasActiveMatch;
 
   return (
     <View style={styles.container}>
@@ -76,14 +89,22 @@ export function SoloMatchTab({ onViewActiveMatch }: SoloMatchTabProps) {
         showsVerticalScrollIndicator={false}
         style={styles.scroll}
       >
-        <Pressable
-          accessibilityRole="button"
-          onPress={onViewActiveMatch}
-          style={({ pressed }) => [styles.activeMatchCard, pressed && styles.pressed]}
-        >
-          <Text style={styles.activeMatchEyebrow}>ACTIVE MATCH</Text>
-          <Text style={styles.activeMatchTitle}>View 1v1 match vs Jordan</Text>
-        </Pressable>
+        {showActiveMatchCard ? (
+          <Pressable
+            accessibilityRole="button"
+            onPress={() => {
+              void handleViewActiveMatch();
+            }}
+            style={({ pressed }) => [styles.activeMatchCard, pressed && styles.pressed]}
+          >
+            <Text style={styles.activeMatchEyebrow}>ACTIVE MATCH</Text>
+            <Text style={styles.activeMatchTitle}>
+              {activeMatch
+                ? `View 1v1 match vs ${activeMatch.awayRunner.name}`
+                : 'View your active 1v1 match'}
+            </Text>
+          </Pressable>
+        ) : null}
 
         <SoloProfileCard
           avatarUrl={gameState?.profile.avatar_url ?? soloConfig.avatarUrl}
@@ -93,33 +114,23 @@ export function SoloMatchTab({ onViewActiveMatch }: SoloMatchTabProps) {
           rankTitle={profileRank.title}
         />
         {isSearching ? (
-          <SearchingForOpponentCard onCancel={handleCancelSearch} />
+          <SearchingForOpponentCard onCancel={() => void handleCancelSearch()} />
         ) : (
-          <SoloMatchFormatCard format={soloConfig.matchFormat} />
+          <SoloMatchFormatCard format={matchFormat} />
         )}
 
         <SoloSeasonRecordCard record={seasonRecord} />
-
-        {proposedChallenge ? (
-          <ProposedChallengeCard challenge={proposedChallenge} onCancel={handleCancelChallenge} />
-        ) : null}
 
         <View style={styles.bottomSpacer} />
       </ScrollView>
 
       <SoloMatchActions
-        onChallengeFriend={handleOpenDrawer}
-        onFindMatch={handleFindMatch}
+        disabled={actionLoading || hasActiveMatch}
+        onChallengeFriend={() => {}}
+        onFindMatch={() => {
+          void handleFindMatch();
+        }}
         status={actionStatus}
-      />
-
-      <ChallengeFriendDrawer
-        friends={MOCK_CHALLENGE_FRIENDS}
-        onClose={handleCloseDrawer}
-        onSelectFriend={setSelectedFriendId}
-        onSendInvite={handleSendInvite}
-        selectedFriendId={selectedFriendId}
-        visible={drawerVisible}
       />
     </View>
   );

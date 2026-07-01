@@ -4,7 +4,6 @@ import type { ActiveSoloMatch } from '../mock';
 import { useUserId } from '../context';
 import { useAchievementUnlockPresentation } from '../hooks/useAchievementUnlockPresentation';
 import {
-  fallbackSoloMatch,
   fetchActiveSoloMatch,
 } from '../services/matchService';
 
@@ -18,7 +17,7 @@ export function useActiveSoloMatch() {
 
   const refresh = useCallback(async () => {
     if (!userId) {
-      setMatch(fallbackSoloMatch());
+      setMatch(null);
       setFromServer(false);
       setLoading(false);
       return;
@@ -34,14 +33,14 @@ export function useActiveSoloMatch() {
         setFromServer(true);
         await runEvaluation();
       } else {
-        setMatch(fallbackSoloMatch());
+        setMatch(null);
         setFromServer(false);
       }
     } catch (refreshError) {
       const message =
         refreshError instanceof Error ? refreshError.message : 'Could not load solo match.';
       setError(message);
-      setMatch(fallbackSoloMatch());
+      setMatch(null);
       setFromServer(false);
     } finally {
       setLoading(false);

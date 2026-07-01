@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { ActivityIndicator, ScrollView, StyleSheet, View } from 'react-native';
+import { ActivityIndicator, ScrollView, StyleSheet, Text, View } from 'react-native';
 
 import {
   SoloActiveMatchActions,
@@ -21,10 +21,19 @@ export function SoloMatchScreen({ onRunPress, embedded = false }: SoloMatchScree
   const { match, loading } = useActiveSoloMatch();
   const [chatVisible, setChatVisible] = useState(false);
 
-  if (loading || !match) {
+  if (loading) {
     return (
       <View style={styles.centered}>
         <ActivityIndicator color={colors.accentLime} />
+      </View>
+    );
+  }
+
+  if (!match) {
+    return (
+      <View style={styles.centered}>
+        <Text style={styles.emptyTitle}>No active solo match</Text>
+        <Text style={styles.emptyBody}>Find a match from the Solo tab to start a ranked duel.</Text>
       </View>
     );
   }
@@ -79,5 +88,19 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
     backgroundColor: colors.background,
+    paddingHorizontal: spacing.lg,
+    gap: spacing.sm,
+  },
+  emptyTitle: {
+    color: colors.textPrimary,
+    fontSize: 16,
+    fontWeight: '800',
+    textAlign: 'center',
+  },
+  emptyBody: {
+    color: colors.textSecondary,
+    fontSize: 12,
+    lineHeight: 18,
+    textAlign: 'center',
   },
 });

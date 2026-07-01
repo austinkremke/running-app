@@ -79,6 +79,17 @@ export async function syncActivityToServer(
     if (upsertError) throw upsertError;
 
     await uploadActivityTrack(userId, activity);
+
+    if (row.match_id) {
+      const { error: creditError } = await supabase.rpc('credit_match_activity', {
+        p_activity_id: activityId,
+      });
+
+      if (creditError) {
+        console.warn('Match activity credit failed', creditError.message);
+      }
+    }
+
     await clearActivityPendingSync(activityId);
 
     return { ok: true, activityId };

@@ -2,17 +2,21 @@ import type { ActiveSoloMatch, ActiveTeamMatch } from '../mock';
 import { MOCK_ACTIVE_SOLO_MATCH } from '../mock/soloActiveMatch';
 import { MOCK_ACTIVE_TEAM_MATCH } from '../mock/teamMatch';
 import type { Tables } from '../types/database';
+import { finalizeDueSoloMatches } from './matchmakingService';
 import { mapSoloMatchRow, mapTeamMatchRow } from './matchMappers';
 import { supabase } from './supabase';
 
 export const DEMO_TEAM_MATCH_ID = '22222222-2222-4222-8222-222222222222';
-export const DEMO_SOLO_MATCH_ID = '33333333-3333-4333-8333-333333333333';
 
 type LiveMember = {
   user_id: string;
   display_name: string;
   avatar_url: string | null;
   total_xp: number;
+};
+
+type ParticipantRow = Tables<'match_participants'> & {
+  profiles: Tables<'profiles'> | null;
 };
 
 async function fetchLiveTeamMembers(teamId: string): Promise<LiveMember[]> {
@@ -68,6 +72,19 @@ async function fetchUserTeamId(userId: string): Promise<string | null> {
   return data?.team_id ?? null;
 }
 
+export async function fetchSoloMatchType(): Promise<Tables<'match_types'> | null> {
+  if (!supabase) return null;
+
+  const { data, error } = await supabase
+    .from('match_types')
+    .select('*')
+    .eq('id', 'solo_distance')
+    .maybeSingle();
+
+  if (error) throw error;
+  return data;
+}
+
 export async function fetchActiveTeamMatch(userId: string): Promise<ActiveTeamMatch | null> {
   if (!supabase) return null;
 
@@ -103,37 +120,75 @@ export async function fetchActiveTeamMatch(userId: string): Promise<ActiveTeamMa
   return mapTeamMatchRow(match, homeTeam, awayTeam, liveHomeMembers);
 }
 
-async function ensureSoloParticipant(userId: string, matchId: string): Promise<number> {
-  if (!supabase) return 0;
+async function fetchParticipantBundle(
+  matchId: string,
+  userId: string,
+): Promise<{
+  match: Tables<'matches'>;
+  self: ParticipantRow;
+  opponent: ParticipantRow;
+  activities: Tables<'activities'>[];
+  matchType: Tables<'match_types'> | null;
+} | null> {
+  if (!supabase) return null;
 
-  const { data: existing, error: existingError } = await supabase
-    .from('match_participants')
-    .select('points')
-    .eq('match_id', matchId)
-    .eq('user_id', userId)
+  const { data: match, error: matchError } = await supabase
+    .from('matches')
+    .select('*')
+    .eq('id', matchId)
+    .eq('kind', 'solo')
+    .eq('status', 'active')
     .maybeSingle();
 
-  if (existingError) throw existingError;
-  if (existing) return existing.points;
+  if (matchError) throw matchError;
+  if (!match) return null;
 
-  const { error: insertError } = await supabase.from('match_participants').insert({
-    match_id: matchId,
-    user_id: userId,
-    side: 'home',
-    points: 0,
-    lineup_order: 1,
-  });
+  const { data: participants, error: participantsError } = await supabase
+    .from('match_participants')
+    .select('*, profiles:user_id (*)')
+    .eq('match_id', matchId);
 
-  if (insertError) throw insertError;
-  return 0;
+  if (participantsError) throw participantsError;
+
+  const rows = (participants ?? []) as ParticipantRow[];
+  const self = rows.find((row) => row.user_id === userId);
+  const opponent = rows.find((row) => row.user_id && row.user_id !== userId);
+
+  if (!self?.profiles || !opponent?.profiles || !opponent.user_id) {
+    return null;
+  }
+
+  const [{ data: activities, error: activitiesError }, { data: matchType, error: matchTypeError }] =
+    await Promise.all([
+      supabase
+        .from('activities')
+        .select('*')
+        .eq('match_id', matchId)
+        .order('started_at', { ascending: false }),
+      supabase.from('match_types').select('*').eq('id', match.match_type_id).maybeSingle(),
+    ]);
+
+  if (activitiesError) throw activitiesError;
+  if (matchTypeError) throw matchTypeError;
+
+  return {
+    match,
+    self: { ...self, profiles: self.profiles },
+    opponent: { ...opponent, profiles: opponent.profiles },
+    activities: activities ?? [],
+    matchType: matchType ?? null,
+    homeRating: 1000,
+  };
 }
 
 export async function fetchActiveSoloMatch(userId: string): Promise<ActiveSoloMatch | null> {
   if (!supabase) return null;
 
+  await finalizeDueSoloMatches();
+
   const { data: enrolled, error: enrolledError } = await supabase
     .from('match_participants')
-    .select('match_id, points, matches:match_id!inner (id, kind, status, ends_at, state_json, match_type_id, started_at, created_at, updated_at, home_team_id, away_team_id)')
+    .select('match_id, points, side, matches:match_id!inner (id, kind, status)')
     .eq('user_id', userId)
     .eq('matches.kind', 'solo')
     .eq('matches.status', 'active')
@@ -141,35 +196,49 @@ export async function fetchActiveSoloMatch(userId: string): Promise<ActiveSoloMa
     .maybeSingle();
 
   if (enrolledError) throw enrolledError;
+  if (!enrolled?.match_id) return null;
 
-  let match = enrolled?.matches as Tables<'matches'> | null;
-  let points = enrolled?.points ?? 0;
+  const bundle = await fetchParticipantBundle(enrolled.match_id, userId);
+  if (!bundle) return null;
 
-  if (!match) {
-    const { data: template, error: templateError } = await supabase
-      .from('matches')
-      .select('*')
-      .eq('id', DEMO_SOLO_MATCH_ID)
-      .maybeSingle();
+  const [{ data: selfProgress }, { data: opponentProgress }, { data: rankRow }] = await Promise.all([
+    supabase!
+      .from('player_progress')
+      .select('total_xp')
+      .eq('user_id', userId)
+      .maybeSingle(),
+    supabase!
+      .from('player_progress')
+      .select('total_xp')
+      .eq('user_id', bundle.opponent.user_id!)
+      .maybeSingle(),
+    supabase!
+      .from('player_rank')
+      .select('competitive_rating')
+      .eq('user_id', userId)
+      .maybeSingle(),
+  ]);
 
-    if (templateError) throw templateError;
-    if (!template) return null;
+  const homeIsSelf = bundle.self.side === 'home';
+  const homeProfile = homeIsSelf ? bundle.self.profiles! : bundle.opponent.profiles!;
+  const awayProfile = homeIsSelf ? bundle.opponent.profiles! : bundle.self.profiles!;
+  const homePoints = homeIsSelf ? bundle.self.points : bundle.opponent.points;
+  const awayPoints = homeIsSelf ? bundle.opponent.points : bundle.self.points;
+  const homeProgress = homeIsSelf ? selfProgress : opponentProgress;
+  const awayProgress = homeIsSelf ? opponentProgress : selfProgress;
 
-    points = await ensureSoloParticipant(userId, template.id);
-    match = template;
-  }
-
-  const [{ data: profile, error: profileError }, { data: progress, error: progressError }] =
-    await Promise.all([
-      supabase.from('profiles').select('*').eq('id', userId).maybeSingle(),
-      supabase.from('player_progress').select('total_xp').eq('user_id', userId).maybeSingle(),
-    ]);
-
-  if (profileError) throw profileError;
-  if (progressError) throw progressError;
-  if (!profile) return null;
-
-  return mapSoloMatchRow(match, profile, progress, points);
+  return mapSoloMatchRow(
+    bundle.match,
+    homeProfile,
+    homeProgress,
+    homePoints,
+    awayProfile,
+    awayProgress,
+    awayPoints,
+    bundle.activities,
+    bundle.matchType,
+    rankRow?.competitive_rating ?? 1000,
+  );
 }
 
 export async function fetchActiveMatchId(userId: string): Promise<string | null> {
