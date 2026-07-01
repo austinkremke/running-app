@@ -1,5 +1,6 @@
 export { applyEloMatchResult as applyEloMatchResultLocal } from './eloCalculator';
 export { eloExpectedScore, eloRatingDelta } from './eloCalculator';
+export { buildNextRankGoal, buildNextRankGoalFromRows } from './nextRankGoal';
 export { tierFromRating, mapRankTierRow } from './tierFromRating';
 export { rankTierIconToIonicon } from './rankTierIcons';
 export {

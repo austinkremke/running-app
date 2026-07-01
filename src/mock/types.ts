@@ -57,6 +57,17 @@ export type ProfileRank = {
   icon: string;
   tierId?: string;
   competitiveRating?: number;
+  nextRankGoal?: ProfileNextRankGoal | null;
+};
+
+export type ProfileNextRankGoal = {
+  nextTierId: string;
+  nextTierTitle: string;
+  pointsNeeded: number;
+  progress: number;
+  currentRating: number;
+  nextTierMinRating: number;
+  currentTierMinRating: number;
 };
 
 export type ProfileExperience = {

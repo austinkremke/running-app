@@ -1,6 +1,7 @@
 import type { ProfileRank } from '../../mock';
 import type { PlayerRankRow, RankDisplay, RankTierRow } from '../../types/rank';
 import { supabase } from '../supabase';
+import { buildNextRankGoalFromRows } from './nextRankGoal';
 import { mapRankTierRow, tierFromRating } from './tierFromRating';
 import { rankTierIconToIonicon } from './rankTierIcons';
 
@@ -53,6 +54,7 @@ export function buildProfileRank(rank: PlayerRankRow, tiers: RankTierRow[]): Pro
     icon: display.icon,
     tierId: tier.id,
     competitiveRating: rank.competitive_rating,
+    nextRankGoal: buildNextRankGoalFromRows(rank.competitive_rating, tiers),
   };
 }
 

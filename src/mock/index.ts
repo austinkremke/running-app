@@ -39,6 +39,7 @@ export type {
   PostRunChartPoint,
   PostRunSummary,
   ProfileExperience,
+  ProfileNextRankGoal,
   ProfileRank,
   Run,
   RunStats,

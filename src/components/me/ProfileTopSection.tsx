@@ -64,6 +64,23 @@ export function ProfileTopSection({ profile, onEditAvatar }: ProfileTopSectionPr
               <Text style={styles.ratingValue}>{formatRating(profile.rank)}</Text>
               <Text style={styles.ratingSuffix}> Power Rating</Text>
             </Text>
+            {profile.rank.nextRankGoal ? (
+              <Text style={styles.nextRankLine}>
+                <Text style={styles.nextRankLabel}>Next rank at </Text>
+                <Text style={styles.nextRankRating}>
+                  {profile.rank.nextRankGoal.nextTierMinRating.toLocaleString()}
+                </Text>
+                <Text style={styles.nextRankLabel}> · </Text>
+                <Text
+                  style={[
+                    styles.nextRankTier,
+                    { color: rankTierColorForTier(profile.rank.nextRankGoal.nextTierId) },
+                  ]}
+                >
+                  {profile.rank.nextRankGoal.nextTierTitle}
+                </Text>
+              </Text>
+            ) : null}
           </View>
         </View>
       </View>
@@ -159,5 +176,25 @@ const styles = StyleSheet.create({
     fontWeight: '600',
     fontStyle: 'italic',
     lineHeight: 30,
+  },
+  nextRankLine: {
+    marginTop: 4,
+    lineHeight: 14,
+  },
+  nextRankLabel: {
+    color: colors.textSecondary,
+    fontSize: 10,
+    fontWeight: '600',
+  },
+  nextRankRating: {
+    color: colors.textPrimary,
+    fontSize: 10,
+    fontWeight: '700',
+  },
+  nextRankTier: {
+    fontSize: 10,
+    fontWeight: '800',
+    fontStyle: 'italic',
+    letterSpacing: 0.2,
   },
 });
