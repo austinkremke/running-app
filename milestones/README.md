@@ -40,7 +40,7 @@ When adding a milestone:
 | Feed likes & comments | [05](./05-matchmaking-and-feed.md) Phase 1 **shipped** |
 | Elo & rank UI (Me tab, solo match) | [05](./05-matchmaking-and-feed.md) Phase 2 **shipped** |
 | Account settings | [06](./06-account-gating-and-cosmetics.md) Phase 1 |
-| Achievements (server-backed) | [06](./06-account-gating-and-cosmetics.md) Phase 2 · XP source in [03](./03-xp-and-ranking.md) |
+| Achievements (server-backed) | [06](./06-account-gating-and-cosmetics.md) Phase 2 · XP source in [03](./03-xp-and-ranking.md) · **catalog defined** |
 | Avatar rank decorative borders | [06](./06-account-gating-and-cosmetics.md) Phase 3 · tiers in [03](./03-xp-and-ranking.md) |
 | Level blocking features | [06](./06-account-gating-and-cosmetics.md) Phase 4 |
 | Paywall blocking features | [06](./06-account-gating-and-cosmetics.md) Phase 5 |

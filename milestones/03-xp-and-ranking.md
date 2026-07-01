@@ -350,7 +350,7 @@ Duplicate awards for the same `activity_id` are blocked. Zero-XP attempts do not
 
 ### Phase 5 — Achievements & progression hooks (feeds [06](./06-account-gating-and-cosmetics.md))
 
-- `achievement_definitions` catalog + unlock evaluation
+- **`achievement_definitions` catalog + evaluators** — full v1 list and schema in [06 Phase 2](./06-account-gating-and-cosmetics.md#phase-2--achievements)
 - Achievement XP grants via ledger (`source: 'achievement'`)
 - Export level + rank tier readers for level gates and avatar rank borders
 

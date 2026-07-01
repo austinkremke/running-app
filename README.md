@@ -73,7 +73,7 @@ Mapbox on device often needs a recent Xcode beta; see project notes in your shel
 | Match / matchmaking lineup UI | Mock (lineup tab); **active match screens from server** |
 | Me tab profile | Name/avatar from server; **level + XP bar real**; **rank tier + rating from server**; achievements/stats still mock |
 | Post-run XP drawer | **Real** staged breakdown + segmented bar fill on “Lock in your run” |
-| Achievements on Me tab | Mock list (server catalog → milestone 06) |
+| Achievements on Me tab | Mock list → [06 Phase 2](./06-account-gating-and-cosmetics.md) server catalog (~35 defs) |
 | Feed likes / comments | **Shipped** — toggle like + comments drawer ([05 Phase 1](./milestones/05-matchmaking-and-feed.md)) |
 | Friends feed tab | Empty (no social graph yet) |
 | Team stats / team activity feed | Placeholder sections |
