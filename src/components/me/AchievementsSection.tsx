@@ -7,13 +7,13 @@ import {
   View,
 } from 'react-native';
 
-import type { Achievement } from '../../mock';
+import type { AchievementListItem } from '../../services/achievementService';
 import { colors, spacing } from '../../theme';
 import { ACHIEVEMENT_CARD_WIDTH, AchievementCard } from './AchievementCard';
 import { SectionHeader } from './SectionHeader';
 
 type AchievementsSectionProps = {
-  achievements: Achievement[];
+  achievements: AchievementListItem[];
   onViewAll?: () => void;
 };
 

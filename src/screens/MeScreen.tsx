@@ -8,6 +8,7 @@ import {
   ExperienceCard,
   OverallStatsSection,
   ProfileTopSection,
+  SectionHeader,
 } from '../components/me';
 import { useAuth, usePlayerProgress, useXpGain } from '../context';
 import { useAchievements } from '../hooks/useAchievements';
@@ -60,7 +61,11 @@ export function MeScreen({ onOpenSettings }: MeScreenProps) {
           />
         ) : (
           <View style={styles.emptyAchievements}>
-            <Text style={styles.emptyTitle}>ACHIEVEMENTS</Text>
+            <SectionHeader
+              actionLabel="VIEW ALL"
+              onActionPress={() => setViewAllVisible(true)}
+              title="ACHIEVEMENTS"
+            />
             <Text style={styles.emptyCopy}>Complete your first run to start earning badges.</Text>
           </View>
         )}
@@ -99,14 +104,6 @@ const styles = StyleSheet.create({
   },
   emptyAchievements: {
     gap: spacing.xs,
-    paddingHorizontal: spacing.xs,
-  },
-  emptyTitle: {
-    color: colors.textPrimary,
-    fontSize: 14,
-    fontWeight: '800',
-    fontStyle: 'italic',
-    letterSpacing: 0.4,
   },
   emptyCopy: {
     color: colors.textSecondary,

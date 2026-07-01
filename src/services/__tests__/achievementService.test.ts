@@ -23,6 +23,8 @@ describe('mapDefinitionToAchievement', () => {
 
     expect(item.unlocked).toBe(true);
     expect(item.label).toBe('FIRST RUN');
+    expect(item.description).toBe('Complete your first synced run.');
+    expect(item.xpReward).toBe(100);
     expect(item.variant).toBe('gold');
     expect(item.date).toContain('2026');
   });

@@ -1,21 +1,56 @@
 import { Ionicons } from '@expo/vector-icons';
 import { StyleSheet, Text, View } from 'react-native';
 
-import type { Achievement } from '../../mock';
+import type { AchievementListItem } from '../../services/achievementService';
 import { colors, spacing } from '../../theme';
 import { HexBadge } from './HexBadge';
 
 type IoniconsName = React.ComponentProps<typeof Ionicons>['name'];
 
 type AchievementCardProps = {
-  achievement: Achievement;
+  achievement: AchievementListItem;
+  layout?: 'compact' | 'detail';
 };
 
-export function AchievementCard({ achievement }: AchievementCardProps) {
+export function formatAchievementXp(xpReward: number): string {
+  return `+${xpReward.toLocaleString()} XP`;
+}
+
+export function AchievementCard({ achievement, layout = 'compact' }: AchievementCardProps) {
   const iconSize = achievement.badgeText ? 14 : 20;
 
+  if (layout === 'detail') {
+    return (
+      <View style={[styles.detailCard, !achievement.unlocked && styles.detailCardLocked]}>
+        <HexBadge
+          badgeText={achievement.badgeText}
+          icon={achievement.icon as IoniconsName}
+          iconSize={iconSize}
+          size={52}
+          stroked
+          variant={achievement.variant}
+        />
+
+        <View style={styles.detailBody}>
+          <Text style={styles.detailTitle}>{achievement.label}</Text>
+          <Text style={styles.detailDescription}>{achievement.description}</Text>
+
+          <View style={styles.detailMeta}>
+            <View style={styles.xpChip}>
+              <Ionicons color={colors.accentLime} name="flash" size={10} />
+              <Text style={styles.xpChipLabel}>{formatAchievementXp(achievement.xpReward)}</Text>
+            </View>
+            <Text style={styles.detailStatus}>
+              {achievement.unlocked ? `Unlocked ${achievement.date}` : 'Not unlocked yet'}
+            </Text>
+          </View>
+        </View>
+      </View>
+    );
+  }
+
   return (
-    <View style={styles.card}>
+    <View style={[styles.compactCard, !achievement.unlocked && styles.compactCardLocked]}>
       <HexBadge
         badgeText={achievement.badgeText}
         icon={achievement.icon as IoniconsName}
@@ -24,18 +59,25 @@ export function AchievementCard({ achievement }: AchievementCardProps) {
         stroked
         variant={achievement.variant}
       />
-      <Text numberOfLines={2} style={styles.label}>
+      <Text numberOfLines={2} style={styles.compactLabel}>
         {achievement.label}
       </Text>
-      <Text style={styles.date}>{achievement.date}</Text>
+      <Text numberOfLines={3} style={styles.compactDescription}>
+        {achievement.description}
+      </Text>
+      <View style={styles.xpChip}>
+        <Ionicons color={colors.accentLime} name="flash" size={10} />
+        <Text style={styles.xpChipLabel}>{formatAchievementXp(achievement.xpReward)}</Text>
+      </View>
+      <Text style={styles.compactDate}>{achievement.date}</Text>
     </View>
   );
 }
 
-export const ACHIEVEMENT_CARD_WIDTH = 108;
+export const ACHIEVEMENT_CARD_WIDTH = 168;
 
 const styles = StyleSheet.create({
-  card: {
+  compactCard: {
     width: ACHIEVEMENT_CARD_WIDTH,
     alignItems: 'center',
     backgroundColor: colors.surface,
@@ -43,10 +85,13 @@ const styles = StyleSheet.create({
     borderWidth: 1,
     borderColor: colors.border,
     paddingHorizontal: spacing.sm,
-    paddingVertical: spacing.lg,
-    gap: spacing.sm,
+    paddingVertical: spacing.md,
+    gap: spacing.xs,
   },
-  label: {
+  compactCardLocked: {
+    opacity: 0.55,
+  },
+  compactLabel: {
     color: colors.textPrimary,
     fontSize: 9,
     fontWeight: '700',
@@ -56,9 +101,75 @@ const styles = StyleSheet.create({
     lineHeight: 12,
     textTransform: 'uppercase',
   },
-  date: {
+  compactDescription: {
+    color: colors.textSecondary,
+    fontSize: 9,
+    lineHeight: 13,
+    textAlign: 'center',
+  },
+  compactDate: {
     color: colors.textSecondary,
     fontSize: 9,
     textAlign: 'center',
+  },
+  detailCard: {
+    flexDirection: 'row',
+    alignItems: 'flex-start',
+    gap: spacing.md,
+    backgroundColor: colors.surface,
+    borderRadius: 14,
+    borderWidth: 1,
+    borderColor: colors.border,
+    padding: spacing.md,
+  },
+  detailCardLocked: {
+    opacity: 0.55,
+  },
+  detailBody: {
+    flex: 1,
+    gap: spacing.xs,
+  },
+  detailTitle: {
+    color: colors.textPrimary,
+    fontSize: 12,
+    fontWeight: '800',
+    fontStyle: 'italic',
+    letterSpacing: 0.3,
+    textTransform: 'uppercase',
+  },
+  detailDescription: {
+    color: colors.textSecondary,
+    fontSize: 12,
+    lineHeight: 17,
+  },
+  detailMeta: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    alignItems: 'center',
+    gap: spacing.sm,
+    marginTop: 2,
+  },
+  detailStatus: {
+    color: colors.textSecondary,
+    fontSize: 10,
+    fontWeight: '600',
+  },
+  xpChip: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 4,
+    paddingHorizontal: spacing.sm,
+    paddingVertical: 3,
+    borderRadius: 10,
+    borderWidth: 1,
+    borderColor: colors.accentLime,
+    backgroundColor: 'rgba(215, 255, 47, 0.08)',
+  },
+  xpChipLabel: {
+    color: colors.accentLime,
+    fontSize: 9,
+    fontWeight: '800',
+    letterSpacing: 0.3,
+    textTransform: 'uppercase',
   },
 });

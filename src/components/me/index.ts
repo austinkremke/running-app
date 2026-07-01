@@ -4,3 +4,4 @@ export { CommunityAchievementsSection } from './CommunityAchievementsSection';
 export { ExperienceCard } from './ExperienceCard';
 export { OverallStatsSection } from './OverallStatsSection';
 export { ProfileTopSection } from './ProfileTopSection';
+export { SectionHeader } from './SectionHeader';

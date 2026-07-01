@@ -3,6 +3,7 @@ import { Linking, Pressable, StyleSheet, Text, View } from 'react-native';
 
 import { COMMUNITY_LINKS } from '../../config/communityLinks';
 import type { AchievementListItem } from '../../services/achievementService';
+import { formatAchievementXp } from './AchievementCard';
 import { useAchievementUnlockPresentation } from '../../hooks/useAchievementUnlockPresentation';
 import { colors, spacing } from '../../theme';
 import { SectionHeader } from './SectionHeader';
@@ -14,6 +15,10 @@ type CommunityAchievementsSectionProps = {
 
 function isUnlocked(items: AchievementListItem[], id: string): boolean {
   return items.some((item) => item.id === id && item.unlocked);
+}
+
+function findAchievement(items: AchievementListItem[], id: string): AchievementListItem | undefined {
+  return items.find((item) => item.id === id);
 }
 
 export function CommunityAchievementsSection({
@@ -78,7 +83,14 @@ export function CommunityAchievementsSection({
         void handleEvent('follow_tiktok', COMMUNITY_LINKS.tiktok);
       },
     },
-  ];
+  ].map((row) => {
+    const achievement = findAchievement(achievements, row.id);
+    return {
+      ...row,
+      description: achievement?.description ?? '',
+      xpReward: achievement?.xpReward ?? 0,
+    };
+  });
 
   return (
     <View style={styles.container}>
@@ -98,7 +110,15 @@ export function CommunityAchievementsSection({
           >
             <View style={styles.rowLeft}>
               <Ionicons color={row.done ? colors.accentLime : colors.textPrimary} name={row.icon} size={18} />
-              <Text style={[styles.rowLabel, row.done && styles.rowLabelDone]}>{row.label}</Text>
+              <View style={styles.rowCopy}>
+                <Text style={[styles.rowLabel, row.done && styles.rowLabelDone]}>{row.label}</Text>
+                {row.description ? (
+                  <Text style={styles.rowDescription}>{row.description}</Text>
+                ) : null}
+                {row.xpReward > 0 ? (
+                  <Text style={styles.rowXp}>{formatAchievementXp(row.xpReward)}</Text>
+                ) : null}
+              </View>
             </View>
             {row.done ? (
               <Ionicons color={colors.accentLime} name="checkmark-circle" size={18} />
@@ -137,13 +157,32 @@ const styles = StyleSheet.create({
   },
   rowLeft: {
     flexDirection: 'row',
-    alignItems: 'center',
+    alignItems: 'flex-start',
     gap: spacing.sm,
+    flex: 1,
+    paddingRight: spacing.sm,
+  },
+  rowCopy: {
+    flex: 1,
+    gap: 2,
   },
   rowLabel: {
     color: colors.textPrimary,
     fontSize: 13,
     fontWeight: '600',
+  },
+  rowDescription: {
+    color: colors.textSecondary,
+    fontSize: 11,
+    lineHeight: 15,
+  },
+  rowXp: {
+    color: colors.accentLime,
+    fontSize: 10,
+    fontWeight: '800',
+    letterSpacing: 0.3,
+    textTransform: 'uppercase',
+    marginTop: 2,
   },
   rowLabelDone: {
     color: colors.textSecondary,

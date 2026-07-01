@@ -29,12 +29,18 @@ export function AchievementsAllModal({
 }: AchievementsAllModalProps) {
   const insets = useSafeAreaInsets();
   const categories = [...new Set(achievements.map((item) => item.category))];
+  const unlockedCount = achievements.filter((item) => item.unlocked).length;
 
   return (
     <Modal animationType="slide" onRequestClose={onClose} visible={visible}>
       <View style={[styles.container, { paddingTop: insets.top, paddingBottom: insets.bottom }]}>
         <View style={styles.header}>
-          <Text style={styles.title}>Achievements</Text>
+          <View style={styles.headerText}>
+            <Text style={styles.title}>Achievements</Text>
+            <Text style={styles.subtitle}>
+              {unlockedCount} of {achievements.length} unlocked
+            </Text>
+          </View>
           <Pressable accessibilityRole="button" onPress={onClose} style={styles.closeButton}>
             <Text style={styles.closeLabel}>Close</Text>
           </Pressable>
@@ -48,14 +54,9 @@ export function AchievementsAllModal({
                 <Text style={styles.sectionTitle}>
                   {CATEGORY_LABELS[category] ?? category}
                 </Text>
-                <View style={styles.grid}>
+                <View style={styles.list}>
                   {items.map((achievement) => (
-                    <View
-                      key={achievement.id}
-                      style={[styles.cardWrap, !achievement.unlocked && styles.cardLocked]}
-                    >
-                      <AchievementCard achievement={achievement} />
-                    </View>
+                    <AchievementCard achievement={achievement} key={achievement.id} layout="detail" />
                   ))}
                 </View>
               </View>
@@ -81,6 +82,9 @@ const styles = StyleSheet.create({
     borderBottomWidth: 1,
     borderBottomColor: colors.border,
   },
+  headerText: {
+    gap: 2,
+  },
   title: {
     color: colors.textPrimary,
     fontSize: 18,
@@ -88,6 +92,11 @@ const styles = StyleSheet.create({
     fontStyle: 'italic',
     letterSpacing: 0.4,
     textTransform: 'uppercase',
+  },
+  subtitle: {
+    color: colors.textSecondary,
+    fontSize: 11,
+    fontWeight: '600',
   },
   closeButton: {
     paddingVertical: spacing.xs,
@@ -112,15 +121,7 @@ const styles = StyleSheet.create({
     letterSpacing: 0.8,
     textTransform: 'uppercase',
   },
-  grid: {
-    flexDirection: 'row',
-    flexWrap: 'wrap',
+  list: {
     gap: spacing.md,
-  },
-  cardWrap: {
-    opacity: 1,
-  },
-  cardLocked: {
-    opacity: 0.45,
   },
 });
