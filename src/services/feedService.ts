@@ -2,6 +2,7 @@ import type { FeedTab, Run } from '../mock';
 import type { Tables } from '../types/database';
 import { syncActivityById } from './activitySync';
 import { fetchFeedEngagementSummaries } from './feedEngagementService';
+import { fetchFriendIds } from './friendService';
 import { supabase } from './supabase';
 import { mapFeedPostToRun } from './socialMappers';
 
@@ -54,7 +55,19 @@ export async function fetchFeedPosts(
 ): Promise<Run[]> {
   if (!supabase) return [];
 
-  const { data, error } = await supabase
+  let friendIds: string[] | null = null;
+  if (tab === 'friends') {
+    if (!viewerUserId) {
+      return [];
+    }
+
+    friendIds = await fetchFriendIds(viewerUserId);
+    if (friendIds.length === 0) {
+      return [];
+    }
+  }
+
+  let query = supabase
     .from('feed_posts')
     .select(
       `
@@ -73,6 +86,12 @@ export async function fetchFeedPosts(
     .contains('audiences', [tab])
     .order('created_at', { ascending: false })
     .limit(limit);
+
+  if (friendIds) {
+    query = query.in('user_id', friendIds);
+  }
+
+  const { data, error } = await query;
 
   if (error) throw error;
   if (!data) return [];

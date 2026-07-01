@@ -6,11 +6,16 @@ import { RunCardContent } from './RunCardContent';
 import { RunCardEngagement } from './RunCardEngagement';
 import { RunCardHeader } from './RunCardHeader';
 import { RunCardMedia } from './RunCardMedia';
+import { RunCardPaceHighlight } from './RunCardPaceHighlight';
 import { RunCardStats } from './RunCardStats';
 
 type RunCardProps = {
   run: Run;
+  viewerUserId?: string | null;
+  isFriend?: boolean;
   engagementDisabled?: boolean;
+  addFriendDisabled?: boolean;
+  onAddFriend?: () => void;
   onToggleLike?: () => void;
   onOpenComments?: () => void;
   onShare?: () => void;
@@ -18,16 +23,32 @@ type RunCardProps = {
 
 export function RunCard({
   run,
+  viewerUserId = null,
+  isFriend = false,
   engagementDisabled = false,
+  addFriendDisabled = false,
+  onAddFriend,
   onToggleLike,
   onOpenComments,
   onShare,
 }: RunCardProps) {
+  const canAddFriend = Boolean(
+    viewerUserId && viewerUserId !== run.user.id && !isFriend && onAddFriend,
+  );
+
   return (
     <View style={styles.card}>
-      <RunCardHeader location={run.location} postedAt={run.postedAt} user={run.user} />
+      <RunCardHeader
+        addFriendDisabled={addFriendDisabled}
+        location={run.location}
+        onAddFriend={onAddFriend}
+        postedAt={run.postedAt}
+        showAddFriend={canAddFriend}
+        user={run.user}
+      />
       <RunCardContent description={run.description} title={run.title} />
       <RunCardMedia photoUrl={run.photoUrl} routePoints={run.routePoints} />
+      {run.paceHighlight ? <RunCardPaceHighlight highlight={run.paceHighlight} /> : null}
 
       <View style={styles.footerBox}>
         <RunCardStats stats={run.stats} />

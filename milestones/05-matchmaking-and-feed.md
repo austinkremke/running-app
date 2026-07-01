@@ -1,7 +1,7 @@
 # Matchmaking, Feed & Social Sync
 
 > **Milestone:** 05  
-> **Status:** **In progress** — Phase 1–2 shipped; Phase 3 friends feed next  
+> **Status:** **In progress** — Phase 1–3 shipped; Phase 4 matchmaking next  
 > **Depends on:** [02 Supabase](./02-supabase-backend.md) (Phase A–D shipped; Phase C `feed_posts` required for Phase 1)  
 > **Unblocks:** —
 
@@ -11,7 +11,7 @@
 
 Replace remaining mock match/social data with server-backed state: real opponents, persisted results, competitive rank updates — while keeping **level (XP)** and **rank (Elo)** separate per [03](./03-xp-and-ranking.md).
 
-**Partially done in milestone 02:** `feed_posts`, team join/list, community + team feed tabs, active match screens (Phase D), static route maps on feed cards. **Phase 1 shipped:** persisted likes & comments. **Remaining:** Elo, friends graph, matchmaking queue, and polish.
+**Partially done in milestone 02:** `feed_posts`, team join/list, community + team feed tabs, active match screens (Phase D), static route maps on feed cards. **Phase 1 shipped:** persisted likes & comments. **Phase 2 shipped:** Elo rank UI. **Phase 3 shipped:** friends graph + friends feed + richer cards. **Remaining:** matchmaking queue and polish.
 
 ---
 
@@ -21,7 +21,7 @@ Replace remaining mock match/social data with server-backed state: real opponent
 |------|-------|--------|
 | Solo / team matches | Mock lineup tab | **Active** match screens from Postgres; lineup still mock |
 | Match results | Static | Runs linked to `activity_id`; Elo update |
-| Feed | **Server** posts + **static route maps**; **persisted likes & comments** | Friends graph, richer cards |
+| Feed | **Server** posts + **static route maps**; **persisted likes & comments**; **friends feed**; pace highlights + photo layout | Matchmaking queue, richer social polish |
 | Teams | **Server** (join, members, top list) — stats/activity mock | Full team stats, activity stream |
 | Team chat | Mock | Realtime or polled messages ([02](./02-supabase-backend.md)) |
 | Leaderboards | Top teams from DB; **solo Me rank from server**; team rank card still synthetic | `competitive_rating` aggregates + seasonal snapshots |
@@ -52,10 +52,11 @@ Replace remaining mock match/social data with server-backed state: real opponent
 - Global percentile / leaderboard rank on active match screen
 - Team rank card / top teams from real competitive aggregates
 
-### Phase 3 — Friends feed & richer cards **(next)**
+### Phase 3 — Friends feed & richer cards **shipped**
 
-- Friends graph + friends tab (currently placeholder copy)
-- Richer post cards (photos, pace highlights)
+**Shipped:** `friendships` graph + `add_friend` RPC, friends feed tab (posts with `friends` audience from mutual friends), `Add Friend` on community cards, pace highlight chip + side-by-side map/photo layout, `add_friend` achievement active.
+
+**Manual QA (needs two accounts):** Sign in as User A on one device/simulator and User B on another. From Community, B taps **Add Friend** on A’s post → B’s Friends tab should show A’s runs (new lock-ins include `friends` audience). Verify pace highlight on runs with chart data in `summary_json`.
 
 *Note: “Feed from real activities” shipped in [02 Phase C](./02-supabase-backend.md) — create post + community/team tabs + route maps.*
 
@@ -89,4 +90,4 @@ Replace remaining mock match/social data with server-backed state: real opponent
 
 ## Summary
 
-**Ship next:** Friends feed + richer cards (Phase 3), then matchmaking queue.
+**Ship next:** Matchmaking queue (Phase 4), then real-time polish.

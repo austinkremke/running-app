@@ -319,6 +319,39 @@ export type Database = {
           },
         ]
       }
+      friendships: {
+        Row: {
+          created_at: string
+          friend_user_id: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          friend_user_id: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          friend_user_id?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "friendships_friend_user_id_fkey"
+            columns: ["friend_user_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "friendships_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       match_participants: {
         Row: {
           created_at: string
@@ -768,6 +801,7 @@ export type Database = {
         Args: { p_activity_id: string }
         Returns: boolean
       }
+      add_friend: { Args: { p_friend_user_id: string }; Returns: undefined }
       apply_elo_match_result: {
         Args: {
           p_k_factor?: number
@@ -775,6 +809,10 @@ export type Database = {
           p_winner_user_id: string
         }
         Returns: Json
+      }
+      are_friends: {
+        Args: { p_user_a: string; p_user_b: string }
+        Returns: boolean
       }
       award_run_xp: { Args: { p_activity_id: string }; Returns: Json }
       bootstrap_progression_from_local: {

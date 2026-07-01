@@ -1,19 +1,30 @@
 import { Ionicons } from '@expo/vector-icons';
-import { Image, Pressable, StyleSheet, Text, View } from 'react-native';
+import { Image, StyleSheet, Text, View } from 'react-native';
 
 import type { RunUser } from '../../mock';
 import { colors, spacing } from '../../theme';
+import { RunCardAddFriendButton } from './RunCardAddFriendButton';
 import { UserLevelBadge } from './UserLevelBadge';
 
 type RunCardHeaderProps = {
   user: RunUser;
   postedAt: string;
   location: string;
+  showAddFriend?: boolean;
+  addFriendDisabled?: boolean;
+  onAddFriend?: () => void;
 };
 
 const AVATAR_SIZE = 40;
 
-export function RunCardHeader({ user, postedAt, location }: RunCardHeaderProps) {
+export function RunCardHeader({
+  user,
+  postedAt,
+  location,
+  showAddFriend = false,
+  addFriendDisabled = false,
+  onAddFriend,
+}: RunCardHeaderProps) {
   return (
     <View style={styles.container}>
       <View style={styles.avatarWrap}>
@@ -40,9 +51,9 @@ export function RunCardHeader({ user, postedAt, location }: RunCardHeaderProps) 
         </View>
       </View>
 
-      <Pressable accessibilityLabel="More options" hitSlop={8} style={styles.menu}>
-        <Ionicons color={colors.textSecondary} name="ellipsis-horizontal" size={16} />
-      </Pressable>
+      {showAddFriend && onAddFriend ? (
+        <RunCardAddFriendButton disabled={addFriendDisabled} onPress={onAddFriend} />
+      ) : null}
     </View>
   );
 }
@@ -104,8 +115,5 @@ const styles = StyleSheet.create({
     color: colors.accentLime,
     fontSize: 11,
     fontWeight: '600',
-  },
-  menu: {
-    paddingTop: 2,
   },
 });

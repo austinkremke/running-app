@@ -10,17 +10,23 @@ type RunCardMediaProps = {
 };
 
 const MAP_HEIGHT = 152;
-const PHOTO_HEIGHT = 88;
+const PHOTO_WIDTH = 112;
 
 export function RunCardMedia({ routePoints, photoUrl }: RunCardMediaProps) {
-  return (
-    <View style={styles.container}>
-      <StaticRouteMapPreview routePoints={routePoints} style={styles.map} />
-      {photoUrl ? (
+  if (photoUrl) {
+    return (
+      <View style={styles.row}>
+        <StaticRouteMapPreview routePoints={routePoints} style={styles.mapWithPhoto} />
         <View style={styles.photoTile}>
           <Image source={{ uri: photoUrl }} style={styles.image} />
         </View>
-      ) : null}
+      </View>
+    );
+  }
+
+  return (
+    <View style={styles.container}>
+      <StaticRouteMapPreview routePoints={routePoints} style={styles.map} />
     </View>
   );
 }
@@ -29,14 +35,27 @@ const styles = StyleSheet.create({
   container: {
     gap: spacing.xs,
   },
+  row: {
+    flexDirection: 'row',
+    gap: spacing.xs,
+    height: MAP_HEIGHT,
+  },
   map: {
     height: MAP_HEIGHT,
     borderRadius: 10,
     borderWidth: 1,
     borderColor: colors.border,
   },
+  mapWithPhoto: {
+    flex: 1,
+    height: MAP_HEIGHT,
+    borderRadius: 10,
+    borderWidth: 1,
+    borderColor: colors.border,
+  },
   photoTile: {
-    height: PHOTO_HEIGHT,
+    width: PHOTO_WIDTH,
+    height: MAP_HEIGHT,
     borderRadius: 10,
     overflow: 'hidden',
     backgroundColor: colors.surfaceElevated,

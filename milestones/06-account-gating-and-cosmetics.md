@@ -185,7 +185,7 @@ Each `criteria_type` is implemented once on the server; new achievements = new s
 | `notifications_on` | Stay in the Loop | `client_event`: `notifications_on` | yes |
 | `follow_instagram` | Follow on Instagram | `client_event`: `follow_instagram` | yes |
 | `follow_tiktok` | Follow on TikTok | `client_event`: `follow_tiktok` | yes |
-| `add_friend` | Add a Friend | `friend_count` ≥ 1 | **no** — until [05 Phase 3](./05-matchmaking-and-feed.md) friends graph |
+| `add_friend` | Add a Friend | `friend_count` ≥ 1 | yes — [05 Phase 3](./05-matchmaking-and-feed.md) shipped |
 
 Community badges use **honor-system v1**: user completes in-app action (opens store review, grants notification permission, taps official social link). Server records intent via `record_achievement_event`; cannot verify IG/TikTok follow or App Store review without external APIs. Suggested XP: **50–100** each.
 
@@ -209,7 +209,7 @@ Community badges use **honor-system v1**: user completes in-app action (opens st
 | `level_twenty_five` | Level 25 | `level_reached` ≥ 25 |
 | `level_fifty` | Level 50 | `level_reached` ≥ 50 |
 
-**Active at launch:** ~29 achievements. **Inactive in seed (`is_active: false`):** `add_friend`, `first_win`, `ten_wins`.
+**Active at launch:** ~30 achievements. **Inactive in seed (`is_active: false`):** `first_win`, `ten_wins`.
 
 #### Implementation sub-phases (Phase 2)
 
@@ -242,8 +242,7 @@ Achievement XP is **one-time only** — supplementary to run XP, not a farming l
 
 | Ready today | Blocked on future work |
 |-------------|------------------------|
-| Runs, distance, pace, streak, level, feed, likes, comments, team, match enroll, rank rating | `add_friend` → friends graph (05 Phase 3) |
-| Client events: review, notifications, IG/TikTok, share | `first_win`, `ten_wins` → match completion (05 Phase 4) |
+| Runs, distance, pace, streak, level, feed, likes, comments, team, match enroll, rank rating, add friend | `first_win`, `ten_wins` → match completion (05 Phase 4) |
 
 #### Phase 2 open decisions
 

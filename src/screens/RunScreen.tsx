@@ -92,7 +92,7 @@ export function RunScreen({ onBack }: RunScreenProps) {
       return;
     }
 
-    const audiences: FeedTab[] = ['community'];
+    const audiences: FeedTab[] = ['community', 'friends'];
     if (gameState?.profile.team_id) {
       audiences.push('team');
     }

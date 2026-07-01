@@ -400,7 +400,7 @@ create trigger on_auth_user_created
 
 - [x] `teams` + `team_members` + `feed_posts` migration + RLS
 - [x] Seed demo team (`Road Warriors`) in `seed.sql`
-- [x] Feed tabs query server posts (friends tab empty until social graph ships)
+- [x] Feed tabs query server posts (friends tab from mutual `friendships`)
 - [x] Team tab join prompt → `joinTeam`
 - [x] Apply migration to remote + verify feed post after run
 - [x] Fix `feed_posts` ↔ `activities` RLS recursion (`user_owns_activity`, `activity_has_visible_feed_post`)
