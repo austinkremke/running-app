@@ -1,16 +1,16 @@
 import { useCallback, useEffect, useState } from 'react';
 
 import type { ActiveSoloMatch } from '../mock';
-import { useAuth, useUserId } from '../context';
+import { useUserId } from '../context';
+import { useAchievementUnlockPresentation } from '../hooks/useAchievementUnlockPresentation';
 import {
   fallbackSoloMatch,
   fetchActiveSoloMatch,
 } from '../services/matchService';
-import { runAchievementEvaluation } from '../services/achievementTriggers';
 
 export function useActiveSoloMatch() {
   const userId = useUserId();
-  const { refreshGameState } = useAuth();
+  const { runEvaluation } = useAchievementUnlockPresentation();
   const [match, setMatch] = useState<ActiveSoloMatch | null>(null);
   const [loading, setLoading] = useState(true);
   const [fromServer, setFromServer] = useState(false);
@@ -32,7 +32,7 @@ export function useActiveSoloMatch() {
       if (serverMatch) {
         setMatch(serverMatch);
         setFromServer(true);
-        await runAchievementEvaluation({ refreshGameState });
+        await runEvaluation();
       } else {
         setMatch(fallbackSoloMatch());
         setFromServer(false);
@@ -46,7 +46,7 @@ export function useActiveSoloMatch() {
     } finally {
       setLoading(false);
     }
-  }, [refreshGameState, userId]);
+  }, [runEvaluation, userId]);
 
   useEffect(() => {
     void refresh();

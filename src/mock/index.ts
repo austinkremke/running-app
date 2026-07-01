@@ -12,7 +12,7 @@ export { getRunsForTab, MOCK_RUNS } from './runs';
 export { MOCK_ACTIVE_TEAM_MATCH } from './teamMatch';
 export { MOCK_TEAM_CHAT_MESSAGES } from './teamChat';
 export { MOCK_POST_RUN, MOCK_POST_RUN_ROUTE } from './postRun';
-export { MOCK_XP_GAIN_LEVEL_UP, MOCK_XP_GAIN_NORMAL } from './xpGain';
+export { MOCK_XP_GAIN_COMBINED, MOCK_XP_GAIN_LEVEL_UP, MOCK_XP_GAIN_NORMAL } from './xpGain';
 export type {
   Achievement,
   AchievementVariant,

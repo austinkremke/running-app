@@ -3,8 +3,7 @@ import { Linking, Pressable, StyleSheet, Text, View } from 'react-native';
 
 import { COMMUNITY_LINKS } from '../../config/communityLinks';
 import type { AchievementListItem } from '../../services/achievementService';
-import { recordAchievementEvent } from '../../services/achievementService';
-import { notifyAchievementUnlocks } from '../../services/achievementTriggers';
+import { useAchievementUnlockPresentation } from '../../hooks/useAchievementUnlockPresentation';
 import { colors, spacing } from '../../theme';
 import { SectionHeader } from './SectionHeader';
 
@@ -21,6 +20,8 @@ export function CommunityAchievementsSection({
   achievements,
   onUpdated,
 }: CommunityAchievementsSectionProps) {
+  const { recordEvent } = useAchievementUnlockPresentation();
+
   async function handleEvent(
     eventType: 'rate_app' | 'notifications_on' | 'follow_instagram' | 'follow_tiktok',
     url?: string,
@@ -30,9 +31,8 @@ export function CommunityAchievementsSection({
     }
 
     try {
-      const unlocks = await recordAchievementEvent(eventType);
+      const unlocks = await recordEvent(eventType);
       if (unlocks.length > 0) {
-        notifyAchievementUnlocks(unlocks);
         onUpdated?.();
       }
     } catch (error) {

@@ -4,19 +4,31 @@ export type XpGainRunSummary = {
   pace: string;
 };
 
+export type AchievementUnlockSummary = {
+  id: string;
+  displayName: string;
+  tier: string;
+  icon: string;
+  category?: string;
+};
+
+export type XpGainSource = 'run' | 'achievement' | 'combined';
+
 export type XpGainSegment = {
-  key: XpBreakdownLine['key'];
+  key: XpBreakdownLine['key'] | 'achievement';
   label: string;
   detail?: string;
   xp: number;
 };
 
 export type XpGainEvent = {
+  source: XpGainSource;
   xpEarned: number;
   startingLevel: number;
   startingXp: number;
   xpToNextLevel: number;
   runSummary?: XpGainRunSummary;
+  achievementSummary?: AchievementUnlockSummary[];
   breakdown: XpGainSegment[];
 };
 

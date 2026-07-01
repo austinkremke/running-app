@@ -9,7 +9,7 @@ import {
   OverallStatsSection,
   ProfileTopSection,
 } from '../components/me';
-import { useAuth, usePlayerProgress } from '../context';
+import { useAuth, usePlayerProgress, useXpGain } from '../context';
 import { useAchievements } from '../hooks/useAchievements';
 import { useRankDisplay } from '../hooks/useRankDisplay';
 import { MOCK_PROFILE } from '../mock';
@@ -18,8 +18,12 @@ import { colors, spacing } from '../theme';
 export function MeScreen() {
   const { gameState } = useAuth();
   const { level, experience } = usePlayerProgress();
+  const { showAchievementUnlocks } = useXpGain();
   const { profileRank } = useRankDisplay();
-  const { unlocked, allAchievements, loading, reload } = useAchievements({ evaluateOnMount: true });
+  const { unlocked, allAchievements, loading, reload } = useAchievements({
+    evaluateOnMount: true,
+    onUnlock: showAchievementUnlocks,
+  });
   const [viewAllVisible, setViewAllVisible] = useState(false);
 
   const profile = {

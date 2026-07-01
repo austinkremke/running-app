@@ -9,6 +9,22 @@ type XpBreakdownRowProps = {
   state: 'pending' | 'active' | 'done';
 };
 
+const TIER_ACCENT: Record<string, string> = {
+  bronze: colors.accentPurple,
+  silver: colors.textSecondary,
+  gold: colors.accentGold,
+  elite: colors.accentLime,
+};
+
+function achievementAccent(detail?: string): string | undefined {
+  if (!detail) {
+    return undefined;
+  }
+
+  const tier = detail.split(' · ')[0]?.toLowerCase();
+  return tier ? TIER_ACCENT[tier] : undefined;
+}
+
 function formatXp(value: number): string {
   return value.toLocaleString('en-US');
 }
@@ -55,12 +71,15 @@ export function XpBreakdownRow({ segment, state }: XpBreakdownRowProps) {
   });
 
   const detailOpacity = reveal;
+  const isAchievement = segment.key === 'achievement';
+  const accentColor = isAchievement ? achievementAccent(segment.detail) : undefined;
 
   return (
     <Animated.View
       style={[
         styles.row,
         isPending ? styles.rowPending : styles.rowRevealed,
+        isAchievement && accentColor ? { borderColor: accentColor } : null,
         { opacity: rowOpacity },
       ]}
     >

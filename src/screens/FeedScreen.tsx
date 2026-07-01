@@ -2,11 +2,9 @@ import { ActivityIndicator, Alert, FlatList, Share, StyleSheet, Text, View } fro
 import { useState } from 'react';
 
 import { FeedCommentsDrawer, RunCard } from '../components/feed';
-import { useAuth } from '../context';
 import type { FeedTab, Run } from '../mock';
+import { useAchievementUnlockPresentation } from '../hooks/useAchievementUnlockPresentation';
 import { useFeed } from '../hooks/useFeed';
-import { recordAchievementEvent } from '../services/achievementService';
-import { notifyAchievementUnlocks, runAchievementEvaluation } from '../services/achievementTriggers';
 import { colors, spacing } from '../theme';
 
 type FeedScreenProps = {
@@ -14,14 +12,14 @@ type FeedScreenProps = {
 };
 
 export function FeedScreen({ activeTab }: FeedScreenProps) {
-  const { refreshGameState } = useAuth();
   const { runs, loading, error, toggleLike, bumpCommentCount, likingPostId } = useFeed(activeTab);
+  const { runEvaluation, recordEvent } = useAchievementUnlockPresentation();
   const [commentsPostId, setCommentsPostId] = useState<string | null>(null);
 
   async function handleToggleLike(postId: string) {
     try {
       await toggleLike(postId);
-      await runAchievementEvaluation({ refreshGameState });
+      await runEvaluation();
     } catch (likeError) {
       Alert.alert(
         'Like failed',
@@ -35,11 +33,7 @@ export function FeedScreen({ activeTab }: FeedScreenProps) {
       await Share.share({
         message: `${run.user.name} ran ${run.stats.distanceMiles.toFixed(1)} mi — ${run.title}`,
       });
-      const unlocks = await recordAchievementEvent('share_feed_post');
-      if (unlocks.length > 0) {
-        notifyAchievementUnlocks(unlocks);
-        await refreshGameState();
-      }
+      await recordEvent('share_feed_post');
     } catch (shareError) {
       if (shareError instanceof Error && shareError.message.includes('User did not share')) {
         return;
@@ -105,7 +99,7 @@ export function FeedScreen({ activeTab }: FeedScreenProps) {
           if (commentsPostId) {
             bumpCommentCount(commentsPostId);
           }
-          void runAchievementEvaluation({ refreshGameState });
+          void runEvaluation();
         }}
         postId={commentsPostId}
         visible={commentsPostId != null}

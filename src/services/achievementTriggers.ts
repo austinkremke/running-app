@@ -1,30 +1,37 @@
-import { Alert } from 'react-native';
+import type { UnlockedAchievementPayload } from './achievementService';
+import { evaluateAchievements } from './achievementService';
 
-import type { UnlockedAchievementPayload } from '../services/achievementService';
-import { evaluateAchievements } from '../services/achievementService';
+export type AchievementUnlockPresentation = {
+  beforeTotalXp: number;
+  showUnlocks: (beforeTotalXp: number, unlocks: UnlockedAchievementPayload[]) => void;
+};
 
-export function notifyAchievementUnlocks(unlocks: UnlockedAchievementPayload[]): void {
-  if (unlocks.length === 0) {
-    return;
+export async function presentAchievementUnlocks(options: {
+  beforeTotalXp: number;
+  unlocks: UnlockedAchievementPayload[];
+  showUnlocks: (beforeTotalXp: number, unlocks: UnlockedAchievementPayload[]) => void;
+  refreshGameState?: () => Promise<void>;
+}): Promise<UnlockedAchievementPayload[]> {
+  if (options.unlocks.length === 0) {
+    return options.unlocks;
   }
 
-  const [first, ...rest] = unlocks;
-  const xpSuffix = first.xp_reward > 0 ? ` (+${first.xp_reward} XP)` : '';
-  const extra = rest.length > 0 ? `\n\n+${rest.length} more achievement${rest.length === 1 ? '' : 's'}.` : '';
-
-  Alert.alert('Achievement unlocked', `${first.display_name}${xpSuffix}${extra}`);
+  options.showUnlocks(options.beforeTotalXp, options.unlocks);
+  await options.refreshGameState?.();
+  return options.unlocks;
 }
 
 export async function runAchievementEvaluation(options?: {
-  onUnlock?: (unlocks: UnlockedAchievementPayload[]) => void;
   refreshGameState?: () => Promise<void>;
+  presentation?: AchievementUnlockPresentation;
 }): Promise<UnlockedAchievementPayload[]> {
   try {
     const unlocks = await evaluateAchievements();
     if (unlocks.length > 0) {
+      if (options?.presentation) {
+        options.presentation.showUnlocks(options.presentation.beforeTotalXp, unlocks);
+      }
       await options?.refreshGameState?.();
-      options?.onUnlock?.(unlocks);
-      notifyAchievementUnlocks(unlocks);
     }
     return unlocks;
   } catch (error) {

@@ -3,22 +3,19 @@ import { Alert, Modal, StyleSheet, View } from 'react-native';
 import { SafeAreaProvider } from 'react-native-safe-area-context';
 
 import { RunBottomDrawer, RunMapArea } from '../components/run';
-import { XpGainDrawer } from '../components/xp';
 // import { PostRunTestButton } from '../components/post-run';
 // import { XpGainTestButtons } from '../components/xp';
 import { useAuth, usePlayerProgress, useRun } from '../context';
 import {
   MOCK_POST_RUN,
   MOCK_POST_RUN_ROUTE,
-  MOCK_XP_GAIN_LEVEL_UP,
-  MOCK_XP_GAIN_NORMAL,
 } from '../mock';
-import type { FeedTab, XpGainEvent } from '../mock';
+import type { FeedTab } from '../mock';
+import { useAchievementUnlockPresentation } from '../hooks/useAchievementUnlockPresentation';
 import { recordsToGpsPoints } from '../services/activityAdapters';
 import { publishActivityToFeed } from '../services/feedService';
 import { makeMockRunActivity } from '../services/progression/mockRunActivity';
 import { getErrorMessage } from '../utils/errors';
-import { runAchievementEvaluation } from '../services/achievementTriggers';
 import { PostRunScreen } from './PostRunScreen';
 import { colors } from '../theme';
 
@@ -27,8 +24,9 @@ type RunScreenProps = {
 };
 
 export function RunScreen({ onBack }: RunScreenProps) {
-  const { gameState, session, refreshGameState } = useAuth();
+  const { gameState, session } = useAuth();
   const { awardRunXp } = usePlayerProgress();
+  const { presentRunAward } = useAchievementUnlockPresentation();
   const {
     isRecording,
     routePoints,
@@ -40,8 +38,6 @@ export function RunScreen({ onBack }: RunScreenProps) {
     stopRun,
     clearLastFinishedRun,
   } = useRun();
-  const [xpDrawerVisible, setXpDrawerVisible] = useState(false);
-  const [xpEvent, setXpEvent] = useState<XpGainEvent | null>(null);
   const [postRunVisible, setPostRunVisible] = useState(false);
   const [previewPostRun, setPreviewPostRun] = useState(false);
 
@@ -49,16 +45,6 @@ export function RunScreen({ onBack }: RunScreenProps) {
     if (!lastFinishedRun) return;
     setPostRunVisible(true);
   }, [lastFinishedRun]);
-
-  function openXpDrawer(event: XpGainEvent) {
-    setXpEvent(event);
-    setXpDrawerVisible(true);
-  }
-
-  function closeXpDrawer() {
-    setXpDrawerVisible(false);
-    setXpEvent(null);
-  }
 
   function openMockPostRun() {
     setPreviewPostRun(true);
@@ -85,8 +71,7 @@ export function RunScreen({ onBack }: RunScreenProps) {
     });
 
     try {
-      const result = await awardRunXp(activity);
-      openXpDrawer(result.event);
+      await presentRunAward(() => awardRunXp(activity));
     } catch (error) {
       Alert.alert('Dev XP preview failed', getErrorMessage(error, 'Could not preview XP.'));
     }
@@ -124,9 +109,8 @@ export function RunScreen({ onBack }: RunScreenProps) {
       return;
     }
 
-    let xpResult;
     try {
-      xpResult = await awardRunXp(finishedRun);
+      await presentRunAward(() => awardRunXp(finishedRun));
     } catch (error) {
       Alert.alert('XP award failed', getErrorMessage(error, 'Could not award XP for this run.'));
       closePostRun();
@@ -134,8 +118,6 @@ export function RunScreen({ onBack }: RunScreenProps) {
     }
 
     closePostRun();
-    openXpDrawer(xpResult.event);
-    await runAchievementEvaluation({ refreshGameState });
   }
 
   async function handleStartRun() {
@@ -203,7 +185,6 @@ export function RunScreen({ onBack }: RunScreenProps) {
           null
         }
       />
-      <XpGainDrawer event={xpEvent} onClose={closeXpDrawer} visible={xpDrawerVisible} />
       {postRunSummary ? (
         <Modal animationType="slide" presentationStyle="fullScreen" visible={postRunVisible}>
           <SafeAreaProvider>

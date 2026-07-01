@@ -59,8 +59,10 @@ export function XpGainContent({ event, visible }: XpGainContentProps) {
         <ConfettiBurst active={showConfetti} />
 
         <XpGainSummary
+          achievementSummary={event.achievementSummary}
           earnedOpacity={earnedOpacity}
           runSummary={event.runSummary}
+          source={event.source}
           xpEarned={displayEarnedXp}
         />
 

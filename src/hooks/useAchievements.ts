@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useState } from 'react';
 
-import { useAuth } from '../context';
+import { useAuth, usePlayerProgress } from '../context';
 import type { AchievementListItem } from '../services/achievementService';
 import {
   evaluateAchievements,
@@ -9,8 +9,12 @@ import {
   type UnlockedAchievementPayload,
 } from '../services/achievementService';
 
-export function useAchievements(options?: { evaluateOnMount?: boolean }) {
-  const { session, refreshGameState } = useAuth();
+export function useAchievements(options?: {
+  evaluateOnMount?: boolean;
+  onUnlock?: (beforeTotalXp: number, unlocks: UnlockedAchievementPayload[]) => void;
+}) {
+  const { session, refreshGameState, gameState } = useAuth();
+  const { totalXp } = usePlayerProgress();
   const userId = session?.user?.id ?? null;
   const [unlocked, setUnlocked] = useState<AchievementListItem[]>([]);
   const [allAchievements, setAllAchievements] = useState<AchievementListItem[]>([]);
@@ -43,8 +47,10 @@ export function useAchievements(options?: { evaluateOnMount?: boolean }) {
     }
 
     try {
+      const beforeTotalXp = gameState?.progress.total_xp ?? totalXp;
       const newlyUnlocked = await evaluateAchievements();
       if (newlyUnlocked.length > 0) {
+        options?.onUnlock?.(beforeTotalXp, newlyUnlocked);
         await refreshGameState();
       }
       await reload();
@@ -54,7 +60,7 @@ export function useAchievements(options?: { evaluateOnMount?: boolean }) {
       await reload();
       return [];
     }
-  }, [reload, refreshGameState, userId]);
+  }, [gameState?.progress.total_xp, options?.onUnlock, reload, refreshGameState, totalXp, userId]);
 
   useEffect(() => {
     let cancelled = false;
