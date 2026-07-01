@@ -1,5 +1,5 @@
 import { Ionicons } from '@expo/vector-icons';
-import { StyleSheet, Text, View } from 'react-native';
+import { Pressable, StyleSheet, Text, View } from 'react-native';
 
 import type { AchievementListItem } from '../../services/achievementService';
 import { colors, spacing } from '../../theme';
@@ -10,18 +10,20 @@ type IoniconsName = React.ComponentProps<typeof Ionicons>['name'];
 type AchievementCardProps = {
   achievement: AchievementListItem;
   layout?: 'compact' | 'detail';
+  onPress?: () => void;
 };
 
 export function formatAchievementXp(xpReward: number): string {
   return `+${xpReward.toLocaleString()} XP`;
 }
 
-export function AchievementCard({ achievement, layout = 'compact' }: AchievementCardProps) {
+export function AchievementCard({ achievement, layout = 'compact', onPress }: AchievementCardProps) {
   const iconSize = achievement.badgeText ? 14 : 20;
+  const isPressable = Boolean(onPress);
 
   if (layout === 'detail') {
-    return (
-      <View style={[styles.detailCard, !achievement.unlocked && styles.detailCardLocked]}>
+    const content = (
+      <>
         <HexBadge
           badgeText={achievement.badgeText}
           icon={achievement.icon as IoniconsName}
@@ -44,17 +46,37 @@ export function AchievementCard({ achievement, layout = 'compact' }: Achievement
                   <Ionicons color={colors.accentLime} name="flash" size={10} />
                   <Text style={styles.xpChipLabel}>{formatAchievementXp(achievement.xpReward)}</Text>
                 </View>
-                <Text style={styles.detailStatus}>Not unlocked yet</Text>
+                <Text style={styles.detailStatus}>
+                  {isPressable ? 'Tap to complete' : 'Not unlocked yet'}
+                </Text>
               </>
             )}
           </View>
         </View>
+      </>
+    );
+
+    if (isPressable) {
+      return (
+        <Pressable
+          accessibilityRole="button"
+          onPress={onPress}
+          style={({ pressed }) => [styles.detailCard, pressed && styles.pressed]}
+        >
+          {content}
+        </Pressable>
+      );
+    }
+
+    return (
+      <View style={[styles.detailCard, !achievement.unlocked && styles.detailCardLocked]}>
+        {content}
       </View>
     );
   }
 
-  return (
-    <View style={[styles.compactCard, !achievement.unlocked && styles.compactCardLocked]}>
+  const content = (
+    <>
       <HexBadge
         badgeText={achievement.badgeText}
         icon={achievement.icon as IoniconsName}
@@ -77,6 +99,24 @@ export function AchievementCard({ achievement, layout = 'compact' }: Achievement
           <Text style={styles.xpChipLabel}>{formatAchievementXp(achievement.xpReward)}</Text>
         </View>
       )}
+    </>
+  );
+
+  if (isPressable) {
+    return (
+      <Pressable
+        accessibilityRole="button"
+        onPress={onPress}
+        style={({ pressed }) => [styles.compactCard, pressed && styles.pressed]}
+      >
+        {content}
+      </Pressable>
+    );
+  }
+
+  return (
+    <View style={[styles.compactCard, !achievement.unlocked && styles.compactCardLocked]}>
+      {content}
     </View>
   );
 }
@@ -182,5 +222,8 @@ const styles = StyleSheet.create({
     fontWeight: '800',
     letterSpacing: 0.3,
     textTransform: 'uppercase',
+  },
+  pressed: {
+    opacity: 0.85,
   },
 });

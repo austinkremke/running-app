@@ -1,10 +1,9 @@
-import { useMemo, useState } from 'react';
+import { useCallback, useMemo, useState } from 'react';
 import { ScrollView, StyleSheet, Text, View } from 'react-native';
 
 import {
   AchievementsAllModal,
   AchievementsSection,
-  CommunityAchievementsSection,
   ExperienceCard,
   OverallStatsSection,
   ProfileTopSection,
@@ -12,8 +11,11 @@ import {
 } from '../components/me';
 import { useAuth, usePlayerProgress, useXpGain } from '../context';
 import { useAchievements } from '../hooks/useAchievements';
+import { useAchievementUnlockPresentation } from '../hooks/useAchievementUnlockPresentation';
 import { useRankDisplay } from '../hooks/useRankDisplay';
 import { MOCK_PROFILE } from '../mock';
+import { performAchievementCardAction } from '../services/achievementCardActions';
+import type { AchievementListItem } from '../services/achievementService';
 import { sortAchievementsForMeCarousel } from '../services/achievementService';
 import { colors, spacing } from '../theme';
 
@@ -25,6 +27,7 @@ export function MeScreen({ onOpenSettings }: MeScreenProps) {
   const { gameState } = useAuth();
   const { level, experience } = usePlayerProgress();
   const { showAchievementUnlocks } = useXpGain();
+  const { recordEvent } = useAchievementUnlockPresentation();
   const { profileRank } = useRankDisplay();
   const { allAchievements, loading, reload } = useAchievements({
     evaluateOnMount: true,
@@ -34,6 +37,20 @@ export function MeScreen({ onOpenSettings }: MeScreenProps) {
   const carouselAchievements = useMemo(
     () => sortAchievementsForMeCarousel(allAchievements),
     [allAchievements],
+  );
+
+  const handleAchievementPress = useCallback(
+    async (achievement: AchievementListItem) => {
+      try {
+        const unlocks = await performAchievementCardAction(achievement.id, recordEvent);
+        if (unlocks.length > 0) {
+          await reload();
+        }
+      } catch (error) {
+        console.warn('Achievement card action failed', error);
+      }
+    },
+    [recordEvent, reload],
   );
 
   const profile = {
@@ -62,6 +79,7 @@ export function MeScreen({ onOpenSettings }: MeScreenProps) {
         ) : carouselAchievements.length > 0 ? (
           <AchievementsSection
             achievements={carouselAchievements}
+            onAchievementPress={handleAchievementPress}
             onViewAll={() => setViewAllVisible(true)}
           />
         ) : (
@@ -75,13 +93,13 @@ export function MeScreen({ onOpenSettings }: MeScreenProps) {
           </View>
         )}
 
-        <CommunityAchievementsSection achievements={allAchievements} onUpdated={() => void reload()} />
         <OverallStatsSection stats={profile.overallStats} />
         <View style={styles.bottomSpacer} />
       </ScrollView>
 
       <AchievementsAllModal
         achievements={allAchievements}
+        onAchievementPress={handleAchievementPress}
         onClose={() => setViewAllVisible(false)}
         visible={viewAllVisible}
       />

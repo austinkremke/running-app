@@ -2,6 +2,7 @@ import { Modal, Pressable, ScrollView, StyleSheet, Text, View } from 'react-nati
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import type { AchievementListItem } from '../../services/achievementService';
+import { isAchievementCardActionable } from '../../services/achievementCardActions';
 import { colors, spacing } from '../../theme';
 import { AchievementCard } from './AchievementCard';
 
@@ -9,6 +10,7 @@ type AchievementsAllModalProps = {
   visible: boolean;
   achievements: AchievementListItem[];
   onClose: () => void;
+  onAchievementPress?: (achievement: AchievementListItem) => void;
 };
 
 const CATEGORY_LABELS: Record<string, string> = {
@@ -26,6 +28,7 @@ export function AchievementsAllModal({
   visible,
   achievements,
   onClose,
+  onAchievementPress,
 }: AchievementsAllModalProps) {
   const insets = useSafeAreaInsets();
   const categories = [...new Set(achievements.map((item) => item.category))];
@@ -56,7 +59,17 @@ export function AchievementsAllModal({
                 </Text>
                 <View style={styles.list}>
                   {items.map((achievement) => (
-                    <AchievementCard achievement={achievement} key={achievement.id} layout="detail" />
+                    <AchievementCard
+                      achievement={achievement}
+                      key={achievement.id}
+                      layout="detail"
+                      onPress={
+                        onAchievementPress &&
+                        isAchievementCardActionable(achievement.id, achievement.unlocked)
+                          ? () => onAchievementPress(achievement)
+                          : undefined
+                      }
+                    />
                   ))}
                 </View>
               </View>
