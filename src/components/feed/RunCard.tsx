@@ -13,6 +13,7 @@ type RunCardProps = {
   engagementDisabled?: boolean;
   onToggleLike?: () => void;
   onOpenComments?: () => void;
+  onShare?: () => void;
 };
 
 export function RunCard({
@@ -20,6 +21,7 @@ export function RunCard({
   engagementDisabled = false,
   onToggleLike,
   onOpenComments,
+  onShare,
 }: RunCardProps) {
   return (
     <View style={styles.card}>
@@ -36,6 +38,7 @@ export function RunCard({
           likedByMe={run.likedByMe}
           likes={run.likes}
           onOpenComments={onOpenComments}
+          onShare={onShare}
           onToggleLike={onToggleLike}
         />
       </View>

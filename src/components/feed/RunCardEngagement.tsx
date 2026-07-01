@@ -10,6 +10,7 @@ type RunCardEngagementProps = {
   disabled?: boolean;
   onToggleLike?: () => void;
   onOpenComments?: () => void;
+  onShare?: () => void;
 };
 
 export function RunCardEngagement({
@@ -19,6 +20,7 @@ export function RunCardEngagement({
   disabled = false,
   onToggleLike,
   onOpenComments,
+  onShare,
 }: RunCardEngagementProps) {
   return (
     <View style={styles.container}>
@@ -46,6 +48,16 @@ export function RunCardEngagement({
       >
         <Ionicons color={colors.textPrimary} name="chatbubble-outline" size={20} />
         <Text style={styles.commentCount}>{comments}</Text>
+      </Pressable>
+
+      <Pressable
+        accessibilityLabel="Share post"
+        accessibilityRole="button"
+        disabled={!onShare}
+        onPress={onShare}
+        style={({ pressed }) => [styles.stat, pressed && styles.pressed]}
+      >
+        <Ionicons color={colors.textPrimary} name="share-outline" size={20} />
       </Pressable>
     </View>
   );

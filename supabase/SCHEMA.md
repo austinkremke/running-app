@@ -92,9 +92,9 @@ match_types                     — reference catalog (seed)
 feed_reactions                  — post_id, user_id, reaction (like); PK (post_id, user_id)
 feed_comments                   — post_id, user_id, body, created_at
 
-achievement_definitions         — PLANNED (06 Phase 2): catalog, criteria_type, criteria_json, xp_reward
-user_achievements               — PLANNED: user_id, achievement_id, unlocked_at
-achievement_events              — PLANNED: user_id, event_type (review, notifications, social follow, share)
+achievement_definitions         — catalog, criteria_type, criteria_json, xp_reward (seed)
+user_achievements               — user_id, achievement_id, unlocked_at
+achievement_events              — user_id, event_type (review, notifications, social follow, share)
 ```
 
 **Phase A ships:** `profiles`, `player_progress`, `player_rank`, trigger, RLS, `rank_tiers` seed.  
@@ -104,11 +104,12 @@ achievement_events              — PLANNED: user_id, event_type (review, notifi
 **Phase 4 ships:** `xp_ledger`, `award_run_xp` / `bootstrap_progression_from_local` RPCs, progression columns on `player_progress`, social read-all RLS for levels on feed.  
 **05 Phase 1 ships:** `feed_reactions`, `feed_comments`, `can_view_feed_post` RLS helper; engagement counts aggregated in feed fetch.  
 **05 Phase 2 ships:** `apply_elo_match_result` RPC; client `player_rank` updates revoked; tier resolved from `rank_tiers` at read time.  
-**06 Phase 2 (planned):** `achievement_definitions`, `user_achievements`, `achievement_events`; `evaluate_achievements` RPC. See [06-account-gating-and-cosmetics.md](../milestones/06-account-gating-and-cosmetics.md#phase-2--achievements).
+**06 Phase 2 (shipped):** `achievement_definitions`, `user_achievements`, `achievement_events`; `evaluate_achievements` + `record_achievement_event` RPCs. See [06-account-gating-and-cosmetics.md](../milestones/06-account-gating-and-cosmetics.md#phase-2--achievements).
 
 **Post–Phase D RLS fixes:** `20250615000001_fix_match_participants_rls.sql`, `20250616000001_fix_feed_posts_rls.sql` — security definer helpers to avoid policy recursion.  
 **05 Phase 1:** `20250618000001_feed_likes_comments.sql`.  
-**05 Phase 2:** `20250619000001_elo_rank_rpc.sql`.
+**05 Phase 2:** `20250619000001_elo_rank_rpc.sql`.  
+**06 Phase 2:** `20250620000001_achievements.sql`.
 
 Full detail: [02-supabase-backend.md](../milestones/02-supabase-backend.md).
 
@@ -123,6 +124,8 @@ Full detail: [02-supabase-backend.md](../milestones/02-supabase-backend.md).
 | `activity_has_visible_feed_post` | `activities` SELECT (feed-shared) |
 | `can_view_feed_post` | `feed_reactions` / `feed_comments` SELECT + INSERT |
 | `apply_elo_match_result` | Elo rating + season W/L updates on `player_rank` (participants only) |
+| `evaluate_achievements` | Check + grant eligible achievement unlocks + XP |
+| `record_achievement_event` | One-time client events (share, review, follow, notifications) |
 
 ---
 

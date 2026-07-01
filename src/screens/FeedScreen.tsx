@@ -1,9 +1,12 @@
-import { ActivityIndicator, Alert, FlatList, StyleSheet, Text, View } from 'react-native';
+import { ActivityIndicator, Alert, FlatList, Share, StyleSheet, Text, View } from 'react-native';
 import { useState } from 'react';
 
 import { FeedCommentsDrawer, RunCard } from '../components/feed';
-import type { FeedTab } from '../mock';
+import { useAuth } from '../context';
+import type { FeedTab, Run } from '../mock';
 import { useFeed } from '../hooks/useFeed';
+import { recordAchievementEvent } from '../services/achievementService';
+import { notifyAchievementUnlocks, runAchievementEvaluation } from '../services/achievementTriggers';
 import { colors, spacing } from '../theme';
 
 type FeedScreenProps = {
@@ -11,17 +14,37 @@ type FeedScreenProps = {
 };
 
 export function FeedScreen({ activeTab }: FeedScreenProps) {
+  const { refreshGameState } = useAuth();
   const { runs, loading, error, toggleLike, bumpCommentCount, likingPostId } = useFeed(activeTab);
   const [commentsPostId, setCommentsPostId] = useState<string | null>(null);
 
   async function handleToggleLike(postId: string) {
     try {
       await toggleLike(postId);
+      await runAchievementEvaluation({ refreshGameState });
     } catch (likeError) {
       Alert.alert(
         'Like failed',
         likeError instanceof Error ? likeError.message : 'Could not update like.',
       );
+    }
+  }
+
+  async function handleShare(run: Run) {
+    try {
+      await Share.share({
+        message: `${run.user.name} ran ${run.stats.distanceMiles.toFixed(1)} mi — ${run.title}`,
+      });
+      const unlocks = await recordAchievementEvent('share_feed_post');
+      if (unlocks.length > 0) {
+        notifyAchievementUnlocks(unlocks);
+        await refreshGameState();
+      }
+    } catch (shareError) {
+      if (shareError instanceof Error && shareError.message.includes('User did not share')) {
+        return;
+      }
+      console.warn('Share failed', shareError);
     }
   }
 
@@ -63,6 +86,9 @@ export function FeedScreen({ activeTab }: FeedScreenProps) {
           <RunCard
             engagementDisabled={likingPostId === item.id}
             onOpenComments={() => setCommentsPostId(item.id)}
+            onShare={() => {
+              void handleShare(item);
+            }}
             onToggleLike={() => {
               void handleToggleLike(item.id);
             }}
@@ -79,6 +105,7 @@ export function FeedScreen({ activeTab }: FeedScreenProps) {
           if (commentsPostId) {
             bumpCommentCount(commentsPostId);
           }
+          void runAchievementEvaluation({ refreshGameState });
         }}
         postId={commentsPostId}
         visible={commentsPostId != null}

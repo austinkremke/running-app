@@ -39,6 +39,91 @@ export type Database = {
   }
   public: {
     Tables: {
+      achievement_definitions: {
+        Row: {
+          category: string
+          criteria_json: Json
+          criteria_type: string
+          description: string
+          display_name: string
+          icon: string
+          id: string
+          is_active: boolean
+          is_hidden: boolean
+          requires_achievement_id: string | null
+          sort_order: number
+          tier: string
+          xp_reward: number
+        }
+        Insert: {
+          category: string
+          criteria_json?: Json
+          criteria_type: string
+          description?: string
+          display_name: string
+          icon?: string
+          id: string
+          is_active?: boolean
+          is_hidden?: boolean
+          requires_achievement_id?: string | null
+          sort_order?: number
+          tier?: string
+          xp_reward?: number
+        }
+        Update: {
+          category?: string
+          criteria_json?: Json
+          criteria_type?: string
+          description?: string
+          display_name?: string
+          icon?: string
+          id?: string
+          is_active?: boolean
+          is_hidden?: boolean
+          requires_achievement_id?: string | null
+          sort_order?: number
+          tier?: string
+          xp_reward?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "achievement_definitions_requires_achievement_id_fkey"
+            columns: ["requires_achievement_id"]
+            isOneToOne: false
+            referencedRelation: "achievement_definitions"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      achievement_events: {
+        Row: {
+          event_type: string
+          metadata_json: Json | null
+          occurred_at: string
+          user_id: string
+        }
+        Insert: {
+          event_type: string
+          metadata_json?: Json | null
+          occurred_at?: string
+          user_id: string
+        }
+        Update: {
+          event_type?: string
+          metadata_json?: Json | null
+          occurred_at?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "achievement_events_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       activities: {
         Row: {
           created_at: string
@@ -108,6 +193,45 @@ export type Database = {
           },
         ]
       }
+      feed_comments: {
+        Row: {
+          body: string
+          created_at: string
+          id: string
+          post_id: string
+          user_id: string
+        }
+        Insert: {
+          body: string
+          created_at?: string
+          id?: string
+          post_id: string
+          user_id: string
+        }
+        Update: {
+          body?: string
+          created_at?: string
+          id?: string
+          post_id?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "feed_comments_post_id_fkey"
+            columns: ["post_id"]
+            isOneToOne: false
+            referencedRelation: "feed_posts"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "feed_comments_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       feed_posts: {
         Row: {
           activity_id: string
@@ -152,45 +276,6 @@ export type Database = {
           },
           {
             foreignKeyName: "feed_posts_user_id_fkey"
-            columns: ["user_id"]
-            isOneToOne: false
-            referencedRelation: "profiles"
-            referencedColumns: ["id"]
-          },
-        ]
-      }
-      feed_comments: {
-        Row: {
-          body: string
-          created_at: string
-          id: string
-          post_id: string
-          user_id: string
-        }
-        Insert: {
-          body: string
-          created_at?: string
-          id?: string
-          post_id: string
-          user_id: string
-        }
-        Update: {
-          body?: string
-          created_at?: string
-          id?: string
-          post_id?: string
-          user_id?: string
-        }
-        Relationships: [
-          {
-            foreignKeyName: "feed_comments_post_id_fkey"
-            columns: ["post_id"]
-            isOneToOne: false
-            referencedRelation: "feed_posts"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "feed_comments_user_id_fkey"
             columns: ["user_id"]
             isOneToOne: false
             referencedRelation: "profiles"
@@ -596,6 +681,42 @@ export type Database = {
         }
         Relationships: []
       }
+      user_achievements: {
+        Row: {
+          achievement_id: string
+          progress_snapshot_json: Json | null
+          unlocked_at: string
+          user_id: string
+        }
+        Insert: {
+          achievement_id: string
+          progress_snapshot_json?: Json | null
+          unlocked_at?: string
+          user_id: string
+        }
+        Update: {
+          achievement_id?: string
+          progress_snapshot_json?: Json | null
+          unlocked_at?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "user_achievements_achievement_id_fkey"
+            columns: ["achievement_id"]
+            isOneToOne: false
+            referencedRelation: "achievement_definitions"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "user_achievements_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       xp_ledger: {
         Row: {
           amount: number
@@ -639,6 +760,14 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
+      achievement_metric: {
+        Args: { p_criteria: Json; p_criteria_type: string; p_user_id: string }
+        Returns: number
+      }
+      activity_has_visible_feed_post: {
+        Args: { p_activity_id: string }
+        Returns: boolean
+      }
       apply_elo_match_result: {
         Args: {
           p_k_factor?: number
@@ -647,12 +776,7 @@ export type Database = {
         }
         Returns: Json
       }
-      award_run_xp: {
-        Args: {
-          p_activity_id: string
-        }
-        Returns: Json
-      }
+      award_run_xp: { Args: { p_activity_id: string }; Returns: Json }
       bootstrap_progression_from_local: {
         Args: {
           p_last_award_date?: string
@@ -662,12 +786,36 @@ export type Database = {
         }
         Returns: Json
       }
-      can_view_feed_post: {
+      can_view_feed_post: { Args: { p_post_id: string }; Returns: boolean }
+      can_view_match: { Args: { p_match_id: string }; Returns: boolean }
+      cumulative_xp_for_level: { Args: { p_level: number }; Returns: number }
+      elo_expected_score: {
+        Args: { p_rating_a: number; p_rating_b: number }
+        Returns: number
+      }
+      evaluate_achievements: { Args: { p_user_id?: string }; Returns: Json }
+      grant_achievement: {
+        Args: { p_achievement_id: string; p_user_id: string }
+        Returns: Json
+      }
+      is_match_participant: {
+        Args: { p_match_id: string; p_user_id?: string }
+        Returns: boolean
+      }
+      level_from_total_xp: { Args: { p_total_xp: number }; Returns: number }
+      record_achievement_event: {
+        Args: { p_event_type: string; p_metadata?: Json }
+        Returns: Json
+      }
+      user_meets_achievement: {
         Args: {
-          p_post_id: string
+          p_definition: Database["public"]["Tables"]["achievement_definitions"]["Row"]
+          p_user_id: string
         }
         Returns: boolean
       }
+      user_owns_activity: { Args: { p_activity_id: string }; Returns: boolean }
+      xp_for_level_up: { Args: { p_level: number }; Returns: number }
     }
     Enums: {
       [_ in never]: never

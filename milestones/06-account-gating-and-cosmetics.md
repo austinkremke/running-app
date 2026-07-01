@@ -1,7 +1,7 @@
 # Account settings, gating & progression cosmetics
 
 > **Milestone:** 06  
-> **Status:** Planned  
+> **Status:** **In progress** — Phase 2 achievements shipped; Phase 1 account settings next  
 > **Depends on:** [02 Supabase](./02-supabase-backend.md) (auth + profiles), [03 XP & rank](./03-xp-and-ranking.md) (level, rank tiers, achievements data model)  
 > **Unblocks:** —
 
@@ -23,7 +23,7 @@ Rank-based **avatar decorative borders** are cosmetic only — not paywalled unl
 | Area | Today | Target |
 |------|-------|--------|
 | Account settings | Sign out only (auth screen) | Settings screen: profile edit, units, notifications prefs, linked providers, delete account |
-| Achievements | Mock list on Me tab (`AchievementsSection`) | Server catalog (`achievement_definitions`) + per-user unlocks; XP ledger `source: 'achievement'` |
+| Achievements | **Server catalog + unlocks** (`achievementService`, Me tab, Community block) | View All + progress bars polish |
 | Avatar rank borders | Plain avatars on feed / Me / team | Decorative frame from **competitive rank tier** (not level) |
 | Paywall blocking | None | Entitlements block premium features (e.g. advanced stats, extra match slots — TBD catalog) |
 | Level blocking | None | Feature flags keyed by `levelFromTotalXp` (e.g. team create, match types — TBD catalog) |
@@ -39,11 +39,9 @@ Rank-based **avatar decorative borders** are cosmetic only — not paywalled unl
 - Sign out, delete account flow (Supabase auth + profile cleanup policy)
 - App version / legal links
 
-### Phase 2 — Achievements
+### Phase 2 — Achievements **shipped**
 
-**Status:** Planned — catalog and architecture defined below; not implemented.
-
-Replace mock `AchievementsSection` on Me tab with server-backed unlocks. New achievements are added via **`seed.sql` / migration rows** — not app code changes.
+**Shipped:** `achievement_definitions`, `user_achievements`, `achievement_events`, `evaluate_achievements` + `record_achievement_event` RPCs, v1 seed catalog (~35 defs, 29 active), Me tab unlocks + View All modal, Community section, hooks into run/feed/social/team/match flows.
 
 #### Principles
 
@@ -282,7 +280,7 @@ Achievement XP is **one-time only** — supplementary to run XP, not a farming l
 | **Level ≠ rank for cosmetics** | Avatar borders reflect **competitive rank tier** ([03](./03-xp-and-ranking.md)). Level gates unlock **features**, not rank frame. |
 | **Two gate systems** | Never conflate “needs level 12” with “needs Pro” — show the correct unlock path. |
 | **DB-first catalogs** | Achievement defs, feature gate tables, and rank tier art keys live in Postgres seeds ([02](./02-supabase-backend.md#db-first-catalogs-reference-data)). |
-| **Mock until wired** | Keep mock achievements until Phase 2 ships; don’t half-persist. |
+| **Mock until wired** | ~~Keep mock achievements until Phase 2 ships~~ Phase 2 shipped; mock profile stats still placeholder. |
 
 ---
 

@@ -14,11 +14,12 @@ import { SectionHeader } from './SectionHeader';
 
 type AchievementsSectionProps = {
   achievements: Achievement[];
+  onViewAll?: () => void;
 };
 
 const CARD_GAP = spacing.md;
 
-export function AchievementsSection({ achievements }: AchievementsSectionProps) {
+export function AchievementsSection({ achievements, onViewAll }: AchievementsSectionProps) {
   const [activeIndex, setActiveIndex] = useState(0);
   const scrollRef = useRef<ScrollView>(null);
   const pageCount = Math.max(1, Math.ceil(achievements.length / 3));
@@ -31,7 +32,7 @@ export function AchievementsSection({ achievements }: AchievementsSectionProps) 
 
   return (
     <View style={styles.container}>
-      <SectionHeader actionLabel="VIEW ALL" title="ACHIEVEMENTS" />
+      <SectionHeader actionLabel="VIEW ALL" onActionPress={onViewAll} title="ACHIEVEMENTS" />
 
       <ScrollView
         ref={scrollRef}

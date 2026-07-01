@@ -11,6 +11,7 @@ import {
 import { useAuth, useUserId } from '../context';
 import { useMyTeam } from '../hooks/useMyTeam';
 import { joinTeam, ROAD_WARRIORS_TEAM_ID } from '../services/teamService';
+import { runAchievementEvaluation } from '../services/achievementTriggers';
 import { colors, spacing } from '../theme';
 
 type TeamScreenProps = {
@@ -31,6 +32,7 @@ export function TeamScreen({ onOpenTopTeams }: TeamScreenProps) {
       await joinTeam(userId, ROAD_WARRIORS_TEAM_ID);
       await refreshGameState();
       await refresh();
+      await runAchievementEvaluation({ refreshGameState });
     } catch (joinError) {
       const message =
         joinError instanceof Error ? joinError.message : 'Could not join the team.';

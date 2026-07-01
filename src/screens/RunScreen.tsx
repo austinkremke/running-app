@@ -18,6 +18,7 @@ import { recordsToGpsPoints } from '../services/activityAdapters';
 import { publishActivityToFeed } from '../services/feedService';
 import { makeMockRunActivity } from '../services/progression/mockRunActivity';
 import { getErrorMessage } from '../utils/errors';
+import { runAchievementEvaluation } from '../services/achievementTriggers';
 import { PostRunScreen } from './PostRunScreen';
 import { colors } from '../theme';
 
@@ -26,7 +27,7 @@ type RunScreenProps = {
 };
 
 export function RunScreen({ onBack }: RunScreenProps) {
-  const { gameState, session } = useAuth();
+  const { gameState, session, refreshGameState } = useAuth();
   const { awardRunXp } = usePlayerProgress();
   const {
     isRecording,
@@ -134,6 +135,7 @@ export function RunScreen({ onBack }: RunScreenProps) {
 
     closePostRun();
     openXpDrawer(xpResult.event);
+    await runAchievementEvaluation({ refreshGameState });
   }
 
   async function handleStartRun() {
