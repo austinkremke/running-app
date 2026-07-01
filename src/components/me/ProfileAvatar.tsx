@@ -2,10 +2,13 @@ import { Ionicons } from '@expo/vector-icons';
 import { Image, Pressable, StyleSheet, View } from 'react-native';
 
 import { colors } from '../../theme';
+import { RankBorderAvatar } from '../team/RankBorderAvatar';
+import { rankBorderSourceForTier } from '../team/rankAvatarBorderTheme';
 
 type ProfileAvatarProps = {
   avatarUrl?: string;
   onEditPress?: () => void;
+  rankBorderTierId?: string | null;
   size?: number;
 };
 
@@ -14,21 +17,27 @@ const DEFAULT_SIZE = 72;
 export function ProfileAvatar({
   avatarUrl,
   onEditPress,
+  rankBorderTierId,
   size = DEFAULT_SIZE,
 }: ProfileAvatarProps) {
   const editSize = size * 0.28;
+  const hasRankBorder = rankBorderSourceForTier(rankBorderTierId) != null;
 
   return (
     <View style={[styles.wrapper, { width: size, height: size }]}>
-      <View style={[styles.ring, { width: size, height: size, borderRadius: size / 2 }]}>
-        <View style={styles.inner}>
-          {avatarUrl ? (
-            <Image source={{ uri: avatarUrl }} style={styles.avatar} />
-          ) : (
-            <View style={[styles.avatar, styles.placeholder]} />
-          )}
+      {hasRankBorder ? (
+        <RankBorderAvatar avatarUrl={avatarUrl} rankTierId={rankBorderTierId} size={size} />
+      ) : (
+        <View style={[styles.ring, { width: size, height: size, borderRadius: size / 2 }]}>
+          <View style={styles.inner}>
+            {avatarUrl ? (
+              <Image source={{ uri: avatarUrl }} style={styles.avatar} />
+            ) : (
+              <View style={[styles.avatar, styles.placeholder]} />
+            )}
+          </View>
         </View>
-      </View>
+      )}
 
       <Pressable
         accessibilityLabel="Edit profile photo"
@@ -55,6 +64,7 @@ export function ProfileAvatar({
 const styles = StyleSheet.create({
   wrapper: {
     position: 'relative',
+    overflow: 'visible',
   },
   ring: {
     borderWidth: 3,
@@ -82,5 +92,6 @@ const styles = StyleSheet.create({
     backgroundColor: colors.surfaceElevated,
     borderWidth: 1,
     borderColor: colors.border,
+    zIndex: 2,
   },
 });

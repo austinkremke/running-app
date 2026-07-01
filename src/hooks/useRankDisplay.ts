@@ -63,6 +63,7 @@ export function useRankDisplay(): {
           title: 'RUNNER',
           subtitle: `${gameState.rank.competitive_rating.toLocaleString()} rating`,
           icon: 'shield-outline',
+          competitiveRating: gameState.rank.competitive_rating,
         },
         seasonRecord,
         loading,

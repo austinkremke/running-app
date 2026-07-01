@@ -4,9 +4,7 @@ import { StyleSheet, Text, View } from 'react-native';
 import type { UserProfile } from '../../mock';
 import { colors, spacing } from '../../theme';
 import { ProfileAvatar } from './ProfileAvatar';
-import { RankBadge } from './RankBadge';
-
-type IoniconsName = React.ComponentProps<typeof Ionicons>['name'];
+import { rankTierColorForTier } from '../team/rankAvatarBorderTheme';
 
 type ProfileTopSectionProps = {
   profile: Pick<UserProfile, 'name' | 'avatarUrl' | 'clanName' | 'level' | 'rank'>;
@@ -15,10 +13,23 @@ type ProfileTopSectionProps = {
 
 const AVATAR_SIZE = 92;
 
+function formatRating(rank: UserProfile['rank']): string {
+  if (rank.competitiveRating != null) {
+    return rank.competitiveRating.toLocaleString();
+  }
+
+  return rank.subtitle.replace(/\s*(rating|points|power rating)$/i, '').trim();
+}
+
 export function ProfileTopSection({ profile, onEditAvatar }: ProfileTopSectionProps) {
   return (
     <View style={styles.container}>
-      <ProfileAvatar avatarUrl={profile.avatarUrl} onEditPress={onEditAvatar} size={AVATAR_SIZE} />
+      <ProfileAvatar
+        avatarUrl={profile.avatarUrl}
+        onEditPress={onEditAvatar}
+        rankBorderTierId={profile.rank.tierId}
+        size={AVATAR_SIZE}
+      />
 
       <View style={styles.rightColumn}>
         <View style={styles.identity}>
@@ -38,16 +49,21 @@ export function ProfileTopSection({ profile, onEditAvatar }: ProfileTopSectionPr
           <View style={styles.divider} />
 
           <View style={styles.rankBlock}>
-            <View style={styles.rankContent}>
-              <RankBadge icon={profile.rank.icon as IoniconsName} size={36} />
-              <View style={styles.rankMeta}>
-                <Text style={styles.label}>RANK</Text>
-                <Text style={styles.rankTitle}>{profile.rank.title}</Text>
-                {profile.rank.subtitle ? (
-                  <Text style={styles.rankSubtitle}>{profile.rank.subtitle}</Text>
-                ) : null}
-              </View>
-            </View>
+            <Text style={styles.rankHeaderLine}>
+              <Text style={styles.label}>RANK </Text>
+              <Text
+                style={[
+                  styles.rankTitle,
+                  { color: rankTierColorForTier(profile.rank.tierId) },
+                ]}
+              >
+                {profile.rank.title}
+              </Text>
+            </Text>
+            <Text style={styles.ratingLine}>
+              <Text style={styles.ratingValue}>{formatRating(profile.rank)}</Text>
+              <Text style={styles.ratingSuffix}> Power Rating</Text>
+            </Text>
           </View>
         </View>
       </View>
@@ -60,6 +76,7 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     gap: 14,
+    overflow: 'visible',
   },
   rightColumn: {
     flex: 1,
@@ -115,26 +132,32 @@ const styles = StyleSheet.create({
   rankBlock: {
     flex: 1,
     minWidth: 0,
+    gap: 2,
   },
-  rankContent: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: spacing.sm,
-  },
-  rankMeta: {
-    flex: 1,
-    gap: spacing.xs,
+  rankHeaderLine: {
+    marginTop: 0,
   },
   rankTitle: {
-    color: colors.textPrimary,
     fontSize: 12,
     fontWeight: '800',
     fontStyle: 'italic',
     letterSpacing: 0.3,
   },
-  rankSubtitle: {
+  ratingLine: {
+    marginTop: spacing.xs,
+  },
+  ratingValue: {
+    color: colors.textPrimary,
+    fontSize: 28,
+    fontWeight: '600',
+    fontStyle: 'italic',
+    lineHeight: 30,
+  },
+  ratingSuffix: {
     color: colors.textSecondary,
-    fontSize: 10,
-    lineHeight: 13,
+    fontSize: 14,
+    fontWeight: '600',
+    fontStyle: 'italic',
+    lineHeight: 30,
   },
 });

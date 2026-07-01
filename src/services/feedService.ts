@@ -4,6 +4,8 @@ import { syncActivityById } from './activitySync';
 import { fetchFeedEngagementSummaries } from './feedEngagementService';
 import { fetchFriendIds } from './friendService';
 import { supabase } from './supabase';
+import { fetchRankTiers } from './rank/rankService';
+import { mapRankTierRow } from './rank/tierFromRating';
 import { mapFeedPostToRun } from './socialMappers';
 
 export type CreateFeedPostInput = {
@@ -78,6 +80,7 @@ export async function fetchFeedPosts(
         avatar_url,
         team_id,
         player_progress (total_xp),
+        player_rank (competitive_rating),
         teams:team_id (name)
       ),
       activities:activity_id (*)
@@ -91,7 +94,8 @@ export async function fetchFeedPosts(
     query = query.in('user_id', friendIds);
   }
 
-  const { data, error } = await query;
+  const [{ data, error }, rankTierRows] = await Promise.all([query, fetchRankTiers()]);
+  const rankTiers = rankTierRows.map(mapRankTierRow);
 
   if (error) throw error;
   if (!data) return [];
@@ -104,6 +108,7 @@ export async function fetchFeedPosts(
       const profile = row.profiles as
         | (Tables<'profiles'> & {
             player_progress?: { total_xp: number } | { total_xp: number }[] | null;
+            player_rank?: { competitive_rating: number } | { competitive_rating: number }[] | null;
             teams?: { name: string } | { name: string }[] | null;
           })
         | null;
@@ -113,6 +118,9 @@ export async function fetchFeedPosts(
       const progress = Array.isArray(profile.player_progress)
         ? profile.player_progress[0]
         : profile.player_progress;
+      const rank = Array.isArray(profile.player_rank)
+        ? profile.player_rank[0]
+        : profile.player_rank;
       const teamRecord = profile.teams;
       const teamName = Array.isArray(teamRecord) ? teamRecord[0]?.name : teamRecord?.name;
       const engagement = engagementByPostId[row.id] ?? {
@@ -123,10 +131,11 @@ export async function fetchFeedPosts(
 
       return mapFeedPostToRun(
         row,
-        { ...profile, player_progress: progress ?? null },
+        { ...profile, player_progress: progress ?? null, player_rank: rank ?? null },
         activity,
         teamName ?? null,
         engagement,
+        rankTiers,
       );
     })
     .filter((run): run is Run => run !== null);

@@ -8,6 +8,7 @@ export type RunUser = {
   avatarUrl?: string;
   level: number;
   teamName: string;
+  rankTierId?: string;
 };
 
 export type RunStats = {
@@ -54,6 +55,8 @@ export type ProfileRank = {
   title: string;
   subtitle: string;
   icon: string;
+  tierId?: string;
+  competitiveRating?: number;
 };
 
 export type ProfileExperience = {

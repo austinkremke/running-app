@@ -21,6 +21,7 @@ export type AchievementListItem = Achievement & {
   description: string;
   category: string;
   xpReward: number;
+  sortOrder: number;
 };
 
 const TIER_VARIANT: Record<string, AchievementVariant> = {
@@ -52,6 +53,7 @@ export function mapDefinitionToAchievement(
     description: definition.description,
     category: definition.category,
     xpReward: definition.xp_reward,
+    sortOrder: definition.sort_order,
   };
 }
 
@@ -173,4 +175,74 @@ export async function loadAchievementList(userId: string | null): Promise<Achiev
 export async function loadUnlockedAchievements(userId: string): Promise<AchievementListItem[]> {
   const items = await loadAchievementList(userId);
   return items.filter((item) => item.unlocked);
+}
+
+/** Likely completion order for the Me carousel — quick wins first. */
+const ME_CAROUSEL_COMPLETION_ORDER: readonly string[] = [
+  'rate_app',
+  'notifications_on',
+  'follow_instagram',
+  'follow_tiktok',
+  'share_post',
+  'first_like',
+  'first_comment',
+  'first_run',
+  'first_feed_post',
+  'join_team',
+  'first_match',
+  'five_miles',
+  'five_k',
+  'ten_runs',
+  'ten_likes_received',
+  'week_streak',
+  'fifty_miles',
+  'ten_miler',
+  'half_marathon',
+  'hundred_miles',
+  'fifty_runs',
+  'month_streak',
+  'marathon',
+  'sub_eight',
+  'hundred_runs',
+  'sub_seven',
+  'silver_rank',
+  'gold_rank',
+  'level_twenty_five',
+  'five_hundred_miles',
+  'level_fifty',
+  'thousand_miles',
+];
+
+const ME_CAROUSEL_CATEGORY_PRIORITY: Record<string, number> = {
+  community: 100,
+  social: 200,
+  distance: 300,
+  team: 350,
+  competitive: 400,
+  consistency: 450,
+  performance: 500,
+  longterm: 600,
+};
+
+function achievementCarouselPriority(item: AchievementListItem): number {
+  const explicitIndex = ME_CAROUSEL_COMPLETION_ORDER.indexOf(item.id);
+  if (explicitIndex >= 0) {
+    return explicitIndex;
+  }
+
+  const categoryBase = ME_CAROUSEL_CATEGORY_PRIORITY[item.category] ?? 900;
+  return categoryBase * 1000 + item.sortOrder;
+}
+
+/** Locked achievements first, ordered by likely completion path (easy wins up front). */
+export function sortAchievementsForMeCarousel(
+  items: AchievementListItem[],
+): AchievementListItem[] {
+  return [...items].sort((a, b) => {
+    if (a.unlocked !== b.unlocked) {
+      return a.unlocked ? 1 : -1;
+    }
+
+    return achievementCarouselPriority(a) - achievementCarouselPriority(b);
+  });
 }

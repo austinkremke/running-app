@@ -6,6 +6,8 @@ import { metersToMiles, formatDurationParts, formatPace } from './distanceServic
 import { paceHighlightFromSummary, photoUrlFromPost } from './feedCardPresentation';
 import type { FeedEngagementSummary } from './feedEngagementService';
 import { experienceFromTotalXp, levelFromTotalXp } from './levelCurve';
+import { tierFromRating } from './rank/tierFromRating';
+import type { ResolvedRankTier } from '../types/rank';
 import { formatRelativeTime } from '../utils/formatRelativeTime';
 
 type FeedPostRow = Tables<'feed_posts'>;
@@ -57,12 +59,21 @@ function statsFromActivity(activity: ActivityRow): RunStats {
 
 export function mapFeedPostToRun(
   post: FeedPostRow,
-  profile: ProfileRow & { player_progress?: { total_xp: number } | null },
+  profile: ProfileRow & {
+    player_progress?: { total_xp: number } | null;
+    player_rank?: { competitive_rating: number } | null;
+  },
   activity: ActivityRow,
   teamName: string | null,
   engagement: FeedEngagementSummary = { likeCount: 0, commentCount: 0, likedByMe: false },
+  rankTiers: ResolvedRankTier[] = [],
 ): Run {
   const totalXp = profile.player_progress?.total_xp ?? 0;
+  const rating = profile.player_rank?.competitive_rating;
+  const rankTierId =
+    rating != null && rankTiers.length > 0
+      ? tierFromRating(rating, rankTiers).id
+      : undefined;
   const audiences = post.audiences ?? ['community'];
   const summary = summaryFromActivity(activity);
   const paceHighlight = paceHighlightFromSummary(summary);
@@ -75,6 +86,7 @@ export function mapFeedPostToRun(
       avatarUrl: profile.avatar_url ?? undefined,
       level: levelFromTotalXp(totalXp),
       teamName: teamName ?? 'No team',
+      rankTierId,
     },
     title: post.title || 'Completed a run',
     description: post.description,

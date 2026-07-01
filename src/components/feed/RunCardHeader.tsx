@@ -3,6 +3,8 @@ import { Image, StyleSheet, Text, View } from 'react-native';
 
 import type { RunUser } from '../../mock';
 import { colors, spacing } from '../../theme';
+import { RankBorderAvatar } from '../team/RankBorderAvatar';
+import { rankBorderSourceForTier } from '../team/rankAvatarBorderTheme';
 import { RunCardAddFriendButton } from './RunCardAddFriendButton';
 import { UserLevelBadge } from './UserLevelBadge';
 
@@ -16,6 +18,7 @@ type RunCardHeaderProps = {
 };
 
 const AVATAR_SIZE = 40;
+const RANK_BORDER_FRAME_SIZE = 48;
 
 export function RunCardHeader({
   user,
@@ -25,18 +28,32 @@ export function RunCardHeader({
   addFriendDisabled = false,
   onAddFriend,
 }: RunCardHeaderProps) {
+  const hasRankBorder = rankBorderSourceForTier(user.rankTierId) != null;
+  const frameSize = hasRankBorder ? RANK_BORDER_FRAME_SIZE : AVATAR_SIZE;
+
   return (
     <View style={styles.container}>
-      <View style={styles.avatarWrap}>
-        <View style={styles.avatarRing}>
-          <View style={styles.avatarInner}>
+      <View style={[styles.avatarWrap, { width: frameSize + 4 }]}>
+        {hasRankBorder ? (
+          <RankBorderAvatar
+            avatarUrl={user.avatarUrl}
+            rankTierId={user.rankTierId}
+            size={frameSize}
+          />
+        ) : (
+          <View
+            style={[
+              styles.avatarPlain,
+              { width: AVATAR_SIZE, height: AVATAR_SIZE, borderRadius: AVATAR_SIZE / 2 },
+            ]}
+          >
             {user.avatarUrl ? (
               <Image source={{ uri: user.avatarUrl }} style={styles.avatar} />
             ) : (
               <View style={[styles.avatar, styles.avatarPlaceholder]} />
             )}
           </View>
-        </View>
+        )}
         <UserLevelBadge level={user.level} />
       </View>
 
@@ -65,24 +82,13 @@ const styles = StyleSheet.create({
     gap: spacing.sm,
   },
   avatarWrap: {
-    width: AVATAR_SIZE + 4,
     alignItems: 'center',
     paddingBottom: 4,
+    overflow: 'visible',
   },
-  avatarRing: {
-    width: AVATAR_SIZE,
-    height: AVATAR_SIZE,
-    borderRadius: AVATAR_SIZE / 2,
-    borderWidth: 1.5,
-    borderColor: colors.accentLime,
-    padding: 1,
-  },
-  avatarInner: {
-    flex: 1,
-    borderRadius: 100,
-    borderWidth: StyleSheet.hairlineWidth,
-    borderColor: 'rgba(255, 255, 255, 0.2)',
+  avatarPlain: {
     overflow: 'hidden',
+    backgroundColor: colors.surfaceElevated,
   },
   avatar: {
     width: '100%',

@@ -46,10 +46,13 @@ export function buildRankDisplay(
 
 export function buildProfileRank(rank: PlayerRankRow, tiers: RankTierRow[]): ProfileRank {
   const display = buildRankDisplay(rank, tiers);
+  const tier = tierFromRating(rank.competitive_rating, tiers.map(mapRankTierRow));
   return {
     title: display.title,
     subtitle: display.subtitle,
     icon: display.icon,
+    tierId: tier.id,
+    competitiveRating: rank.competitive_rating,
   };
 }
 

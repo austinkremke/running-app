@@ -36,13 +36,17 @@ export function AchievementCard({ achievement, layout = 'compact' }: Achievement
           <Text style={styles.detailDescription}>{achievement.description}</Text>
 
           <View style={styles.detailMeta}>
-            <View style={styles.xpChip}>
-              <Ionicons color={colors.accentLime} name="flash" size={10} />
-              <Text style={styles.xpChipLabel}>{formatAchievementXp(achievement.xpReward)}</Text>
-            </View>
-            <Text style={styles.detailStatus}>
-              {achievement.unlocked ? `Unlocked ${achievement.date}` : 'Not unlocked yet'}
-            </Text>
+            {achievement.unlocked ? (
+              <Text style={styles.completedLabel}>Completed</Text>
+            ) : (
+              <>
+                <View style={styles.xpChip}>
+                  <Ionicons color={colors.accentLime} name="flash" size={10} />
+                  <Text style={styles.xpChipLabel}>{formatAchievementXp(achievement.xpReward)}</Text>
+                </View>
+                <Text style={styles.detailStatus}>Not unlocked yet</Text>
+              </>
+            )}
           </View>
         </View>
       </View>
@@ -65,11 +69,14 @@ export function AchievementCard({ achievement, layout = 'compact' }: Achievement
       <Text numberOfLines={3} style={styles.compactDescription}>
         {achievement.description}
       </Text>
-      <View style={styles.xpChip}>
-        <Ionicons color={colors.accentLime} name="flash" size={10} />
-        <Text style={styles.xpChipLabel}>{formatAchievementXp(achievement.xpReward)}</Text>
-      </View>
-      <Text style={styles.compactDate}>{achievement.date}</Text>
+      {achievement.unlocked ? (
+        <Text style={styles.completedLabel}>Completed</Text>
+      ) : (
+        <View style={styles.xpChip}>
+          <Ionicons color={colors.accentLime} name="flash" size={10} />
+          <Text style={styles.xpChipLabel}>{formatAchievementXp(achievement.xpReward)}</Text>
+        </View>
+      )}
     </View>
   );
 }
@@ -89,7 +96,7 @@ const styles = StyleSheet.create({
     gap: spacing.xs,
   },
   compactCardLocked: {
-    opacity: 0.55,
+    borderColor: colors.divider,
   },
   compactLabel: {
     color: colors.textPrimary,
@@ -107,10 +114,14 @@ const styles = StyleSheet.create({
     lineHeight: 13,
     textAlign: 'center',
   },
-  compactDate: {
-    color: colors.textSecondary,
+  completedLabel: {
+    color: colors.accentLime,
     fontSize: 9,
+    fontWeight: '800',
+    letterSpacing: 0.4,
+    textTransform: 'uppercase',
     textAlign: 'center',
+    marginTop: 2,
   },
   detailCard: {
     flexDirection: 'row',
@@ -123,7 +134,7 @@ const styles = StyleSheet.create({
     padding: spacing.md,
   },
   detailCardLocked: {
-    opacity: 0.55,
+    borderColor: colors.divider,
   },
   detailBody: {
     flex: 1,

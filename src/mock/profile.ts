@@ -9,8 +9,10 @@ export const MOCK_PROFILE: UserProfile = {
   level: 24,
   rank: {
     title: 'ELITE RUNNER',
-    subtitle: 'Top 7% of all runners',
+    subtitle: '1,847 rating',
     icon: 'footsteps',
+    tierId: 'elite',
+    competitiveRating: 1847,
   },
   experience: {
     currentXp: 6250,

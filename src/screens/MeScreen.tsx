@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useMemo, useState } from 'react';
 import { ScrollView, StyleSheet, Text, View } from 'react-native';
 
 import {
@@ -14,6 +14,7 @@ import { useAuth, usePlayerProgress, useXpGain } from '../context';
 import { useAchievements } from '../hooks/useAchievements';
 import { useRankDisplay } from '../hooks/useRankDisplay';
 import { MOCK_PROFILE } from '../mock';
+import { sortAchievementsForMeCarousel } from '../services/achievementService';
 import { colors, spacing } from '../theme';
 
 type MeScreenProps = {
@@ -25,11 +26,15 @@ export function MeScreen({ onOpenSettings }: MeScreenProps) {
   const { level, experience } = usePlayerProgress();
   const { showAchievementUnlocks } = useXpGain();
   const { profileRank } = useRankDisplay();
-  const { unlocked, allAchievements, loading, reload } = useAchievements({
+  const { allAchievements, loading, reload } = useAchievements({
     evaluateOnMount: true,
     onUnlock: showAchievementUnlocks,
   });
   const [viewAllVisible, setViewAllVisible] = useState(false);
+  const carouselAchievements = useMemo(
+    () => sortAchievementsForMeCarousel(allAchievements),
+    [allAchievements],
+  );
 
   const profile = {
     ...MOCK_PROFILE,
@@ -54,9 +59,9 @@ export function MeScreen({ onOpenSettings }: MeScreenProps) {
 
         {loading ? (
           <Text style={styles.loading}>Loading achievements…</Text>
-        ) : unlocked.length > 0 ? (
+        ) : carouselAchievements.length > 0 ? (
           <AchievementsSection
-            achievements={unlocked}
+            achievements={carouselAchievements}
             onViewAll={() => setViewAllVisible(true)}
           />
         ) : (
