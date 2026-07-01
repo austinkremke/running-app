@@ -1,6 +1,12 @@
 import type { ImageSourcePropType } from 'react-native';
 
 import { colors } from '../../theme';
+import type { RankBorderTierId } from './rankBorderLayout';
+import {
+  RANK_BORDER_AVATAR_DIAMETER_RATIO,
+  rankBorderAssetMeta,
+  rankBorderAvatarLayout,
+} from './rankBorderLayout';
 
 export const RANK_BORDER_IMAGES = {
   bronze: require('../../../assets/borders/bronze-border.png'),
@@ -10,7 +16,13 @@ export const RANK_BORDER_IMAGES = {
   legend: require('../../../assets/borders/legend-border.png'),
 } as const;
 
-export type RankBorderTierId = keyof typeof RANK_BORDER_IMAGES;
+export type { RankBorderAssetMeta, RankBorderAvatarLayout, RankBorderTierId } from './rankBorderLayout';
+export {
+  RANK_BORDER_ASSET_META,
+  RANK_BORDER_AVATAR_DIAMETER_RATIO,
+  rankBorderAssetMeta,
+  rankBorderAvatarLayout,
+} from './rankBorderLayout';
 
 export const RANK_TIER_COLORS: Record<RankBorderTierId, string> = {
   bronze: '#CD8B5E',
@@ -19,9 +31,6 @@ export const RANK_TIER_COLORS: Record<RankBorderTierId, string> = {
   elite: colors.accentPurple,
   legend: '#E8C04A',
 };
-
-/** Avatar diameter as a fraction of the outer frame size (tune against 400px ring art). */
-export const RANK_BORDER_AVATAR_DIAMETER_RATIO = 0.74;
 
 export function rankBorderSourceForTier(
   tierId: string | null | undefined,

@@ -2,7 +2,7 @@ import { Image, StyleSheet, View } from 'react-native';
 
 import { colors } from '../../theme';
 import {
-  RANK_BORDER_AVATAR_DIAMETER_RATIO,
+  rankBorderAvatarLayout,
   rankBorderSourceForTier,
 } from './rankAvatarBorderTheme';
 
@@ -14,8 +14,7 @@ type RankBorderAvatarProps = {
 
 export function RankBorderAvatar({ avatarUrl, size, rankTierId }: RankBorderAvatarProps) {
   const borderSource = rankBorderSourceForTier(rankTierId);
-  const avatarDiameter = Math.round(size * RANK_BORDER_AVATAR_DIAMETER_RATIO);
-  const avatarOffset = (size - avatarDiameter) / 2;
+  const { avatarDiameter, avatarLeft, avatarTop } = rankBorderAvatarLayout(size, rankTierId);
 
   return (
     <View style={[styles.frame, { width: size, height: size }]}>
@@ -26,8 +25,8 @@ export function RankBorderAvatar({ avatarUrl, size, rankTierId }: RankBorderAvat
             width: avatarDiameter,
             height: avatarDiameter,
             borderRadius: avatarDiameter / 2,
-            left: avatarOffset,
-            top: avatarOffset,
+            left: avatarLeft,
+            top: avatarTop,
           },
         ]}
       >
