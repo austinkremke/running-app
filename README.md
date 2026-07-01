@@ -64,7 +64,7 @@ Mapbox on device often needs a recent Xcode beta; see project notes in your shel
 | 03 XP & rank | **In progress** — Phase 1–2 + Phase 4 server XP shipped |
 | 04 Garmin / Strava | Planned |
 | 05 Matchmaking & feed | **In progress** — Phase 1–3 shipped ([05](./milestones/05-matchmaking-and-feed.md)) |
-| 06 Account, gating & cosmetics | **In progress** — Phase 2 achievements shipped ([06](./milestones/06-account-gating-and-cosmetics.md)) |
+| 06 Account, gating & cosmetics | **In progress** — Phase 1 settings + Phase 2 achievements ([06](./milestones/06-account-gating-and-cosmetics.md)) |
 
 ### Still mock / placeholder (honest)
 
@@ -74,6 +74,7 @@ Mapbox on device often needs a recent Xcode beta; see project notes in your shel
 | Me tab profile | Name/avatar from server; **level + XP bar real**; **rank tier + rating from server**; achievements/stats still mock |
 | Post-run XP drawer | **Real** staged breakdown + segmented bar fill on “Lock in your run” |
 | Achievements on Me tab | **Shipped** — server unlocks + Community actions ([06 Phase 2](./milestones/06-account-gating-and-cosmetics.md)) |
+| Account settings | **Shipped** — profile edit, avatar upload, units, sign out, delete account ([06 Phase 1](./milestones/06-account-gating-and-cosmetics.md)) |
 | Feed likes / comments | **Shipped** — toggle like + comments drawer ([05 Phase 1](./milestones/05-matchmaking-and-feed.md)) |
 | Friends feed tab | **Shipped** — mutual friends graph + friends-audience posts ([05 Phase 3](./milestones/05-matchmaking-and-feed.md)) |
 | Team stats / team activity feed | Placeholder sections |

@@ -26,7 +26,7 @@ Mapbox requires a **dev client** build (`npx expo run:ios`), not Expo Go.
 - XP/level and competitive rank are **separate** (see milestone 03). XP awards are **server-authoritative** via `award_run_xp` RPC; local AsyncStorage cache for offline UX.
 - **Milestone 02:** Phase A–D shipped; **Phase E hardening** is next.
 - **Milestone 05:** Phase 1–3 shipped (feed engagement, rank UI, friends feed + richer cards).
-- **Milestone 06:** Phase 2 achievements shipped (`achievementService`, `evaluate_achievements` RPC).
+- **Milestone 06:** Phase 1 account settings + Phase 2 achievements shipped.
 - Summaries in Postgres, bulky tracks in Storage.
 - Feed + team screens read from Supabase (`feedService`, `teamService`); feed cards show static route maps from `activities.polyline`; likes/comments persisted on `feed_posts`.
 - Post-run “Add to feed” uses `publishActivityToFeed` (sync activity, then `feed_posts` insert).

@@ -29,7 +29,7 @@ When adding a milestone:
 | 03 | [XP & competitive rank](./03-xp-and-ranking.md) | **In progress** — Phase 1–2 + Phase 4 server XP shipped | 01, 02 (partial) | 05, 06 |
 | 04 | [Third-party integrations](./04-third-party-integrations.md) | Planned | 01, 02 | 05 |
 | 05 | [Matchmaking, feed & social sync](./05-matchmaking-and-feed.md) | **In progress** — Phase 1–3 shipped | 02 (Phase C+) | — |
-| 06 | [Account, gating & cosmetics](./06-account-gating-and-cosmetics.md) | **In progress** — Phase 2 achievements shipped | 02, 03 | — |
+| 06 | [Account, gating & cosmetics](./06-account-gating-and-cosmetics.md) | **In progress** — Phase 1 settings + Phase 2 achievements shipped | 02, 03 | — |
 
 ---
 
@@ -40,7 +40,7 @@ When adding a milestone:
 | Feed likes & comments | [05](./05-matchmaking-and-feed.md) Phase 1 **shipped** |
 | Elo & rank UI (Me tab, solo match) | [05](./05-matchmaking-and-feed.md) Phase 2 **shipped** |
 | Friends feed & richer cards | [05](./05-matchmaking-and-feed.md) Phase 3 **shipped** |
-| Account settings | [06](./06-account-gating-and-cosmetics.md) Phase 1 |
+| Account settings | [06](./06-account-gating-and-cosmetics.md) Phase 1 **shipped** |
 | Achievements (server-backed) | [06](./06-account-gating-and-cosmetics.md) Phase 2 **shipped** |
 | Avatar rank decorative borders | [06](./06-account-gating-and-cosmetics.md) Phase 3 · tiers in [03](./03-xp-and-ranking.md) |
 | Level blocking features | [06](./06-account-gating-and-cosmetics.md) Phase 4 |

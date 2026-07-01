@@ -106,13 +106,17 @@ achievement_events              — user_id, event_type (review, notifications, 
 **05 Phase 1 ships:** `feed_reactions`, `feed_comments`, `can_view_feed_post` RLS helper; engagement counts aggregated in feed fetch.  
 **05 Phase 2 ships:** `apply_elo_match_result` RPC; client `player_rank` updates revoked; tier resolved from `rank_tiers` at read time.  
 **05 Phase 3 ships:** `friendships`, `add_friend` RPC, friends feed RLS; `can_view_feed_post` includes friends audience.  
-**06 Phase 2 (shipped):** `achievement_definitions`, `user_achievements`, `achievement_events`; `evaluate_achievements` + `record_achievement_event` RPCs. See [06-account-gating-and-cosmetics.md](../milestones/06-account-gating-and-cosmetics.md#phase-2--achievements).
+**06 Phase 2 (shipped):** `achievement_definitions`, `user_achievements`, `achievement_events`; `evaluate_achievements` + `record_achievement_event` RPCs. See [06-account-gating-and-cosmetics.md](../milestones/06-account-gating-and-cosmetics.md#phase-2--achievements).  
+**06 Phase 1 (shipped):** `avatars` storage bucket, `delete_own_account` RPC.
 
 **Post–Phase D RLS fixes:** `20250615000001_fix_match_participants_rls.sql`, `20250616000001_fix_feed_posts_rls.sql` — security definer helpers to avoid policy recursion.  
 **05 Phase 1:** `20250618000001_feed_likes_comments.sql`.  
 **05 Phase 2:** `20250619000001_elo_rank_rpc.sql`.  
 **05 Phase 3:** `20250621000001_friends_graph.sql`.  
-**06 Phase 2:** `20250620000001_achievements.sql`.
+**06 Phase 2:** `20250620000001_achievements.sql`.  
+**06 Phase 1:** `20250622000001_account_settings.sql`.
+
+Storage buckets: `activities` (private tracks), `avatars` (public profile photos).
 
 Full detail: [02-supabase-backend.md](../milestones/02-supabase-backend.md).
 
@@ -128,6 +132,7 @@ Full detail: [02-supabase-backend.md](../milestones/02-supabase-backend.md).
 | `can_view_feed_post` | `feed_reactions` / `feed_comments` SELECT + INSERT |
 | `apply_elo_match_result` | Elo rating + season W/L updates on `player_rank` (participants only) |
 | `add_friend` | Bidirectional friendship rows for friends feed + `add_friend` achievement |
+| `delete_own_account` | Permanently delete `auth.users` row for current user (cascades app data) |
 | `evaluate_achievements` | Check + grant eligible achievement unlocks + XP |
 | `record_achievement_event` | One-time client events (share, review, follow, notifications) |
 

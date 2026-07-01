@@ -827,6 +827,7 @@ export type Database = {
       can_view_feed_post: { Args: { p_post_id: string }; Returns: boolean }
       can_view_match: { Args: { p_match_id: string }; Returns: boolean }
       cumulative_xp_for_level: { Args: { p_level: number }; Returns: number }
+      delete_own_account: { Args: never; Returns: undefined }
       elo_expected_score: {
         Args: { p_rating_a: number; p_rating_b: number }
         Returns: number

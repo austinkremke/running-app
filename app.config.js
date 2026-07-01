@@ -27,6 +27,13 @@ export default () => {
       },
     ],
     [
+      'expo-image-picker',
+      {
+        photosPermission:
+          'Run Off needs access to your photos to set a profile picture.',
+      },
+    ],
+    [
       '@rnmapbox/maps',
       {
         RNMapboxMapsVersion: '11.20.1',
@@ -57,6 +64,8 @@ export default () => {
       infoPlist: {
         NSLocationWhenInUseUsageDescription:
           'Run Off needs your location to show your position on the map while running.',
+        NSPhotoLibraryUsageDescription:
+          'Run Off needs access to your photos to set a profile picture.',
         ...(googleIosClientId ? { GIDClientID: googleIosClientId } : {}),
         ...(googleIosUrlScheme
           ? {

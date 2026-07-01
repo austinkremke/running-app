@@ -10,14 +10,15 @@ type IoniconsName = React.ComponentProps<typeof Ionicons>['name'];
 
 type ProfileTopSectionProps = {
   profile: Pick<UserProfile, 'name' | 'avatarUrl' | 'clanName' | 'level' | 'rank'>;
+  onEditAvatar?: () => void;
 };
 
 const AVATAR_SIZE = 92;
 
-export function ProfileTopSection({ profile }: ProfileTopSectionProps) {
+export function ProfileTopSection({ profile, onEditAvatar }: ProfileTopSectionProps) {
   return (
     <View style={styles.container}>
-      <ProfileAvatar avatarUrl={profile.avatarUrl} size={AVATAR_SIZE} />
+      <ProfileAvatar avatarUrl={profile.avatarUrl} onEditPress={onEditAvatar} size={AVATAR_SIZE} />
 
       <View style={styles.rightColumn}>
         <View style={styles.identity}>

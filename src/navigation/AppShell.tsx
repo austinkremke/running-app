@@ -13,7 +13,9 @@ import type { FeedTab, MatchTab } from '../mock';
 import { initialsFromDisplayName } from '../services/profileAvatar';
 import { FeedScreen } from '../screens/FeedScreen';
 import { MatchScreen } from '../screens/MatchScreen';
+import { MeScreen } from '../screens/MeScreen';
 import { RunScreen } from '../screens/RunScreen';
+import { SettingsScreen } from '../screens/SettingsScreen';
 import { SoloMatchScreen } from '../screens/SoloMatchScreen';
 import { TeamMatchScreen } from '../screens/TeamMatchScreen';
 import { TeamScreen } from '../screens/TeamScreen';
@@ -37,6 +39,7 @@ export function AppShell() {
   const { shouldOpenSoloMatch, consumeSoloMatchNavigation } = useOnboarding();
   const [activeRoute, setActiveRoute] = useState<AppRoute>('feed');
   const [runReturnRoute, setRunReturnRoute] = useState<AppRoute>('feed');
+  const [settingsReturnRoute, setSettingsReturnRoute] = useState<AppRoute>('me');
   const [activeFeedTab, setActiveFeedTab] = useState<FeedTab>('community');
   const [activeMatchTab, setActiveMatchTab] = useState<MatchTab>('team');
 
@@ -68,7 +71,9 @@ export function AppShell() {
         ? 'MATCH'
         : activeRoute === 'topTeams'
           ? 'TOP TEAMS'
-          : title;
+          : activeRoute === 'settings'
+            ? 'SETTINGS'
+            : title;
 
   function openRun() {
     if (activeRoute !== 'run') {
@@ -88,6 +93,11 @@ export function AppShell() {
     }
 
     setActiveRoute(key);
+  }
+
+  function openSettings(from: AppRoute) {
+    setSettingsReturnRoute(from);
+    setActiveRoute('settings');
   }
 
   function renderScreen() {
@@ -125,16 +135,29 @@ export function AppShell() {
       return <TopTeamsScreen />;
     }
 
+    if (activeRoute === 'me') {
+      return <MeScreen onOpenSettings={() => openSettings('me')} />;
+    }
+
+    if (activeRoute === 'settings') {
+      return <SettingsScreen onBack={() => setActiveRoute(settingsReturnRoute)} />;
+    }
+
     return RouteScreen ? <RouteScreen /> : null;
   }
 
   function renderHeaderLeft() {
-    if (activeRoute === 'match' || activeRoute === 'teamMatch' || activeRoute === 'soloMatch' || activeRoute === 'topTeams') {
+    if (activeRoute === 'match' || activeRoute === 'teamMatch' || activeRoute === 'soloMatch' || activeRoute === 'topTeams' || activeRoute === 'settings') {
       return (
         <HeaderIconButton
           accessibilityLabel="Go back"
           icon="chevron-back"
           onPress={() => {
+            if (activeRoute === 'settings') {
+              setActiveRoute(settingsReturnRoute);
+              return;
+            }
+
             if (activeRoute === 'teamMatch' || activeRoute === 'soloMatch') {
               setActiveRoute('match');
               if (activeRoute === 'soloMatch') {
@@ -228,7 +251,7 @@ export function AppShell() {
         <HeaderIconButton
           accessibilityLabel="Settings"
           icon="settings-outline"
-          onPress={() => {}}
+          onPress={() => openSettings(activeRoute)}
         />
       );
     }
@@ -278,11 +301,15 @@ export function AppShell() {
       {!hideChrome ? (
         <BottomAppBar
           activeKey={
-            activeRoute === 'teamMatch' || activeRoute === 'soloMatch'
-              ? 'match'
-              : activeRoute === 'topTeams'
+            activeRoute === 'settings'
+              ? settingsReturnRoute === 'team'
                 ? 'team'
-                : activeRoute
+                : 'me'
+              : activeRoute === 'teamMatch' || activeRoute === 'soloMatch'
+                ? 'match'
+                : activeRoute === 'topTeams'
+                  ? 'team'
+                  : activeRoute
           }
           onItemPress={handleNavPress}
         />

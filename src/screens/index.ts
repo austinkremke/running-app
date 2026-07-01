@@ -7,3 +7,4 @@ export { SoloMatchScreen } from './SoloMatchScreen';
 export { TeamMatchScreen } from './TeamMatchScreen';
 export { TeamScreen } from './TeamScreen';
 export { TopTeamsScreen } from './TopTeamsScreen';
+export { SettingsScreen } from './SettingsScreen';

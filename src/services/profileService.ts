@@ -75,3 +75,23 @@ export async function markOnboardingCompleted(userId: string): Promise<void> {
 
   if (error) throw error;
 }
+
+export async function updateDisplayName(userId: string, displayName: string): Promise<void> {
+  if (!supabase) {
+    throw new Error('Supabase is not configured.');
+  }
+
+  const trimmed = displayName.trim();
+  if (!trimmed) {
+    throw new Error('Display name cannot be empty.');
+  }
+
+  const { error } = await supabase
+    .from('profiles')
+    .update({ display_name: trimmed })
+    .eq('id', userId);
+
+  if (error) {
+    throw error;
+  }
+}

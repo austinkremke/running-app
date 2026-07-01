@@ -1,7 +1,7 @@
 # Account settings, gating & progression cosmetics
 
 > **Milestone:** 06  
-> **Status:** **In progress** — Phase 2 achievements shipped; Phase 1 account settings next  
+> **Status:** **In progress** — Phase 1 account settings shipped; Phase 3 rank avatar borders next  
 > **Depends on:** [02 Supabase](./02-supabase-backend.md) (auth + profiles), [03 XP & rank](./03-xp-and-ranking.md) (level, rank tiers, achievements data model)  
 > **Unblocks:** —
 
@@ -22,7 +22,7 @@ Rank-based **avatar decorative borders** are cosmetic only — not paywalled unl
 
 | Area | Today | Target |
 |------|-------|--------|
-| Account settings | Sign out only (auth screen) | Settings screen: profile edit, units, notifications prefs, linked providers, delete account |
+| Account settings | **Settings screen** — profile edit, avatar upload, units pref, notifications, linked providers, sign out, delete account | View All achievement progress bars |
 | Achievements | **Server catalog + unlocks** (`achievementService`, Me tab, Community block) | View All + progress bars polish |
 | Avatar rank borders | Plain avatars on feed / Me / team | Decorative frame from **competitive rank tier** (not level) |
 | Paywall blocking | None | Entitlements block premium features (e.g. advanced stats, extra match slots — TBD catalog) |
@@ -32,7 +32,9 @@ Rank-based **avatar decorative borders** are cosmetic only — not paywalled unl
 
 ## Rollout phases
 
-### Phase 1 — Account settings
+### Phase 1 — Account settings **shipped**
+
+**Shipped:** Settings route from Me/Team header; display name edit; avatar upload to `avatars` storage; distance unit preference (device-local); system notification settings link; linked sign-in providers; sign out; delete account via `delete_own_account` RPC; app version + legal/support links.
 
 - Settings entry from Me tab
 - Edit display name / avatar upload (Storage + `profiles`)

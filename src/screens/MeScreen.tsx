@@ -15,7 +15,11 @@ import { useRankDisplay } from '../hooks/useRankDisplay';
 import { MOCK_PROFILE } from '../mock';
 import { colors, spacing } from '../theme';
 
-export function MeScreen() {
+type MeScreenProps = {
+  onOpenSettings?: () => void;
+};
+
+export function MeScreen({ onOpenSettings }: MeScreenProps) {
   const { gameState } = useAuth();
   const { level, experience } = usePlayerProgress();
   const { showAchievementUnlocks } = useXpGain();
@@ -43,7 +47,7 @@ export function MeScreen() {
         style={styles.scroll}
       >
         <View style={styles.profileGroup}>
-          <ProfileTopSection profile={profile} />
+          <ProfileTopSection onEditAvatar={onOpenSettings} profile={profile} />
           <ExperienceCard experience={profile.experience} />
         </View>
 

@@ -1,5 +1,28 @@
 import { supabase } from './supabase';
 
+export type ProfilePhotoPickResult =
+  | { canceled: true }
+  | { canceled: false; uri: string };
+
+export async function pickProfilePhotoUri(): Promise<ProfilePhotoPickResult> {
+  const ImagePicker = await import('expo-image-picker');
+
+  // PHPicker (allowsEditing: false) does not require a permission prompt on iOS 14+.
+  // Legacy UIImagePicker (allowsEditing: true) needs NSPhotoLibraryUsageDescription in Info.plist.
+  const result = await ImagePicker.launchImageLibraryAsync({
+    mediaTypes: ['images'],
+    allowsEditing: true,
+    aspect: [1, 1],
+    quality: 0.85,
+  });
+
+  if (result.canceled || !result.assets[0]?.uri) {
+    return { canceled: true };
+  }
+
+  return { canceled: false, uri: result.assets[0].uri };
+}
+
 function isHttpUrl(value: string): boolean {
   return value.startsWith('http://') || value.startsWith('https://');
 }
@@ -93,4 +116,46 @@ export async function syncProfileAvatarIfMissing(
   }
 
   await syncProfileAvatar(userId, trimmed);
+}
+
+function extensionForMimeType(mimeType: string): string {
+  switch (mimeType) {
+    case 'image/png':
+      return 'png';
+    case 'image/webp':
+      return 'webp';
+    default:
+      return 'jpg';
+  }
+}
+
+export async function uploadProfileAvatar(userId: string, localUri: string): Promise<string> {
+  if (!supabase) {
+    throw new Error('Supabase is not configured.');
+  }
+
+  const response = await fetch(localUri);
+  if (!response.ok) {
+    throw new Error('Could not read the selected photo.');
+  }
+
+  const blob = await response.blob();
+  const mimeType = blob.type || 'image/jpeg';
+  const extension = extensionForMimeType(mimeType);
+  const storagePath = `${userId}/avatar-${Date.now()}.${extension}`;
+
+  const { error: uploadError } = await supabase.storage.from('avatars').upload(storagePath, blob, {
+    upsert: true,
+    contentType: mimeType,
+  });
+
+  if (uploadError) {
+    throw uploadError;
+  }
+
+  const { data } = supabase.storage.from('avatars').getPublicUrl(storagePath);
+  const publicUrl = data.publicUrl;
+
+  await syncProfileAvatar(userId, publicUrl);
+  return publicUrl;
 }
