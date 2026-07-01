@@ -3,7 +3,8 @@ export type OnboardingNpcOpponent = {
   avatarUrl: string;
   level: number;
   rankTitle: string;
-  rankIcon: string;
+  rankTierId?: string;
+  competitiveRating?: number;
   wins: number;
   losses: number;
 };
@@ -13,8 +14,9 @@ export const MOCK_ONBOARDING_NPC: OnboardingNpcOpponent = {
   avatarUrl:
     'https://images.unsplash.com/photo-1500648767791-00dcc994a43e?w=200&h=200&fit=crop',
   level: 12,
-  rankTitle: 'RISING RUNNER',
-  rankIcon: 'footsteps',
+  rankTitle: 'BRONZE RUNNER',
+  rankTierId: 'bronze',
+  competitiveRating: 1050,
   wins: 8,
   losses: 4,
 };

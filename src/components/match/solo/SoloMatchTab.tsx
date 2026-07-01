@@ -108,9 +108,10 @@ export function SoloMatchTab({ onViewActiveMatch }: SoloMatchTabProps) {
 
         <SoloProfileCard
           avatarUrl={gameState?.profile.avatar_url ?? soloConfig.avatarUrl}
+          competitiveRating={profileRank.competitiveRating}
           level={level}
           name={gameState?.profile.display_name ?? soloConfig.name}
-          rankIcon={profileRank.icon}
+          rankTierId={profileRank.tierId}
           rankTitle={profileRank.title}
         />
         {isSearching ? (

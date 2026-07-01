@@ -43,9 +43,10 @@ export function OnboardingChallengeDrawer({
 
         <SoloProfileCard
           avatarUrl={opponent.avatarUrl}
+          competitiveRating={opponent.competitiveRating}
           level={opponent.level}
           name={opponent.name}
-          rankIcon={opponent.rankIcon}
+          rankTierId={opponent.rankTierId}
           rankTitle={opponent.rankTitle}
         />
 
