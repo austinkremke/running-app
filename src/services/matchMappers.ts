@@ -224,10 +224,10 @@ export function mapTeamMatchRow(
 export function mapSoloMatchRow(
   match: MatchRow,
   homeProfile: Tables<'profiles'>,
-  homeProgress: { total_xp: number } | null,
+  homeProgress: { total_xp: number; streak_days?: number } | null,
   homePoints: number,
   awayProfile: Tables<'profiles'>,
-  awayProgress: { total_xp: number } | null,
+  awayProgress: { total_xp: number; streak_days?: number } | null,
   awayPoints: number,
   activities: Tables<'activities'>[] = [],
   matchType?: Tables<'match_types'> | null,
@@ -262,7 +262,12 @@ export function mapSoloMatchRow(
     },
     stats: buildSoloComparisonStats(homeDistance, awayDistance, homeDuration, awayDuration, totalDistance),
     activities: mappedActivities,
-    highlights: buildSoloHighlights(mappedActivities, homePoints, awayPoints),
+    highlights: buildSoloHighlights(
+      mappedActivities,
+      homePoints,
+      awayPoints,
+      homeProgress?.streak_days ?? 0,
+    ),
   };
 }
 
@@ -369,12 +374,29 @@ function buildSoloComparisonStats(
   ];
 }
 
+function formatStreakDays(days: number): string {
+  if (days === 1) {
+    return '1 Day';
+  }
+
+  return `${days} Days`;
+}
+
 function buildSoloHighlights(
   activities: SoloMatchActivity[],
   homePoints: number,
   awayPoints: number,
+  homeStreakDays = 0,
 ): ActiveSoloMatch['highlights'] {
   const longest = [...activities].sort((left, right) => right.distanceMiles - left.distanceMiles)[0];
+
+  const bestPaceActivity = [...activities]
+    .filter((activity) => activity.distanceMiles > 0)
+    .sort((left, right) => {
+      const leftPace = parseDurationLabelToSeconds(left.durationLabel) / left.distanceMiles;
+      const rightPace = parseDurationLabelToSeconds(right.durationLabel) / right.distanceMiles;
+      return leftPace - rightPace;
+    })[0];
 
   return [
     {
@@ -397,7 +419,52 @@ function buildSoloHighlights(
           },
         ]
       : []),
+    ...(bestPaceActivity
+      ? [
+          {
+            id: 'best-pace',
+            icon: 'timer-outline',
+            label: 'Best pace',
+            value: formatHighlightPace(bestPaceActivity),
+            subtext: bestPaceActivity.dayLabel,
+            accent: bestPaceActivity.accent,
+          },
+        ]
+      : []),
+    {
+      id: 'streak',
+      icon: 'flame-outline',
+      label: 'Current streak',
+      value: formatStreakDays(homeStreakDays),
+      subtext: homeStreakDays > 0 ? 'Keep it up!' : 'Run to start your streak',
+      accent: homeStreakDays > 0 ? 'lime' : undefined,
+    },
   ];
+}
+
+function parseDurationLabelToSeconds(durationLabel: string): number {
+  const parts = durationLabel.split(':').map((part) => Number.parseInt(part, 10));
+  if (parts.length === 3) {
+    return parts[0] * 3600 + parts[1] * 60 + parts[2];
+  }
+
+  if (parts.length === 2) {
+    return parts[0] * 60 + parts[1];
+  }
+
+  return 0;
+}
+
+function formatHighlightPace(activity: SoloMatchActivity): string {
+  const durationSeconds = parseDurationLabelToSeconds(activity.durationLabel);
+  if (activity.distanceMiles <= 0 || durationSeconds <= 0) {
+    return '--';
+  }
+
+  const paceSeconds = durationSeconds / activity.distanceMiles;
+  const minutes = Math.floor(paceSeconds / 60);
+  const seconds = Math.round(paceSeconds % 60);
+  return `${minutes}:${seconds.toString().padStart(2, '0')} /mi`;
 }
 
 export function mapMatchmakingFromTeam(team: TeamRow, memberCount: number) {

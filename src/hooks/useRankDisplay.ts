@@ -3,6 +3,7 @@ import { useEffect, useMemo, useState } from 'react';
 import { useAuth } from '../context';
 import { MOCK_PROFILE } from '../mock';
 import type { SoloSeasonRecord } from '../mock';
+import { fetchSoloBestWinStreak } from '../services/matchService';
 import { buildProfileRank, buildRankDisplay, fetchRankTiers } from '../services/rank';
 import type { RankDisplay } from '../types/rank';
 import type { RankTierRow } from '../types/rank';
@@ -13,8 +14,9 @@ export function useRankDisplay(): {
   seasonRecord: SoloSeasonRecord;
   loading: boolean;
 } {
-  const { gameState } = useAuth();
+  const { gameState, session } = useAuth();
   const [tiers, setTiers] = useState<RankTierRow[]>([]);
+  const [bestWinStreak, setBestWinStreak] = useState(0);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
@@ -40,11 +42,38 @@ export function useRankDisplay(): {
     };
   }, []);
 
+  useEffect(() => {
+    const userId = session?.user?.id;
+    if (!userId) {
+      setBestWinStreak(0);
+      return;
+    }
+
+    let cancelled = false;
+
+    fetchSoloBestWinStreak(userId)
+      .then((streak) => {
+        if (!cancelled) {
+          setBestWinStreak(streak);
+        }
+      })
+      .catch((error) => {
+        console.warn('Failed to load solo win streak', error);
+        if (!cancelled) {
+          setBestWinStreak(0);
+        }
+      });
+
+    return () => {
+      cancelled = true;
+    };
+  }, [session?.user?.id, gameState?.rank.season_wins, gameState?.rank.season_losses]);
+
   return useMemo(() => {
     const seasonRecord: SoloSeasonRecord = {
       wins: gameState?.rank.season_wins ?? 0,
       losses: gameState?.rank.season_losses ?? 0,
-      bestStreak: 0,
+      bestStreak: bestWinStreak,
     };
 
     if (!gameState?.rank) {
@@ -79,5 +108,5 @@ export function useRankDisplay(): {
       seasonRecord,
       loading,
     };
-  }, [gameState?.rank, loading, tiers]);
+  }, [bestWinStreak, gameState?.rank, loading, tiers]);
 }

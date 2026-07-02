@@ -9,6 +9,7 @@ import {
   TabAppHeader,
 } from '../components/header';
 import { useAuth, useOnboarding, useSoloMatchCompletion, useUserId } from '../context';
+import { useHasActiveMatch } from '../hooks/useHasActiveMatch';
 import type { FeedTab, MatchTab } from '../mock';
 import { initialsFromDisplayName } from '../services/profileAvatar';
 import { fetchActiveSoloMatchId } from '../services/matchService';
@@ -41,6 +42,7 @@ export function AppShell() {
   const userId = useUserId();
   const { shouldOpenSoloMatch, consumeSoloMatchNavigation } = useOnboarding();
   const { syncCompletions } = useSoloMatchCompletion();
+  const hasActiveMatch = useHasActiveMatch();
   const [activeRoute, setActiveRoute] = useState<AppRoute>('feed');
   const [runReturnRoute, setRunReturnRoute] = useState<AppRoute>('feed');
   const [settingsReturnRoute, setSettingsReturnRoute] = useState<AppRoute>('me');
@@ -356,6 +358,7 @@ export function AppShell() {
                   ? 'team'
                   : activeRoute
           }
+          badges={hasActiveMatch ? { match: true } : undefined}
           onItemPress={handleNavPress}
         />
       ) : null}

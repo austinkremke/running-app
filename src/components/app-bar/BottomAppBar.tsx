@@ -33,12 +33,14 @@ type BottomAppBarProps = {
   items?: BottomAppBarItem[];
   activeKey: string;
   onItemPress: (key: string) => void;
+  badges?: Partial<Record<string, boolean>>;
 };
 
 export function BottomAppBar({
   items = DEFAULT_BOTTOM_APP_BAR_ITEMS,
   activeKey,
   onItemPress,
+  badges,
 }: BottomAppBarProps) {
   const insets = useSafeAreaInsets();
 
@@ -61,11 +63,14 @@ export function BottomAppBar({
               style={styles.itemPressable}
             >
               <View style={styles.item}>
-                {SvgIcon ? (
-                  <SvgIcon color={iconColor} size={18} />
-                ) : (
-                  <Ionicons color={iconColor} name={iconName} size={18} />
-                )}
+                <View style={styles.iconWrap}>
+                  {SvgIcon ? (
+                    <SvgIcon color={iconColor} size={18} />
+                  ) : (
+                    <Ionicons color={iconColor} name={iconName} size={18} />
+                  )}
+                  {badges?.[item.key] ? <View style={styles.badge} /> : null}
+                </View>
                 <Text style={[styles.label, isActive ? styles.labelActive : styles.labelInactive]}>
                   {item.label}
                 </Text>
@@ -105,6 +110,22 @@ const styles = StyleSheet.create({
     paddingHorizontal: spacing.xs,
     paddingVertical: spacing.sm,
     minWidth: 48,
+  },
+  iconWrap: {
+    position: 'relative',
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  badge: {
+    position: 'absolute',
+    top: -2,
+    right: -6,
+    width: 7,
+    height: 7,
+    borderRadius: 4,
+    backgroundColor: colors.danger,
+    borderWidth: 1.5,
+    borderColor: colors.surface,
   },
   label: {
     fontSize: 9,
