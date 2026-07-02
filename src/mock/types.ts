@@ -263,6 +263,7 @@ export type TeamMatchCountdown = {
   days: number;
   hours: number;
   minutes: number;
+  seconds: number;
 };
 
 export type ActiveTeamMatch = {

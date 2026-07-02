@@ -3,9 +3,9 @@ import { useEffect, useRef, useState } from 'react';
 import type { TeamMatchCountdown } from '../mock';
 import { countdownFromEndsAt } from '../services/matchMappers';
 
-const DEFAULT_TICK_MS = 60_000;
-const FINAL_MINUTE_TICK_MS = 1_000;
-const FINAL_MINUTE_THRESHOLD_MS = 5 * 60_000;
+const MINUTE_TICK_MS = 60_000;
+const SECOND_TICK_MS = 1_000;
+const FINAL_SECOND_THRESHOLD_MS = 60_000;
 
 type UseLiveCountdownOptions = {
   onExpired?: () => void;
@@ -15,10 +15,12 @@ export function useLiveCountdown(
   endsAt: string | null | undefined,
   options?: UseLiveCountdownOptions,
 ): TeamMatchCountdown {
-  const onExpired = options?.onExpired;
+  const onExpiredRef = useRef(options?.onExpired);
+  onExpiredRef.current = options?.onExpired;
+
   const expiredRef = useRef(false);
   const [countdown, setCountdown] = useState<TeamMatchCountdown>(() =>
-    endsAt ? countdownFromEndsAt(endsAt) : { days: 0, hours: 0, minutes: 0 },
+    endsAt ? countdownFromEndsAt(endsAt) : { days: 0, hours: 0, minutes: 0, seconds: 0 },
   );
 
   useEffect(() => {
@@ -27,7 +29,7 @@ export function useLiveCountdown(
 
   useEffect(() => {
     if (!endsAt) {
-      setCountdown({ days: 0, hours: 0, minutes: 0 });
+      setCountdown({ days: 0, hours: 0, minutes: 0, seconds: 0 });
       return;
     }
 
@@ -36,37 +38,33 @@ export function useLiveCountdown(
     const tick = () => {
       const remainingMs = endsAtMs - Date.now();
       if (remainingMs <= 0) {
-        setCountdown({ days: 0, hours: 0, minutes: 0 });
+        setCountdown({ days: 0, hours: 0, minutes: 0, seconds: 0 });
         if (!expiredRef.current) {
           expiredRef.current = true;
-          onExpired?.();
+          onExpiredRef.current?.();
         }
-        return;
+        return SECOND_TICK_MS;
       }
 
       setCountdown(countdownFromEndsAt(endsAt));
+      return remainingMs <= FINAL_SECOND_THRESHOLD_MS ? SECOND_TICK_MS : MINUTE_TICK_MS;
     };
 
-    tick();
+    let timeout: ReturnType<typeof setTimeout> | null = null;
 
-    let interval = setInterval(tick, DEFAULT_TICK_MS);
-
-    const scheduleFastTick = () => {
-      const remainingMs = endsAtMs - Date.now();
-      if (remainingMs <= FINAL_MINUTE_THRESHOLD_MS) {
-        clearInterval(interval);
-        interval = setInterval(tick, FINAL_MINUTE_TICK_MS);
-      }
+    const scheduleTick = () => {
+      const nextDelay = tick();
+      timeout = setTimeout(scheduleTick, nextDelay);
     };
 
-    scheduleFastTick();
-    const fastTickTimer = setInterval(scheduleFastTick, 10_000);
+    scheduleTick();
 
     return () => {
-      clearInterval(interval);
-      clearInterval(fastTickTimer);
+      if (timeout) {
+        clearTimeout(timeout);
+      }
     };
-  }, [endsAt, onExpired]);
+  }, [endsAt]);
 
   return countdown;
 }

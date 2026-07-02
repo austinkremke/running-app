@@ -1,66 +1,30 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
 
 import type { ActiveSoloMatch } from '../mock';
-import { useAuth, useSoloMatchCompletion, useUserId } from '../context';
-import type { SoloMatchCompletion } from '../types/soloMatchCompletion';
+import { useAuth, useUserId } from '../context';
 import { useAchievementUnlockPresentation } from '../hooks/useAchievementUnlockPresentation';
 import { useMatchRealtimeRefresh } from '../hooks/useMatchRealtimeRefresh';
 import { fetchActiveSoloMatch } from '../services/matchService';
-import { finalizeDueSoloMatches, fetchStoredSoloMatchCompletions } from '../services/matchmakingService';
+import { notifySoloMatchCompletionSync } from '../services/soloMatchCompletionBus';
 import { subscribeMatchRefresh } from '../services/matchRefreshBus';
-import {
-  hasSeenSoloMatchResult,
-} from '../storage/soloMatchResultStorage';
 
 type RefreshOptions = {
   silent?: boolean;
 };
 
-async function collectUnseenCompletions(
-  userId: string,
-  freshCompletions: Awaited<ReturnType<typeof finalizeDueSoloMatches>>,
-  showSoloMatchCompletion: (completion: SoloMatchCompletion) => void,
-  refreshGameState: () => Promise<void>,
-) {
-  const storedCompletions = await fetchStoredSoloMatchCompletions(userId);
-  const byMatchId = new Map<string, SoloMatchCompletion>();
-
-  for (const completion of [...freshCompletions, ...storedCompletions]) {
-    byMatchId.set(completion.matchId, completion);
-  }
-
-  const unseen: SoloMatchCompletion[] = [];
-
-  for (const completion of byMatchId.values()) {
-    const seen = await hasSeenSoloMatchResult(completion.matchId);
-    if (seen) {
-      continue;
-    }
-
-    unseen.push(completion);
-  }
-
-  if (unseen.length === 0) {
-    return;
-  }
-
-  await refreshGameState();
-
-  for (const completion of unseen) {
-    showSoloMatchCompletion(completion);
-  }
-}
+const PAST_DUE_POLL_MS = 2_000;
 
 export function useActiveSoloMatch() {
   const userId = useUserId();
   const { refreshGameState } = useAuth();
-  const { showSoloMatchCompletion } = useSoloMatchCompletion();
   const { runEvaluation } = useAchievementUnlockPresentation();
   const [match, setMatch] = useState<ActiveSoloMatch | null>(null);
   const [loading, setLoading] = useState(true);
   const [fromServer, setFromServer] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const expiryTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const pastDuePollRef = useRef<ReturnType<typeof setInterval> | null>(null);
+  const hadActiveMatchRef = useRef(false);
 
   const refresh = useCallback(
     async (options?: RefreshOptions) => {
@@ -77,17 +41,20 @@ export function useActiveSoloMatch() {
       setError(null);
 
       try {
-        const completions = await finalizeDueSoloMatches();
-        await collectUnseenCompletions(userId, completions, showSoloMatchCompletion, refreshGameState);
-
         const serverMatch = await fetchActiveSoloMatch(userId, { skipFinalize: true });
         if (serverMatch) {
           setMatch(serverMatch);
           setFromServer(true);
+          hadActiveMatchRef.current = true;
           await runEvaluation();
         } else {
+          if (hadActiveMatchRef.current) {
+            notifySoloMatchCompletionSync();
+            hadActiveMatchRef.current = false;
+          }
           setMatch(null);
           setFromServer(false);
+          void refreshGameState();
         }
       } catch (refreshError) {
         const message =
@@ -101,7 +68,7 @@ export function useActiveSoloMatch() {
         }
       }
     },
-    [refreshGameState, runEvaluation, showSoloMatchCompletion, userId],
+    [refreshGameState, runEvaluation, userId],
   );
 
   useEffect(() => {
@@ -130,11 +97,13 @@ export function useActiveSoloMatch() {
 
     const remainingMs = new Date(match.endsAt).getTime() - Date.now();
     if (remainingMs <= 0) {
+      notifySoloMatchCompletionSync();
       void refresh({ silent: true });
       return;
     }
 
     expiryTimeoutRef.current = setTimeout(() => {
+      notifySoloMatchCompletionSync();
       void refresh({ silent: true });
     }, remainingMs + 1000);
 
@@ -142,6 +111,34 @@ export function useActiveSoloMatch() {
       if (expiryTimeoutRef.current) {
         clearTimeout(expiryTimeoutRef.current);
         expiryTimeoutRef.current = null;
+      }
+    };
+  }, [match?.endsAt, match?.id, refresh]);
+
+  useEffect(() => {
+    if (pastDuePollRef.current) {
+      clearInterval(pastDuePollRef.current);
+      pastDuePollRef.current = null;
+    }
+
+    if (!match?.endsAt) {
+      return;
+    }
+
+    const isPastDue = new Date(match.endsAt).getTime() <= Date.now();
+    if (!isPastDue) {
+      return;
+    }
+
+    pastDuePollRef.current = setInterval(() => {
+      notifySoloMatchCompletionSync();
+      void refresh({ silent: true });
+    }, PAST_DUE_POLL_MS);
+
+    return () => {
+      if (pastDuePollRef.current) {
+        clearInterval(pastDuePollRef.current);
+        pastDuePollRef.current = null;
       }
     };
   }, [match?.endsAt, match?.id, refresh]);

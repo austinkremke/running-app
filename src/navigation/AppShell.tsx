@@ -8,7 +8,7 @@ import {
   ProfileAvatarButton,
   TabAppHeader,
 } from '../components/header';
-import { useAuth, useOnboarding, useUserId } from '../context';
+import { useAuth, useOnboarding, useSoloMatchCompletion, useUserId } from '../context';
 import type { FeedTab, MatchTab } from '../mock';
 import { initialsFromDisplayName } from '../services/profileAvatar';
 import { fetchActiveSoloMatchId } from '../services/matchService';
@@ -40,11 +40,18 @@ export function AppShell() {
   const { gameState } = useAuth();
   const userId = useUserId();
   const { shouldOpenSoloMatch, consumeSoloMatchNavigation } = useOnboarding();
+  const { syncCompletions } = useSoloMatchCompletion();
   const [activeRoute, setActiveRoute] = useState<AppRoute>('feed');
   const [runReturnRoute, setRunReturnRoute] = useState<AppRoute>('feed');
   const [settingsReturnRoute, setSettingsReturnRoute] = useState<AppRoute>('me');
   const [activeFeedTab, setActiveFeedTab] = useState<FeedTab>('community');
   const [activeMatchTab, setActiveMatchTab] = useState<MatchTab>('team');
+
+  useEffect(() => {
+    if (activeRoute === 'match' || activeRoute === 'soloMatch') {
+      void syncCompletions();
+    }
+  }, [activeRoute, syncCompletions]);
 
   useEffect(() => {
     if (!shouldOpenSoloMatch) {
@@ -92,6 +99,8 @@ export function AppShell() {
     }
 
     try {
+      await syncCompletions();
+
       const [soloMatchId, matchmakingStatus] = await Promise.all([
         fetchActiveSoloMatchId(userId),
         getSoloMatchmakingStatus(),

@@ -10,7 +10,7 @@ import { formatMatchPoints } from './soloMatchTheme';
 type SoloMatchResultDrawerProps = {
   visible: boolean;
   completion: SoloMatchCompletion | null;
-  onClose: () => void;
+  onClose: () => void | Promise<void>;
 };
 
 function outcomeCopy(outcome: SoloMatchCompletion['outcome']) {
@@ -56,8 +56,8 @@ export function SoloMatchResultDrawer({ visible, completion, onClose }: SoloMatc
   }
 
   const copy = outcomeCopy(completion.outcome);
-  const seasonWins = gameState?.rank.season_wins ?? 0;
-  const seasonLosses = gameState?.rank.season_losses ?? 0;
+  const seasonWins = completion.seasonWins ?? gameState?.rank.season_wins ?? 0;
+  const seasonLosses = completion.seasonLosses ?? gameState?.rank.season_losses ?? 0;
 
   return (
     <BottomSheetDrawer
@@ -66,14 +66,18 @@ export function SoloMatchResultDrawer({ visible, completion, onClose }: SoloMatc
         <Pressable
           accessibilityLabel="Continue"
           accessibilityRole="button"
-          onPress={onClose}
+          onPress={() => {
+            void onClose();
+          }}
           style={({ pressed }) => [styles.continueButton, pressed && styles.pressed]}
         >
           <Text style={styles.continueLabel}>Continue</Text>
         </Pressable>
       }
       heightRatio={0.72}
-      onClose={onClose}
+      onClose={() => {
+        void onClose();
+      }}
       visible={visible}
     >
       <View style={styles.content}>

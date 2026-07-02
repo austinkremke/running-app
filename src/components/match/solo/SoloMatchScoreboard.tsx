@@ -5,6 +5,7 @@ import type { ActiveSoloMatch } from '../../../mock';
 import { useLiveCountdown } from '../../../hooks/useLiveCountdown';
 import { colors, spacing } from '../../../theme';
 import { MatchVsIndicator } from '../MatchVsIndicator';
+import { formatMatchCountdownLabel } from '../../../services/matchMappers';
 import { formatMatchPoints, getTeamMatchAccentColor } from './soloMatchTheme';
 import { SoloMatchScoreboardRunner } from './SoloMatchScoreboardRunner';
 
@@ -56,9 +57,7 @@ export function SoloMatchScoreboard({ match, onMatchExpired }: SoloMatchScoreboa
 
         <View style={styles.countdownRow}>
           <Ionicons color={colors.textSecondary} name="time-outline" size={13} />
-          <Text style={styles.countdownText}>
-            ENDS IN {countdown.days}D {countdown.hours}H {countdown.minutes}M
-          </Text>
+          <Text style={styles.countdownText}>{formatMatchCountdownLabel(countdown)}</Text>
         </View>
 
         <View style={[styles.progressTrack, isTied && styles.progressTrackTied]}>

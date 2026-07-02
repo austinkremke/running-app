@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { ActivityIndicator, ScrollView, StyleSheet, Text, View } from 'react-native';
 
 import {
@@ -10,6 +10,8 @@ import {
   SoloMatchStatsSection,
 } from '../components/match/solo';
 import { useActiveSoloMatch } from '../hooks/useActiveSoloMatch';
+import { useSoloMatchCompletion } from '../context';
+import { notifySoloMatchCompletionSync } from '../services/soloMatchCompletionBus';
 import { colors, spacing } from '../theme';
 
 type SoloMatchScreenProps = {
@@ -19,7 +21,12 @@ type SoloMatchScreenProps = {
 
 export function SoloMatchScreen({ onRunPress, embedded = false }: SoloMatchScreenProps) {
   const { match, loading, refresh } = useActiveSoloMatch();
+  const { syncCompletions } = useSoloMatchCompletion();
   const [chatVisible, setChatVisible] = useState(false);
+
+  useEffect(() => {
+    void syncCompletions();
+  }, [syncCompletions]);
 
   if (loading) {
     return (
@@ -48,6 +55,7 @@ export function SoloMatchScreen({ onRunPress, embedded = false }: SoloMatchScree
         <SoloMatchScoreboard
           match={match}
           onMatchExpired={() => {
+            notifySoloMatchCompletionSync();
             void refresh({ silent: true });
           }}
         />

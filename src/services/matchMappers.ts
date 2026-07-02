@@ -53,12 +53,39 @@ function asLogoAccent(value: string | null | undefined): TeamLogoAccent {
 
 export function countdownFromEndsAt(endsAt: string): TeamMatchCountdown {
   const remainingMs = Math.max(0, new Date(endsAt).getTime() - Date.now());
-  const totalMinutes = Math.floor(remainingMs / 60_000);
-  const days = Math.floor(totalMinutes / (60 * 24));
-  const hours = Math.floor((totalMinutes % (60 * 24)) / 60);
-  const minutes = totalMinutes % 60;
+  const totalSeconds = Math.floor(remainingMs / 1000);
+  const days = Math.floor(totalSeconds / 86_400);
+  const hours = Math.floor((totalSeconds % 86_400) / 3_600);
+  const minutes = Math.floor((totalSeconds % 3_600) / 60);
+  const seconds = totalSeconds % 60;
 
-  return { days, hours, minutes };
+  return { days, hours, minutes, seconds };
+}
+
+export function isMatchTimerExpired(endsAt: string | null | undefined): boolean {
+  if (!endsAt) {
+    return false;
+  }
+
+  return new Date(endsAt).getTime() <= Date.now();
+}
+
+export function formatMatchCountdownLabel(countdown: TeamMatchCountdown): string {
+  const totalSeconds =
+    countdown.days * 86_400 +
+    countdown.hours * 3_600 +
+    countdown.minutes * 60 +
+    countdown.seconds;
+
+  if (totalSeconds <= 0) {
+    return 'MATCH ENDED';
+  }
+
+  if (totalSeconds < 60) {
+    return `ENDS IN ${countdown.seconds}S`;
+  }
+
+  return `ENDS IN ${countdown.days}D ${countdown.hours}H ${countdown.minutes}M`;
 }
 
 function mapStoredMember(

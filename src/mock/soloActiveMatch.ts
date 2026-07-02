@@ -32,6 +32,7 @@ export const MOCK_ACTIVE_SOLO_MATCH: ActiveSoloMatch = {
     days: 2,
     hours: 14,
     minutes: 32,
+    seconds: 0,
   },
   info: {
     rank: 24812,

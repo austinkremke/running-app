@@ -130,6 +130,7 @@ export const MOCK_ACTIVE_TEAM_MATCH: ActiveTeamMatch = {
     days: 3,
     hours: 14,
     minutes: 22,
+    seconds: 0,
   },
   activities: [
     {

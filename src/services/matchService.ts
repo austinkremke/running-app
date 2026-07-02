@@ -2,8 +2,9 @@ import type { ActiveSoloMatch, ActiveTeamMatch } from '../mock';
 import { MOCK_ACTIVE_SOLO_MATCH } from '../mock/soloActiveMatch';
 import { MOCK_ACTIVE_TEAM_MATCH } from '../mock/teamMatch';
 import type { Tables } from '../types/database';
+import { mapSoloMatchRow, mapTeamMatchRow, isMatchTimerExpired } from './matchMappers';
 import { finalizeDueSoloMatches } from './matchmakingService';
-import { mapSoloMatchRow, mapTeamMatchRow } from './matchMappers';
+import { notifySoloMatchCompletionSync } from './soloMatchCompletionBus';
 import { fetchRankTiers } from './rank';
 import { mapRankTierRow, tierFromRating } from './rank/tierFromRating';
 import { supabase } from './supabase';
@@ -122,6 +123,65 @@ export async function fetchActiveTeamMatch(userId: string): Promise<ActiveTeamMa
   return mapTeamMatchRow(match, homeTeam, awayTeam, liveHomeMembers);
 }
 
+type SoloMatchEnrollment = {
+  match_id: string;
+  matches: {
+    id: string;
+    kind: string;
+    status: string;
+    ends_at: string;
+  } | null;
+};
+
+async function fetchActiveSoloMatchEnrollment(userId: string): Promise<SoloMatchEnrollment | null> {
+  if (!supabase) {
+    return null;
+  }
+
+  const { data, error } = await supabase
+    .from('match_participants')
+    .select('match_id, matches:match_id!inner (id, kind, status, ends_at)')
+    .eq('user_id', userId)
+    .eq('matches.kind', 'solo')
+    .eq('matches.status', 'active')
+    .limit(1)
+    .maybeSingle();
+
+  if (error) {
+    throw error;
+  }
+
+  return (data as SoloMatchEnrollment | null) ?? null;
+}
+
+async function resolveActiveSoloMatchId(userId: string): Promise<string | null> {
+  let enrolled = await fetchActiveSoloMatchEnrollment(userId);
+  if (!enrolled?.match_id) {
+    return null;
+  }
+
+  const endsAt = enrolled.matches?.ends_at;
+  if (!isMatchTimerExpired(endsAt)) {
+    return enrolled.match_id;
+  }
+
+  const finalized = await finalizeDueSoloMatches();
+  if (finalized.length > 0) {
+    notifySoloMatchCompletionSync(finalized);
+  }
+
+  enrolled = await fetchActiveSoloMatchEnrollment(userId);
+  if (!enrolled?.match_id) {
+    return null;
+  }
+
+  if (isMatchTimerExpired(enrolled.matches?.ends_at)) {
+    return null;
+  }
+
+  return enrolled.match_id;
+}
+
 async function fetchParticipantBundle(
   matchId: string,
   userId: string,
@@ -185,27 +245,14 @@ async function fetchParticipantBundle(
 
 export async function fetchActiveSoloMatch(
   userId: string,
-  options?: { skipFinalize?: boolean },
+  _options?: { skipFinalize?: boolean },
 ): Promise<ActiveSoloMatch | null> {
   if (!supabase) return null;
 
-  if (!options?.skipFinalize) {
-    await finalizeDueSoloMatches();
-  }
+  const matchId = await resolveActiveSoloMatchId(userId);
+  if (!matchId) return null;
 
-  const { data: enrolled, error: enrolledError } = await supabase
-    .from('match_participants')
-    .select('match_id, points, side, matches:match_id!inner (id, kind, status)')
-    .eq('user_id', userId)
-    .eq('matches.kind', 'solo')
-    .eq('matches.status', 'active')
-    .limit(1)
-    .maybeSingle();
-
-  if (enrolledError) throw enrolledError;
-  if (!enrolled?.match_id) return null;
-
-  const bundle = await fetchParticipantBundle(enrolled.match_id, userId);
+  const bundle = await fetchParticipantBundle(matchId, userId);
   if (!bundle) return null;
 
   const [{ data: selfProgress }, { data: opponentProgress }, { data: selfRank }, { data: opponentRank }, tiers] =
@@ -260,18 +307,7 @@ export async function fetchActiveSoloMatch(
 }
 
 export async function fetchActiveSoloMatchId(userId: string): Promise<string | null> {
-  if (!supabase) return null;
-
-  const { data: soloParticipant, error: soloError } = await supabase
-    .from('match_participants')
-    .select('match_id, matches:match_id!inner (kind, status)')
-    .eq('user_id', userId)
-    .eq('matches.kind', 'solo')
-    .eq('matches.status', 'active')
-    .maybeSingle();
-
-  if (soloError) throw soloError;
-  return soloParticipant?.match_id ?? null;
+  return resolveActiveSoloMatchId(userId);
 }
 
 export async function fetchActiveTeamMatchId(userId: string): Promise<string | null> {

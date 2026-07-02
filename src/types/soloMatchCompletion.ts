@@ -9,4 +9,6 @@ export type SoloMatchCompletion = {
   ratingDelta: number;
   newRating: number;
   previousRating: number;
+  seasonWins?: number;
+  seasonLosses?: number;
 };
