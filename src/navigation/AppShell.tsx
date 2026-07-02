@@ -8,9 +8,11 @@ import {
   ProfileAvatarButton,
   TabAppHeader,
 } from '../components/header';
-import { useAuth, useOnboarding } from '../context';
+import { useAuth, useOnboarding, useUserId } from '../context';
 import type { FeedTab, MatchTab } from '../mock';
 import { initialsFromDisplayName } from '../services/profileAvatar';
+import { fetchActiveSoloMatchId } from '../services/matchService';
+import { getSoloMatchmakingStatus } from '../services/matchmakingService';
 import { FeedScreen } from '../screens/FeedScreen';
 import { MatchScreen } from '../screens/MatchScreen';
 import { MeScreen } from '../screens/MeScreen';
@@ -36,6 +38,7 @@ const MATCH_TABS = [
 
 export function AppShell() {
   const { gameState } = useAuth();
+  const userId = useUserId();
   const { shouldOpenSoloMatch, consumeSoloMatchNavigation } = useOnboarding();
   const [activeRoute, setActiveRoute] = useState<AppRoute>('feed');
   const [runReturnRoute, setRunReturnRoute] = useState<AppRoute>('feed');
@@ -82,6 +85,34 @@ export function AppShell() {
     setActiveRoute('run');
   }
 
+  async function openMatchRoute() {
+    if (!userId) {
+      setActiveRoute('match');
+      return;
+    }
+
+    try {
+      const [soloMatchId, matchmakingStatus] = await Promise.all([
+        fetchActiveSoloMatchId(userId),
+        getSoloMatchmakingStatus(),
+      ]);
+      const hasSoloMatchInProgress =
+        soloMatchId != null ||
+        matchmakingStatus.status === 'in_match' ||
+        matchmakingStatus.status === 'matched';
+
+      if (hasSoloMatchInProgress) {
+        setActiveRoute('soloMatch');
+        setActiveMatchTab('solo');
+        return;
+      }
+    } catch {
+      // Fall through to the match hub when status cannot be loaded.
+    }
+
+    setActiveRoute('match');
+  }
+
   function handleNavPress(key: string) {
     if (!isAppRoute(key)) {
       return;
@@ -89,6 +120,11 @@ export function AppShell() {
 
     if (key === 'run') {
       openRun();
+      return;
+    }
+
+    if (key === 'match') {
+      void openMatchRoute();
       return;
     }
 
