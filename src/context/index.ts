@@ -4,4 +4,5 @@ export type { OnboardingStep } from './OnboardingContext';
 export { PlayerProgressProvider, usePlayerProgress } from './PlayerProgressContext';
 export type { XpGainEvent } from './PlayerProgressContext';
 export { RunProvider, useRun } from './RunContext';
+export { SoloMatchCompletionProvider, useSoloMatchCompletion } from './SoloMatchCompletionContext';
 export { XpGainProvider, useXpGain } from './XpGainContext';

@@ -1,4 +1,7 @@
 import { supabase } from './supabase';
+import type { SoloMatchCompletion, SoloMatchOutcome } from '../types/soloMatchCompletion';
+
+export type { SoloMatchCompletion } from '../types/soloMatchCompletion';
 
 export type SoloMatchmakingStatus =
   | { status: 'idle' }
@@ -85,13 +88,88 @@ export async function creditMatchActivity(activityId: string): Promise<void> {
   }
 }
 
-export async function finalizeDueSoloMatches(): Promise<void> {
+export async function finalizeDueSoloMatches(): Promise<SoloMatchCompletion[]> {
   if (!supabase) {
-    return;
+    return [];
   }
 
-  const { error } = await supabase.rpc('finalize_due_solo_matches_for_user');
+  const { data, error } = await supabase.rpc('finalize_due_solo_matches_for_user');
   if (error) {
     throw error;
   }
+
+  return parseSoloMatchCompletions(data);
+}
+
+function parseSoloMatchCompletions(payload: unknown): SoloMatchCompletion[] {
+  if (!Array.isArray(payload)) {
+    return [];
+  }
+
+  return payload
+    .map((entry) => parseSoloMatchCompletion(entry))
+    .filter((entry): entry is SoloMatchCompletion => entry !== null);
+}
+
+function parseSoloMatchCompletion(payload: unknown): SoloMatchCompletion | null {
+  if (!payload || typeof payload !== 'object') {
+    return null;
+  }
+
+  const row = payload as Record<string, unknown>;
+  const matchId = row.match_id;
+  const outcome = row.outcome;
+
+  if (typeof matchId !== 'string' || !isSoloMatchOutcome(outcome)) {
+    return null;
+  }
+
+  return {
+    matchId,
+    outcome,
+    myPoints: typeof row.my_points === 'number' ? row.my_points : 0,
+    opponentPoints: typeof row.opponent_points === 'number' ? row.opponent_points : 0,
+    opponentName: typeof row.opponent_name === 'string' ? row.opponent_name : 'Opponent',
+    ratingDelta: typeof row.rating_delta === 'number' ? row.rating_delta : 0,
+    newRating: typeof row.new_rating === 'number' ? row.new_rating : 0,
+    previousRating: typeof row.previous_rating === 'number' ? row.previous_rating : 0,
+  };
+}
+
+function isSoloMatchOutcome(value: unknown): value is SoloMatchOutcome {
+  return value === 'win' || value === 'loss' || value === 'tie';
+}
+
+export async function fetchStoredSoloMatchCompletions(userId: string): Promise<SoloMatchCompletion[]> {
+  if (!supabase) {
+    return [];
+  }
+
+  const { data, error } = await supabase
+    .from('match_participants')
+    .select('match_id, matches:match_id!inner (id, kind, status, state_json, ends_at)')
+    .eq('user_id', userId)
+    .eq('matches.kind', 'solo')
+    .eq('matches.status', 'completed')
+    .order('ends_at', { ascending: false, referencedTable: 'matches' })
+    .limit(5);
+
+  if (error) {
+    throw error;
+  }
+
+  const completions: SoloMatchCompletion[] = [];
+
+  for (const row of data ?? []) {
+    const match = row.matches as {
+      state_json?: { completions?: Record<string, unknown> } | null;
+    } | null;
+    const stored = match?.state_json?.completions?.[userId];
+    const parsed = parseSoloMatchCompletion(stored);
+    if (parsed) {
+      completions.push(parsed);
+    }
+  }
+
+  return completions;
 }

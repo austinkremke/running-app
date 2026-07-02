@@ -1,7 +1,8 @@
 import { StyleSheet, Text, View } from 'react-native';
 
-import { Avatar } from '../../avatar';
 import { UserLevelBadge } from '../../feed/UserLevelBadge';
+import { RankBorderAvatar } from '../../team/RankBorderAvatar';
+import { rankBorderSourceForTier } from '../../team/rankAvatarBorderTheme';
 import type { SoloMatchRunner } from '../../../mock';
 import { colors, spacing } from '../../../theme';
 import { formatMatchPoints, getTeamMatchAccentColor } from './soloMatchTheme';
@@ -12,9 +13,14 @@ type SoloMatchScoreboardRunnerProps = {
   side: 'home' | 'away';
 };
 
+const AVATAR_FRAME_SIZE = 72;
+const PLAIN_AVATAR_SIZE = 64;
+
 export function SoloMatchScoreboardRunner({ runner, side }: SoloMatchScoreboardRunnerProps) {
   const accentColor = getTeamMatchAccentColor(runner.accent);
   const isHome = side === 'home';
+  const hasRankBorder = rankBorderSourceForTier(runner.rankTierId) != null;
+  const avatarSize = hasRankBorder ? AVATAR_FRAME_SIZE : PLAIN_AVATAR_SIZE;
 
   return (
     <View style={[styles.side, isHome ? styles.sideHome : styles.sideAway]}>
@@ -23,7 +29,7 @@ export function SoloMatchScoreboardRunner({ runner, side }: SoloMatchScoreboardR
       <Text style={styles.pointsLabel}>TOTAL POINTS</Text>
 
       <View style={styles.avatarWrap}>
-        <Avatar avatarUrl={runner.avatarUrl} borderColor={accentColor} size={64} />
+        <RankBorderAvatar avatarUrl={runner.avatarUrl} rankTierId={runner.rankTierId} size={avatarSize} />
         <UserLevelBadge
           bottom={-2}
           color={accentColor}
@@ -73,5 +79,6 @@ const styles = StyleSheet.create({
   avatarWrap: {
     position: 'relative',
     alignItems: 'center',
+    overflow: 'visible',
   },
 });

@@ -18,7 +18,7 @@ type SoloMatchScreenProps = {
 };
 
 export function SoloMatchScreen({ onRunPress, embedded = false }: SoloMatchScreenProps) {
-  const { match, loading } = useActiveSoloMatch();
+  const { match, loading, refresh } = useActiveSoloMatch();
   const [chatVisible, setChatVisible] = useState(false);
 
   if (loading) {
@@ -45,7 +45,12 @@ export function SoloMatchScreen({ onRunPress, embedded = false }: SoloMatchScree
         showsVerticalScrollIndicator={false}
         style={styles.scroll}
       >
-        <SoloMatchScoreboard match={match} />
+        <SoloMatchScoreboard
+          match={match}
+          onMatchExpired={() => {
+            void refresh({ silent: true });
+          }}
+        />
 
         <SoloMatchStatsSection match={match} />
         <SoloMatchActivitySection activities={match.activities} />

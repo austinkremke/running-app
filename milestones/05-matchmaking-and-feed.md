@@ -76,6 +76,12 @@ Replace remaining mock match/social data with server-backed state: real opponent
 
 **Out of scope:** team lineup mock; team scoreboard still reads demo `state_json` until team scoring ships.
 
+**Match scoring (v1):** `match_points_for_activity` — base ~10 pts/mi (≥0.1 mi), pace multiplier vs fixed **10:00/mi** reference (0.85×–1.25×). See migration `20250625000001_match_pace_scoring.sql`.
+
+### Future follow-ups (milestone 05 backlog)
+
+- [ ] **Dynamic pace scoring** — replace the fixed 10:00/mi reference with a personalized or opponent-relative model (e.g. runner rolling avg pace, match-type config in `match_types`, or head-to-head pace bonus). Goal: same distance should reward faster effort without a single global benchmark. v1 clamp + reference constants live in `match_points_for_activity` / `matchScoring.ts`.
+
 ---
 
 ## Rules (from milestone 03)
@@ -93,6 +99,7 @@ Replace remaining mock match/social data with server-backed state: real opponent
 3. Team matches before solo Elo, or parallel?
 4. Seasonal rank reset?
 5. Minimum activity validation before match points count?
+6. **Dynamic pace scoring:** fixed 10:00/mi reference (v1 shipped) vs rolling avg / opponent-relative / `match_types` config — see [05 backlog](./05-matchmaking-and-feed.md#future-follow-ups-milestone-05-backlog).
 
 ---
 

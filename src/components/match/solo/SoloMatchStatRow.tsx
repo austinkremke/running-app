@@ -20,33 +20,35 @@ export function SoloMatchStatRow({
   awayAccent,
   showDivider = true,
 }: SoloMatchStatRowProps) {
-  const homeColor = getTeamMatchAccentColor(homeAccent);
-  const awayColor = getTeamMatchAccentColor(awayAccent);
+  const isTied = stat.homeValue === stat.awayValue;
+  const homeColor = isTied ? colors.divider : getTeamMatchAccentColor(homeAccent);
+  const awayColor = isTied ? colors.divider : getTeamMatchAccentColor(awayAccent);
+  const homeProgress = isTied ? 0.5 : stat.homeProgress;
 
   return (
     <View>
       <View style={styles.row}>
-        <Text style={[styles.value, styles.valueHome]}>{stat.homeValue}</Text>
+        <Text style={[styles.value, styles.valueHome, isTied && styles.tiedValue]}>{stat.homeValue}</Text>
 
         <View style={styles.center}>
           <Ionicons color={colors.textSecondary} name={stat.icon as IoniconsName} size={14} />
           <Text style={styles.label}>{stat.label.toUpperCase()}</Text>
         </View>
 
-        <Text style={[styles.value, styles.valueAway]}>{stat.awayValue}</Text>
+        <Text style={[styles.value, styles.valueAway, isTied && styles.tiedValue]}>{stat.awayValue}</Text>
       </View>
 
-      <View style={styles.progressTrack}>
+      <View style={[styles.progressTrack, isTied && styles.progressTrackTied]}>
         <View
           style={[
             styles.progressHome,
-            { width: `${stat.homeProgress * 100}%`, backgroundColor: homeColor },
+            { width: `${homeProgress * 100}%`, backgroundColor: homeColor },
           ]}
         />
         <View
           style={[
             styles.progressAway,
-            { width: `${(1 - stat.homeProgress) * 100}%`, backgroundColor: awayColor },
+            { width: `${(1 - homeProgress) * 100}%`, backgroundColor: awayColor },
           ]}
         />
       </View>
@@ -76,6 +78,9 @@ const styles = StyleSheet.create({
   valueAway: {
     textAlign: 'right',
   },
+  tiedValue: {
+    color: colors.textSecondary,
+  },
   center: {
     width: 72,
     alignItems: 'center',
@@ -95,6 +100,11 @@ const styles = StyleSheet.create({
     overflow: 'hidden',
     backgroundColor: colors.surfaceElevated,
     marginBottom: spacing.xs,
+  },
+  progressTrackTied: {
+    borderWidth: 1,
+    borderColor: colors.border,
+    backgroundColor: colors.surface,
   },
   progressHome: {
     height: '100%',

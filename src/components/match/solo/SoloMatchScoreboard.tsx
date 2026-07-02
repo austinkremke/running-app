@@ -10,16 +10,20 @@ import { SoloMatchScoreboardRunner } from './SoloMatchScoreboardRunner';
 
 type SoloMatchScoreboardProps = {
   match: ActiveSoloMatch;
+  onMatchExpired?: () => void;
 };
 
-export function SoloMatchScoreboard({ match }: SoloMatchScoreboardProps) {
+export function SoloMatchScoreboard({ match, onMatchExpired }: SoloMatchScoreboardProps) {
   const { homeRunner, awayRunner } = match;
-  const countdown = useLiveCountdown(match.endsAt);
+  const countdown = useLiveCountdown(match.endsAt, { onExpired: onMatchExpired });
   const pointDiff = homeRunner.totalPoints - awayRunner.totalPoints;
-  const leadingRunner = pointDiff >= 0 ? homeRunner : awayRunner;
+  const isTied = pointDiff === 0;
+  const leadingRunner = pointDiff > 0 ? homeRunner : awayRunner;
   const leadColor = getTeamMatchAccentColor(leadingRunner.accent);
   const totalPoints = homeRunner.totalPoints + awayRunner.totalPoints;
-  const homeShare = totalPoints > 0 ? homeRunner.totalPoints / totalPoints : 0.5;
+  const homeShare = isTied ? 0.5 : totalPoints > 0 ? homeRunner.totalPoints / totalPoints : 0.5;
+  const tiedLabel =
+    homeRunner.totalPoints === 0 ? 'MATCH TIED' : `TIED AT ${formatMatchPoints(homeRunner.totalPoints)} PTS`;
 
   return (
     <View style={styles.container}>
@@ -33,10 +37,19 @@ export function SoloMatchScoreboard({ match }: SoloMatchScoreboardProps) {
 
       <View style={styles.statusSection}>
         <View style={styles.leadRow}>
-          <Ionicons color={leadColor} name="trending-up" size={12} />
-          <Text style={[styles.leadText, { color: leadColor }]}>
-            {leadingRunner.name.toUpperCase()} LEADS BY {formatMatchPoints(Math.abs(pointDiff))} PTS
-          </Text>
+          {isTied ? (
+            <>
+              <Ionicons color={colors.textSecondary} name="remove-outline" size={12} />
+              <Text style={[styles.leadText, styles.tiedText]}>{tiedLabel}</Text>
+            </>
+          ) : (
+            <>
+              <Ionicons color={leadColor} name="trending-up" size={12} />
+              <Text style={[styles.leadText, { color: leadColor }]}>
+                {leadingRunner.name.toUpperCase()} LEADS BY {formatMatchPoints(Math.abs(pointDiff))} PTS
+              </Text>
+            </>
+          )}
         </View>
 
         <View style={styles.divider} />
@@ -48,13 +61,13 @@ export function SoloMatchScoreboard({ match }: SoloMatchScoreboardProps) {
           </Text>
         </View>
 
-        <View style={styles.progressTrack}>
+        <View style={[styles.progressTrack, isTied && styles.progressTrackTied]}>
           <View
             style={[
               styles.progressHome,
               {
                 width: `${homeShare * 100}%`,
-                backgroundColor: getTeamMatchAccentColor(homeRunner.accent),
+                backgroundColor: isTied ? colors.divider : getTeamMatchAccentColor(homeRunner.accent),
               },
             ]}
           />
@@ -63,17 +76,27 @@ export function SoloMatchScoreboard({ match }: SoloMatchScoreboardProps) {
               styles.progressAway,
               {
                 width: `${(1 - homeShare) * 100}%`,
-                backgroundColor: getTeamMatchAccentColor(awayRunner.accent),
+                backgroundColor: isTied ? colors.divider : getTeamMatchAccentColor(awayRunner.accent),
               },
             ]}
           />
         </View>
 
         <View style={styles.progressLabels}>
-          <Text style={[styles.progressLabel, { color: getTeamMatchAccentColor(homeRunner.accent) }]}>
+          <Text
+            style={[
+              styles.progressLabel,
+              { color: isTied ? colors.textSecondary : getTeamMatchAccentColor(homeRunner.accent) },
+            ]}
+          >
             {formatMatchPoints(homeRunner.totalPoints)}
           </Text>
-          <Text style={[styles.progressLabel, { color: getTeamMatchAccentColor(awayRunner.accent) }]}>
+          <Text
+            style={[
+              styles.progressLabel,
+              { color: isTied ? colors.textSecondary : getTeamMatchAccentColor(awayRunner.accent) },
+            ]}
+          >
             {formatMatchPoints(awayRunner.totalPoints)}
           </Text>
         </View>
@@ -110,6 +133,9 @@ const styles = StyleSheet.create({
     fontWeight: '700',
     letterSpacing: 0.4,
   },
+  tiedText: {
+    color: colors.textSecondary,
+  },
   divider: {
     height: 1,
     backgroundColor: colors.border,
@@ -132,6 +158,11 @@ const styles = StyleSheet.create({
     borderRadius: 3,
     overflow: 'hidden',
     backgroundColor: colors.surfaceElevated,
+  },
+  progressTrackTied: {
+    borderWidth: 1,
+    borderColor: colors.border,
+    backgroundColor: colors.surface,
   },
   progressHome: {
     height: '100%',

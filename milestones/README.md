@@ -42,6 +42,7 @@ When adding a milestone:
 | Friends feed & richer cards | [05](./05-matchmaking-and-feed.md) Phase 3 **shipped** |
 | Solo matchmaking queue | [05](./05-matchmaking-and-feed.md) Phase 4 **shipped** |
 | Live match scoreboard + chat | [05](./05-matchmaking-and-feed.md) Phase 5 **shipped** |
+| Dynamic pace match scoring | [05](./05-matchmaking-and-feed.md) backlog — replace fixed 10:00/mi reference |
 | Account settings | [06](./06-account-gating-and-cosmetics.md) Phase 1 **shipped** |
 | Achievements (server-backed) | [06](./06-account-gating-and-cosmetics.md) Phase 2 **shipped** |
 | Avatar rank decorative borders | [06](./06-account-gating-and-cosmetics.md) Phase 3 **shipped** (Me, feed, solo — not team rosters) |

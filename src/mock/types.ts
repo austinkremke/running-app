@@ -281,6 +281,7 @@ export type SoloMatchRunner = {
   avatarUrl: string;
   totalPoints: number;
   accent: TeamMatchAccent;
+  rankTierId?: string;
 };
 
 export type SoloMatchInfo = {

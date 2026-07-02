@@ -17,6 +17,7 @@ export const MOCK_ACTIVE_SOLO_MATCH: ActiveSoloMatch = {
     avatarUrl: AVATARS.austin,
     totalPoints: 412,
     accent: 'lime',
+    rankTierId: 'bronze',
   },
   awayRunner: {
     id: 'runner-jordan',
@@ -25,6 +26,7 @@ export const MOCK_ACTIVE_SOLO_MATCH: ActiveSoloMatch = {
     avatarUrl: AVATARS.jordan,
     totalPoints: 398,
     accent: 'purple',
+    rankTierId: 'silver',
   },
   countdown: {
     days: 2,

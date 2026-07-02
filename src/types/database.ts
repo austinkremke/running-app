@@ -993,7 +993,7 @@ export type Database = {
       evaluate_achievements: { Args: { p_user_id?: string }; Returns: Json }
       finalize_due_solo_matches_for_user: {
         Args: { p_user_id?: string }
-        Returns: number
+        Returns: Json
       }
       finalize_solo_match: { Args: { p_match_id: string }; Returns: Json }
       get_solo_matchmaking_status: { Args: never; Returns: Json }

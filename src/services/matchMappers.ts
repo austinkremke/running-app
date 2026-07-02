@@ -205,6 +205,8 @@ export function mapSoloMatchRow(
   activities: Tables<'activities'>[] = [],
   matchType?: Tables<'match_types'> | null,
   homeRating = 1000,
+  homeRankTierId?: string,
+  awayRankTierId?: string,
 ): ActiveSoloMatch {
   const homeLevel = levelFromTotalXp(homeProgress?.total_xp ?? 0);
   const awayLevel = levelFromTotalXp(awayProgress?.total_xp ?? 0);
@@ -220,8 +222,8 @@ export function mapSoloMatchRow(
   return {
     id: match.id,
     endsAt: match.ends_at,
-    homeRunner: buildSoloRunner(homeProfile, homeLevel, homePoints, 'lime'),
-    awayRunner: buildSoloRunner(awayProfile, awayLevel, awayPoints, 'purple'),
+    homeRunner: buildSoloRunner(homeProfile, homeLevel, homePoints, 'lime', homeRankTierId),
+    awayRunner: buildSoloRunner(awayProfile, awayLevel, awayPoints, 'purple', awayRankTierId),
     countdown: countdownFromEndsAt(match.ends_at),
     info: {
       rank: homeRating,
@@ -242,6 +244,7 @@ function buildSoloRunner(
   level: number,
   totalPoints: number,
   accent: TeamMatchAccent,
+  rankTierId?: string,
 ): SoloMatchRunner {
   return {
     id: profile.id,
@@ -250,6 +253,7 @@ function buildSoloRunner(
     avatarUrl: profile.avatar_url ?? '',
     totalPoints,
     accent,
+    rankTierId,
   };
 }
 
@@ -313,7 +317,10 @@ function buildSoloComparisonStats(
   awayDuration: number,
   totalDistance: number,
 ): SoloMatchComparisonStat[] {
-  const distanceDenominator = Math.max(totalDistance, 1);
+  const distanceTied = homeDistance === awayDistance;
+  const distanceDenominator = distanceTied ? 2 : Math.max(totalDistance, 1);
+  const timeTied = homeDuration === awayDuration;
+  const timeDenominator = Math.max(homeDuration, awayDuration);
 
   return [
     {
@@ -322,7 +329,7 @@ function buildSoloComparisonStats(
       icon: 'footsteps-outline',
       homeValue: formatMatchDistanceMiles(homeDistance),
       awayValue: formatMatchDistanceMiles(awayDistance),
-      homeProgress: homeDistance / distanceDenominator,
+      homeProgress: distanceTied ? 0.5 : homeDistance / distanceDenominator,
     },
     {
       id: 'time',
@@ -330,7 +337,7 @@ function buildSoloComparisonStats(
       icon: 'time-outline',
       homeValue: formatMatchDuration(homeDuration),
       awayValue: formatMatchDuration(awayDuration),
-      homeProgress: Math.max(homeDuration, awayDuration) > 0 ? homeDuration / Math.max(homeDuration, awayDuration) : 0.5,
+      homeProgress: timeTied ? 0.5 : timeDenominator > 0 ? homeDuration / timeDenominator : 0.5,
     },
   ];
 }

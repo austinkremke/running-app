@@ -4,6 +4,8 @@ import { MOCK_ACTIVE_TEAM_MATCH } from '../mock/teamMatch';
 import type { Tables } from '../types/database';
 import { finalizeDueSoloMatches } from './matchmakingService';
 import { mapSoloMatchRow, mapTeamMatchRow } from './matchMappers';
+import { fetchRankTiers } from './rank';
+import { mapRankTierRow, tierFromRating } from './rank/tierFromRating';
 import { supabase } from './supabase';
 
 export const DEMO_TEAM_MATCH_ID = '22222222-2222-4222-8222-222222222222';
@@ -181,10 +183,15 @@ async function fetchParticipantBundle(
   };
 }
 
-export async function fetchActiveSoloMatch(userId: string): Promise<ActiveSoloMatch | null> {
+export async function fetchActiveSoloMatch(
+  userId: string,
+  options?: { skipFinalize?: boolean },
+): Promise<ActiveSoloMatch | null> {
   if (!supabase) return null;
 
-  await finalizeDueSoloMatches();
+  if (!options?.skipFinalize) {
+    await finalizeDueSoloMatches();
+  }
 
   const { data: enrolled, error: enrolledError } = await supabase
     .from('match_participants')
@@ -201,43 +208,54 @@ export async function fetchActiveSoloMatch(userId: string): Promise<ActiveSoloMa
   const bundle = await fetchParticipantBundle(enrolled.match_id, userId);
   if (!bundle) return null;
 
-  const [{ data: selfProgress }, { data: opponentProgress }, { data: rankRow }] = await Promise.all([
-    supabase!
-      .from('player_progress')
-      .select('total_xp')
-      .eq('user_id', userId)
-      .maybeSingle(),
-    supabase!
-      .from('player_progress')
-      .select('total_xp')
-      .eq('user_id', bundle.opponent.user_id!)
-      .maybeSingle(),
-    supabase!
-      .from('player_rank')
-      .select('competitive_rating')
-      .eq('user_id', userId)
-      .maybeSingle(),
-  ]);
+  const [{ data: selfProgress }, { data: opponentProgress }, { data: selfRank }, { data: opponentRank }, tiers] =
+    await Promise.all([
+      supabase!
+        .from('player_progress')
+        .select('total_xp')
+        .eq('user_id', userId)
+        .maybeSingle(),
+      supabase!
+        .from('player_progress')
+        .select('total_xp')
+        .eq('user_id', bundle.opponent.user_id!)
+        .maybeSingle(),
+      supabase!
+        .from('player_rank')
+        .select('competitive_rating')
+        .eq('user_id', userId)
+        .maybeSingle(),
+      supabase!
+        .from('player_rank')
+        .select('competitive_rating')
+        .eq('user_id', bundle.opponent.user_id!)
+        .maybeSingle(),
+      fetchRankTiers(),
+    ]);
 
-  const homeIsSelf = bundle.self.side === 'home';
-  const homeProfile = homeIsSelf ? bundle.self.profiles! : bundle.opponent.profiles!;
-  const awayProfile = homeIsSelf ? bundle.opponent.profiles! : bundle.self.profiles!;
-  const homePoints = homeIsSelf ? bundle.self.points : bundle.opponent.points;
-  const awayPoints = homeIsSelf ? bundle.opponent.points : bundle.self.points;
-  const homeProgress = homeIsSelf ? selfProgress : opponentProgress;
-  const awayProgress = homeIsSelf ? opponentProgress : selfProgress;
+  const resolvedTiers = tiers.map(mapRankTierRow);
+  const selfRankTierId =
+    selfRank?.competitive_rating != null && resolvedTiers.length > 0
+      ? tierFromRating(selfRank.competitive_rating, resolvedTiers).id
+      : undefined;
+  const opponentRankTierId =
+    opponentRank?.competitive_rating != null && resolvedTiers.length > 0
+      ? tierFromRating(opponentRank.competitive_rating, resolvedTiers).id
+      : undefined;
 
   return mapSoloMatchRow(
     bundle.match,
-    homeProfile,
-    homeProgress,
-    homePoints,
-    awayProfile,
-    awayProgress,
-    awayPoints,
+    bundle.self.profiles!,
+    selfProgress,
+    bundle.self.points,
+    bundle.opponent.profiles!,
+    opponentProgress,
+    bundle.opponent.points,
     bundle.activities,
     bundle.matchType,
-    rankRow?.competitive_rating ?? 1000,
+    selfRank?.competitive_rating ?? 1000,
+    selfRankTierId,
+    opponentRankTierId,
   );
 }
 
