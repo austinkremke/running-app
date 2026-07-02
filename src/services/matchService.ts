@@ -307,7 +307,14 @@ export async function fetchActiveSoloMatch(
   );
 }
 
-export async function fetchActiveSoloMatchId(userId: string): Promise<string | null> {
+export async function fetchActiveSoloMatchId(
+  userId: string,
+  options?: { skipFinalize?: boolean },
+): Promise<string | null> {
+  if (options?.skipFinalize) {
+    return fetchLiveActiveSoloMatchId(userId);
+  }
+
   return resolveActiveSoloMatchId(userId);
 }
 

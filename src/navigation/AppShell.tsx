@@ -95,34 +95,34 @@ export function AppShell() {
     setActiveRoute('run');
   }
 
-  async function openMatchRoute() {
+  function openMatchRoute() {
+    setActiveRoute('match');
+
     if (!userId) {
-      setActiveRoute('match');
       return;
     }
 
-    try {
-      await syncCompletions();
+    void syncCompletions();
 
-      const [soloMatchId, matchmakingStatus] = await Promise.all([
-        fetchActiveSoloMatchId(userId),
-        getSoloMatchmakingStatus(),
-      ]);
-      const hasSoloMatchInProgress =
-        soloMatchId != null ||
-        matchmakingStatus.status === 'in_match' ||
-        matchmakingStatus.status === 'matched';
+    void (async () => {
+      try {
+        const [soloMatchId, matchmakingStatus] = await Promise.all([
+          fetchActiveSoloMatchId(userId, { skipFinalize: true }),
+          getSoloMatchmakingStatus(),
+        ]);
+        const hasSoloMatchInProgress =
+          soloMatchId != null ||
+          matchmakingStatus.status === 'in_match' ||
+          matchmakingStatus.status === 'matched';
 
-      if (hasSoloMatchInProgress) {
-        setActiveRoute('soloMatch');
-        setActiveMatchTab('solo');
-        return;
+        if (hasSoloMatchInProgress) {
+          setActiveRoute('soloMatch');
+          setActiveMatchTab('solo');
+        }
+      } catch {
+        // Stay on the match hub when status cannot be loaded.
       }
-    } catch {
-      // Fall through to the match hub when status cannot be loaded.
-    }
-
-    setActiveRoute('match');
+    })();
   }
 
   function handleNavPress(key: string) {
