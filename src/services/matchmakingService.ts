@@ -101,6 +101,27 @@ export async function finalizeDueSoloMatches(): Promise<SoloMatchCompletion[]> {
   return parseSoloMatchCompletions(data);
 }
 
+export async function forfeitSoloMatch(matchId: string): Promise<SoloMatchCompletion | null> {
+  if (!supabase) {
+    throw new Error('Supabase is not configured.');
+  }
+
+  const { data, error } = await supabase.rpc('forfeit_solo_match', {
+    p_match_id: matchId,
+  });
+
+  if (error) {
+    throw error;
+  }
+
+  const payload = (data ?? {}) as Record<string, unknown>;
+  if (payload.status !== 'completed') {
+    return null;
+  }
+
+  return parseSoloMatchCompletion(payload.completion);
+}
+
 export async function fetchMySoloMatchCompletions(): Promise<SoloMatchCompletion[]> {
   if (!supabase) {
     return [];

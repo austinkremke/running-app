@@ -164,15 +164,24 @@ export function ChallengeFriendDrawer({
             style={styles.list}
           >
             <View style={styles.listCard}>
-              {friends.map((friend, index) => (
-                <ChallengeFriendRow
-                  key={friend.id}
-                  friend={friend}
-                  onPress={() => onSelectFriend(friend.id)}
-                  selected={friend.id === selectedFriendId}
-                  showDivider={index < friends.length - 1}
-                />
-              ))}
+              {friends.length === 0 ? (
+                <View style={styles.emptyState}>
+                  <Text style={styles.emptyTitle}>No friends yet</Text>
+                  <Text style={styles.emptyBody}>
+                    Add friends from the feed to send a solo match challenge.
+                  </Text>
+                </View>
+              ) : (
+                friends.map((friend, index) => (
+                  <ChallengeFriendRow
+                    key={friend.id}
+                    friend={friend}
+                    onPress={() => onSelectFriend(friend.id)}
+                    selected={friend.id === selectedFriendId}
+                    showDivider={index < friends.length - 1}
+                  />
+                ))
+              )}
             </View>
           </ScrollView>
 
@@ -259,6 +268,22 @@ const styles = StyleSheet.create({
     borderWidth: 1,
     borderColor: colors.border,
     overflow: 'hidden',
+  },
+  emptyState: {
+    padding: spacing.lg,
+    gap: spacing.xs,
+  },
+  emptyTitle: {
+    color: colors.textPrimary,
+    fontSize: 14,
+    fontWeight: '700',
+    textAlign: 'center',
+  },
+  emptyBody: {
+    color: colors.textSecondary,
+    fontSize: 11,
+    lineHeight: 16,
+    textAlign: 'center',
   },
   footer: {
     paddingHorizontal: spacing.sm,

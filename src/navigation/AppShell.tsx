@@ -9,9 +9,10 @@ import {
   TabAppHeader,
 } from '../components/header';
 import { useAuth, useOnboarding, useSoloMatchCompletion, useUserId } from '../context';
-import { useHasActiveMatch } from '../hooks/useHasActiveMatch';
+import { useMatchTabIndicators } from '../hooks/useHasActiveMatch';
 import type { FeedTab, MatchTab } from '../mock';
 import { initialsFromDisplayName } from '../services/profileAvatar';
+import { openSoloMatchMenu } from '../services/soloMatchMenuBus';
 import { fetchActiveSoloMatchId } from '../services/matchService';
 import { getSoloMatchmakingStatus } from '../services/matchmakingService';
 import { FeedScreen } from '../screens/FeedScreen';
@@ -42,7 +43,7 @@ export function AppShell() {
   const userId = useUserId();
   const { shouldOpenSoloMatch, consumeSoloMatchNavigation } = useOnboarding();
   const { syncCompletions } = useSoloMatchCompletion();
-  const hasActiveMatch = useHasActiveMatch();
+  const { showMatchTabBadge, showSoloTabBadge } = useMatchTabIndicators();
   const [activeRoute, setActiveRoute] = useState<AppRoute>('feed');
   const [runReturnRoute, setRunReturnRoute] = useState<AppRoute>('feed');
   const [settingsReturnRoute, setSettingsReturnRoute] = useState<AppRoute>('me');
@@ -171,7 +172,7 @@ export function AppShell() {
     }
 
     if (activeRoute === 'soloMatch') {
-      return <SoloMatchScreen onRunPress={openRun} />;
+      return <SoloMatchScreen onQuit={() => setActiveRoute('match')} onRunPress={openRun} />;
     }
 
     if (activeRoute === 'team') {
@@ -260,7 +261,7 @@ export function AppShell() {
           <HeaderIconButton
             accessibilityLabel="More options"
             icon="ellipsis-vertical"
-            onPress={() => {}}
+            onPress={openSoloMatchMenu}
           />
         </View>
       );
@@ -335,6 +336,7 @@ export function AppShell() {
             {showMatchTabs ? (
               <TabAppHeader
                 activeTab={activeMatchTab}
+                badges={showSoloTabBadge ? { solo: true } : undefined}
                 onTabPress={(key) => setActiveMatchTab(key as MatchTab)}
                 tabs={[...MATCH_TABS]}
               />
@@ -358,7 +360,7 @@ export function AppShell() {
                   ? 'team'
                   : activeRoute
           }
-          badges={hasActiveMatch ? { match: true } : undefined}
+          badges={showMatchTabBadge ? { match: true } : undefined}
           onItemPress={handleNavPress}
         />
       ) : null}

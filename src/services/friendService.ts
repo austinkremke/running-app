@@ -39,6 +39,60 @@ export async function fetchFriendIds(userId: string): Promise<string[]> {
   return (data ?? []).map((row) => row.friend_user_id);
 }
 
+export async function fetchFriendProfilesForChallenge(userId: string): Promise<FriendSearchResult[]> {
+  if (!supabase) {
+    return [];
+  }
+
+  const friendIds = await fetchFriendIds(userId);
+  if (friendIds.length === 0) {
+    return [];
+  }
+
+  const tiers = (await fetchRankTiers()).map(mapRankTierRow);
+
+  const { data, error } = await supabase
+    .from('profiles')
+    .select(
+      `
+      id,
+      display_name,
+      avatar_url,
+      player_progress (total_xp),
+      player_rank (competitive_rating),
+      teams:team_id (name)
+    `,
+    )
+    .in('id', friendIds)
+    .order('display_name');
+
+  if (error) {
+    throw error;
+  }
+
+  return (data ?? []).map((row) => {
+    const progress = Array.isArray(row.player_progress)
+      ? row.player_progress[0]
+      : row.player_progress;
+    const rank = Array.isArray(row.player_rank) ? row.player_rank[0] : row.player_rank;
+    const team = Array.isArray(row.teams) ? row.teams[0] : row.teams;
+    const rating = rank?.competitive_rating;
+    const tier =
+      rating != null && tiers.length > 0 ? tierFromRating(rating, tiers) : undefined;
+
+    return {
+      id: row.id,
+      displayName: row.display_name,
+      avatarUrl: row.avatar_url ?? undefined,
+      level: levelFromTotalXp(progress?.total_xp ?? 0),
+      teamName: team?.name ?? 'No team',
+      rankTierId: tier?.id,
+      rankTitle: tier?.displayName,
+      competitiveRating: rating,
+    };
+  });
+}
+
 export async function addFriend(friendUserId: string): Promise<void> {
   if (!supabase) {
     throw new Error('Supabase is not configured.');

@@ -1,3 +1,5 @@
+export { SoloMatchOptionsDrawer } from './SoloMatchOptionsDrawer';
+export { IncomingChallengeCard } from './IncomingChallengeCard';
 export { ChallengeFriendDrawer } from './ChallengeFriendDrawer';
 export { OrDivider } from './OrDivider';
 export { ProposedChallengeCard } from './ProposedChallengeCard';

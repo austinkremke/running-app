@@ -2,26 +2,37 @@ import { useCallback, useEffect, useState } from 'react';
 import { AppState } from 'react-native';
 
 import { useUserId } from '../context';
+import { hasIncomingSoloChallenge } from '../services/challengeService';
 import { fetchHasActiveMatch } from '../services/matchService';
 import { subscribeMatchRefresh } from '../services/matchRefreshBus';
 import { subscribeSoloMatchCompletionSync } from '../services/soloMatchCompletionBus';
 
-const ACTIVE_MATCH_POLL_MS = 15_000;
+const INDICATOR_POLL_MS = 15_000;
 
-export function useHasActiveMatch(): boolean {
+export function useMatchTabIndicators(): {
+  showMatchTabBadge: boolean;
+  showSoloTabBadge: boolean;
+} {
   const userId = useUserId();
   const [hasActiveMatch, setHasActiveMatch] = useState(false);
+  const [hasIncomingChallenge, setHasIncomingChallenge] = useState(false);
 
   const refresh = useCallback(async () => {
     if (!userId) {
       setHasActiveMatch(false);
+      setHasIncomingChallenge(false);
       return;
     }
 
     try {
-      setHasActiveMatch(await fetchHasActiveMatch(userId));
+      const [activeMatch, incomingChallenge] = await Promise.all([
+        fetchHasActiveMatch(userId),
+        hasIncomingSoloChallenge(userId),
+      ]);
+      setHasActiveMatch(activeMatch);
+      setHasIncomingChallenge(incomingChallenge);
     } catch (error) {
-      console.warn('Failed to check active match status', error);
+      console.warn('Failed to check match tab indicators', error);
     }
   }, [userId]);
 
@@ -54,9 +65,48 @@ export function useHasActiveMatch(): boolean {
   useEffect(() => {
     const interval = setInterval(() => {
       void refresh();
-    }, ACTIVE_MATCH_POLL_MS);
+    }, INDICATOR_POLL_MS);
 
     return () => clearInterval(interval);
+  }, [refresh]);
+
+  return {
+    showMatchTabBadge: hasActiveMatch || hasIncomingChallenge,
+    showSoloTabBadge: hasIncomingChallenge,
+  };
+}
+
+export function useHasActiveMatch(): boolean {
+  const userId = useUserId();
+  const [hasActiveMatch, setHasActiveMatch] = useState(false);
+
+  const refresh = useCallback(async () => {
+    if (!userId) {
+      setHasActiveMatch(false);
+      return;
+    }
+
+    try {
+      setHasActiveMatch(await fetchHasActiveMatch(userId));
+    } catch (error) {
+      console.warn('Failed to check active match status', error);
+    }
+  }, [userId]);
+
+  useEffect(() => {
+    void refresh();
+  }, [refresh]);
+
+  useEffect(() => {
+    return subscribeMatchRefresh(() => {
+      void refresh();
+    });
+  }, [refresh]);
+
+  useEffect(() => {
+    return subscribeSoloMatchCompletionSync(() => {
+      void refresh();
+    });
   }, [refresh]);
 
   return hasActiveMatch;

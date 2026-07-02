@@ -14,6 +14,7 @@ type TabAppHeaderProps = {
   showBorder?: boolean;
   accentActive?: boolean;
   compact?: boolean;
+  badges?: Partial<Record<string, boolean>>;
 };
 
 export function TabAppHeader({
@@ -23,6 +24,7 @@ export function TabAppHeader({
   showBorder = true,
   accentActive = false,
   compact = false,
+  badges,
 }: TabAppHeaderProps) {
   return (
     <View style={[styles.container, showBorder && styles.bordered]}>
@@ -38,19 +40,22 @@ export function TabAppHeader({
               onPress={() => onTabPress(tab.key)}
               style={styles.tab}
             >
-              <Text
-                style={[
-                  styles.label,
-                  compact && styles.labelCompact,
-                  isActive
-                    ? accentActive
-                      ? styles.labelAccentActive
-                      : styles.labelActive
-                    : styles.labelInactive,
-                ]}
-              >
-                {tab.label}
-              </Text>
+              <View style={styles.labelRow}>
+                <Text
+                  style={[
+                    styles.label,
+                    compact && styles.labelCompact,
+                    isActive
+                      ? accentActive
+                        ? styles.labelAccentActive
+                        : styles.labelActive
+                      : styles.labelInactive,
+                  ]}
+                >
+                  {tab.label}
+                </Text>
+                {badges?.[tab.key] ? <View style={styles.badge} /> : null}
+              </View>
               <View
                 style={[
                   styles.indicator,
@@ -85,6 +90,17 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     paddingTop: spacing.xs,
     paddingBottom: spacing.sm,
+  },
+  labelRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 6,
+  },
+  badge: {
+    width: 7,
+    height: 7,
+    borderRadius: 4,
+    backgroundColor: colors.danger,
   },
   label: {
     ...typography.tabLabel,

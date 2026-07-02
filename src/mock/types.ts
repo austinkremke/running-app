@@ -200,6 +200,7 @@ export type ChallengeFriend = {
 };
 
 export type ProposedChallenge = {
+  id: string;
   friend: ChallengeFriend;
   sentAt: string;
 };

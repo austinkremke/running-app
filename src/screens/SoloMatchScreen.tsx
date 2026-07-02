@@ -1,32 +1,94 @@
-import { useEffect, useState } from 'react';
-import { ActivityIndicator, ScrollView, StyleSheet, Text, View } from 'react-native';
+import { useCallback, useEffect, useState } from 'react';
+import { ActivityIndicator, Alert, ScrollView, StyleSheet, Text, View } from 'react-native';
 
 import {
   SoloActiveMatchActions,
   SoloMatchActivitySection,
   SoloMatchChatDrawer,
   SoloMatchHighlightsRow,
+  SoloMatchOptionsDrawer,
   SoloMatchScoreboard,
   SoloMatchStatsSection,
 } from '../components/match/solo';
 import { useActiveSoloMatch } from '../hooks/useActiveSoloMatch';
-import { useSoloMatchCompletion } from '../context';
+import { useAuth, useSoloMatchCompletion } from '../context';
+import { forfeitSoloMatch } from '../services/matchmakingService';
+import { notifyMatchRefresh } from '../services/matchRefreshBus';
 import { notifySoloMatchCompletionSync } from '../services/soloMatchCompletionBus';
+import { registerSoloMatchMenuListener } from '../services/soloMatchMenuBus';
 import { colors, spacing } from '../theme';
 
 type SoloMatchScreenProps = {
   onRunPress?: () => void;
+  onQuit?: () => void;
   embedded?: boolean;
 };
 
-export function SoloMatchScreen({ onRunPress, embedded = false }: SoloMatchScreenProps) {
+function getErrorMessage(error: unknown, fallback: string): string {
+  return error instanceof Error ? error.message : fallback;
+}
+
+export function SoloMatchScreen({ onRunPress, onQuit, embedded = false }: SoloMatchScreenProps) {
+  const { refreshGameState } = useAuth();
   const { match, loading, refresh } = useActiveSoloMatch();
   const { syncCompletions } = useSoloMatchCompletion();
   const [chatVisible, setChatVisible] = useState(false);
+  const [optionsVisible, setOptionsVisible] = useState(false);
+  const [forfeiting, setForfeiting] = useState(false);
 
   useEffect(() => {
     void syncCompletions();
   }, [syncCompletions]);
+
+  useEffect(() => {
+    registerSoloMatchMenuListener(() => {
+      setOptionsVisible(true);
+    });
+
+    return () => {
+      registerSoloMatchMenuListener(null);
+    };
+  }, []);
+
+  const confirmQuitMatch = useCallback(() => {
+    if (!match || forfeiting) {
+      return;
+    }
+
+    Alert.alert(
+      'Quit match?',
+      'You will forfeit this match. It counts as a loss and your rating and season record will update.',
+      [
+        { text: 'Keep Playing', style: 'cancel' },
+        {
+          text: 'Quit Match',
+          style: 'destructive',
+          onPress: () => {
+            void (async () => {
+              setForfeiting(true);
+              try {
+                const completion = await forfeitSoloMatch(match.id);
+                if (completion) {
+                  notifySoloMatchCompletionSync([completion]);
+                } else {
+                  notifySoloMatchCompletionSync();
+                }
+                notifyMatchRefresh();
+                await refreshGameState();
+                await syncCompletions();
+                onQuit?.();
+              } catch (error) {
+                Alert.alert('Could not quit match', getErrorMessage(error, 'Please try again.'));
+              } finally {
+                setForfeiting(false);
+                setOptionsVisible(false);
+              }
+            })();
+          },
+        },
+      ],
+    );
+  }, [forfeiting, match, onQuit, refreshGameState, syncCompletions]);
 
   if (loading) {
     return (
@@ -77,6 +139,21 @@ export function SoloMatchScreen({ onRunPress, embedded = false }: SoloMatchScree
         opponentName={match.awayRunner.name}
         visible={chatVisible}
       />
+
+      <SoloMatchOptionsDrawer
+        onClose={() => setOptionsVisible(false)}
+        onQuitMatch={() => {
+          setOptionsVisible(false);
+          confirmQuitMatch();
+        }}
+        visible={optionsVisible}
+      />
+
+      {forfeiting ? (
+        <View style={styles.forfeitOverlay}>
+          <ActivityIndicator color={colors.accentLime} size="large" />
+        </View>
+      ) : null}
     </View>
   );
 }
@@ -116,5 +193,11 @@ const styles = StyleSheet.create({
     fontSize: 12,
     lineHeight: 18,
     textAlign: 'center',
+  },
+  forfeitOverlay: {
+    ...StyleSheet.absoluteFillObject,
+    alignItems: 'center',
+    justifyContent: 'center',
+    backgroundColor: 'rgba(5, 7, 11, 0.72)',
   },
 });
