@@ -1,3 +1,4 @@
+Initialising login role...
 export type Json =
   | string
   | number
@@ -391,6 +392,45 @@ export type Database = {
           },
           {
             foreignKeyName: "match_activity_credits_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      match_messages: {
+        Row: {
+          body: string
+          created_at: string
+          id: string
+          match_id: string
+          user_id: string
+        }
+        Insert: {
+          body: string
+          created_at?: string
+          id?: string
+          match_id: string
+          user_id: string
+        }
+        Update: {
+          body?: string
+          created_at?: string
+          id?: string
+          match_id?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "match_messages_match_id_fkey"
+            columns: ["match_id"]
+            isOneToOne: false
+            referencedRelation: "matches"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "match_messages_user_id_fkey"
             columns: ["user_id"]
             isOneToOne: false
             referencedRelation: "profiles"
@@ -966,6 +1006,10 @@ export type Database = {
         Returns: boolean
       }
       level_from_total_xp: { Args: { p_total_xp: number }; Returns: number }
+      match_points_for_activity: {
+        Args: { p_distance_meters: number; p_duration_seconds?: number }
+        Returns: number
+      }
       match_points_for_distance: {
         Args: { p_distance_meters: number }
         Returns: number
@@ -974,6 +1018,7 @@ export type Database = {
         Args: { p_event_type: string; p_metadata?: Json }
         Returns: Json
       }
+      repair_solo_match_activity_credits: { Args: never; Returns: Json }
       solo_match_duration_interval: {
         Args: { p_match_type_id: string }
         Returns: string
@@ -1123,3 +1168,5 @@ export const Constants = {
     Enums: {},
   },
 } as const
+A new version of Supabase CLI is available: v2.109.0 (currently installed v2.84.2)
+We recommend updating regularly for new features and bug fixes: https://supabase.com/docs/guides/cli/getting-started#updating-the-supabase-cli

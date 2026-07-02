@@ -2,6 +2,7 @@ import { Ionicons } from '@expo/vector-icons';
 import { StyleSheet, Text, View } from 'react-native';
 
 import type { ActiveSoloMatch } from '../../../mock';
+import { useLiveCountdown } from '../../../hooks/useLiveCountdown';
 import { colors, spacing } from '../../../theme';
 import { MatchVsIndicator } from '../MatchVsIndicator';
 import { formatMatchPoints, getTeamMatchAccentColor } from './soloMatchTheme';
@@ -12,7 +13,8 @@ type SoloMatchScoreboardProps = {
 };
 
 export function SoloMatchScoreboard({ match }: SoloMatchScoreboardProps) {
-  const { homeRunner, awayRunner, countdown } = match;
+  const { homeRunner, awayRunner } = match;
+  const countdown = useLiveCountdown(match.endsAt);
   const pointDiff = homeRunner.totalPoints - awayRunner.totalPoints;
   const leadingRunner = pointDiff >= 0 ? homeRunner : awayRunner;
   const leadColor = getTeamMatchAccentColor(leadingRunner.accent);

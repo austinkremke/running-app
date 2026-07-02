@@ -59,6 +59,7 @@ export function SoloMatchScreen({ onRunPress, embedded = false }: SoloMatchScree
       ) : null}
 
       <SoloMatchChatDrawer
+        matchId={match.id}
         onClose={() => setChatVisible(false)}
         opponentName={match.awayRunner.name}
         visible={chatVisible}

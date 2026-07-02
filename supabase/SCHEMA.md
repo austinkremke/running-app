@@ -11,11 +11,15 @@ This file is a **human/AI-readable index**. After every migration, update the ta
 ## Schema workflow (required)
 
 1. **Change schema** → add SQL file under `supabase/migrations/`.
-2. **Apply locally** → `supabase db reset` or `supabase migration up`.
-3. **Regenerate types** → `supabase gen types typescript --local > src/types/database.ts`.
-4. **Commit together** → migration + `database.ts` (+ `seed.sql` if reference data changed).
-5. **Update this file** if tables or FK relationships changed.
-6. **Docs sync** — run [run-off SKILL checklist](../.cursor/skills/run-off/SKILL.md#docs-sync-on-ship-required): README, milestones, AGENTS, skill.
+2. **Add rollback** → companion `supabase/rollbacks/<same-timestamp>_<slug>.down.sql` to undo the migration if needed.
+3. **Apply remotely** → `supabase db push` (linked `run-off` project).
+4. **Apply locally** → `supabase db reset` or `supabase migration up`.
+5. **Regenerate types** → `supabase gen types typescript --linked > src/types/database.ts` (remote) or `--local` after local reset.
+6. **Commit together** → migration + rollback + `database.ts` (+ `seed.sql` if reference data changed).
+7. **Update this file** if tables or FK relationships changed.
+8. **Docs sync** — run [run-off SKILL checklist](../.cursor/skills/run-off/SKILL.md#docs-sync-on-ship-required): README, milestones, AGENTS, skill.
+
+**Revert a migration (manual):** `supabase db execute --file supabase/rollbacks/<timestamp>_<slug>.down.sql`
 
 **Before any DB work**, agents must read migrations + `src/types/database.ts` — not hand-rolled interfaces or mock types.
 
@@ -88,6 +92,7 @@ teams / team_members            — logo, tag, motto; one team per user (v1)
 feed_posts                      — activity_id FK, audiences[], caption fields
 
 matches / match_participants / match_results
+match_messages                  — match_id, user_id, body, created_at (Realtime chat)
 match_types                     — reference catalog (seed)
 feed_reactions                  — post_id, user_id, reaction (like); PK (post_id, user_id)
 feed_comments                   — post_id, user_id, body, created_at
@@ -107,6 +112,7 @@ achievement_events              — user_id, event_type (review, notifications, 
 **05 Phase 2 ships:** `apply_elo_match_result` RPC; client `player_rank` updates revoked; tier resolved from `rank_tiers` at read time.  
 **05 Phase 3 ships:** `friendships`, `add_friend` RPC, friends feed RLS; `can_view_feed_post` includes friends audience.  
 **05 Phase 4 (shipped):** `match_queue`, solo matchmaking RPCs, `credit_match_activity`, `finalize_solo_match` → Elo. See [05-matchmaking-and-feed.md](../milestones/05-matchmaking-and-feed.md#phase-4--matchmaking-shipped).  
+**05 Phase 5 (shipped):** `match_messages`; Realtime publication on `match_participants`, `activities`, `matches`, `match_messages`. See [05-matchmaking-and-feed.md](../milestones/05-matchmaking-and-feed.md#phase-5--real-time-polish-shipped).  
 **06 Phase 2 (shipped):** `achievement_definitions`, `user_achievements`, `achievement_events`; `evaluate_achievements` + `record_achievement_event` RPCs. See [06-account-gating-and-cosmetics.md](../milestones/06-account-gating-and-cosmetics.md#phase-2--achievements).  
 **06 Phase 1 (shipped):** `avatars` storage bucket, `delete_own_account` RPC.
 
@@ -115,6 +121,7 @@ achievement_events              — user_id, event_type (review, notifications, 
 **05 Phase 2:** `20250619000001_elo_rank_rpc.sql`.  
 **05 Phase 3:** `20250621000001_friends_graph.sql`.  
 **05 Phase 4:** `20250623000001_matchmaking.sql`, `20250623000002_match_activities_rls.sql`.  
+**05 Phase 5:** `20250624000001_match_realtime.sql`.  
 **06 Phase 2:** `20250620000001_achievements.sql`.  
 **06 Phase 1:** `20250622000001_account_settings.sql`.
 

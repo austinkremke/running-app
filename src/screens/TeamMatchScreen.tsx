@@ -16,7 +16,7 @@ type TeamMatchScreenProps = {
 };
 
 export function TeamMatchScreen({ onRunPress }: TeamMatchScreenProps) {
-  const { match, loading } = useActiveTeamMatch();
+  const { match, loading, fromServer } = useActiveTeamMatch();
   const [chatVisible, setChatVisible] = useState(false);
 
   if (loading || !match) {
@@ -43,7 +43,12 @@ export function TeamMatchScreen({ onRunPress }: TeamMatchScreenProps) {
       </ScrollView>
 
       <TeamMatchActions onRun={onRunPress} onTeamChat={() => setChatVisible(true)} />
-      <TeamChatDrawer onClose={() => setChatVisible(false)} visible={chatVisible} />
+      <TeamChatDrawer
+        matchId={fromServer ? match.id : null}
+        onClose={() => setChatVisible(false)}
+        subtitle={`${match.homeTeam.name} match thread`}
+        visible={chatVisible}
+      />
     </View>
   );
 }

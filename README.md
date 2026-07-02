@@ -63,7 +63,7 @@ Mapbox on device often needs a recent Xcode beta; see project notes in your shel
 | 02 Supabase — Phase E hardening | **Next** |
 | 03 XP & rank | **In progress** — Phase 1–2 + Phase 4 server XP shipped |
 | 04 Garmin / Strava | Planned |
-| 05 Matchmaking & feed | **In progress** — Phase 1–4 shipped ([05](./milestones/05-matchmaking-and-feed.md)) |
+| 05 Matchmaking & feed | **Done** — Phase 1–5 shipped ([05](./milestones/05-matchmaking-and-feed.md)) |
 | 06 Account, gating & cosmetics | **In progress** — Phase 1 settings + Phase 2 achievements ([06](./milestones/06-account-gating-and-cosmetics.md)) |
 
 ### Still mock / placeholder (honest)
@@ -71,6 +71,8 @@ Mapbox on device often needs a recent Xcode beta; see project notes in your shel
 | Area | State |
 |------|--------|
 | Match / matchmaking lineup UI | Team lineup mock; **solo Find Match + paired 1v1 from server** |
+| Solo match live scoreboard + chat | **Shipped** — Realtime score updates + `match_messages` ([05 Phase 5](./milestones/05-matchmaking-and-feed.md)) |
+| Team match chat | **Shipped** — server-backed when on active team match ([05 Phase 5](./milestones/05-matchmaking-and-feed.md)) |
 | Solo match / Elo on completion | **Shipped** — queue, activity points, finalize → Elo ([05 Phase 4](./milestones/05-matchmaking-and-feed.md)) |
 | Me tab profile | Name/avatar from server; **level + XP bar real**; **rank tier + rating from server**; achievements/stats still mock |
 | Post-run XP drawer | **Real** staged breakdown + segmented bar fill on “Lock in your run” |

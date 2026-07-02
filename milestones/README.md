@@ -8,7 +8,7 @@ Chronological roadmap for **Run Off** (`running-app`). Each milestone is a self-
 
 **Backend order (milestone 02):** Auth → activity sync → teams/feed → matches. Phases A–D are **shipped**; Phase E (hardening) is **next**. See [02](./02-supabase-backend.md).
 
-**Product priority (next feature):** [05 Phase 5 — real-time polish](./05-matchmaking-and-feed.md#phase-5--real-time-polish) or [02 Phase E — hardening](./02-supabase-backend.md).
+**Product priority (next feature):** [02 Phase E — hardening](./02-supabase-backend.md) or [06 Phase 4 — level gates](./06-account-gating-and-cosmetics.md).
 
 **When shipping work:** update docs before commit — checklist in [run-off SKILL § Docs sync](../.cursor/skills/run-off/SKILL.md#docs-sync-on-ship-required).
 
@@ -28,7 +28,7 @@ When adding a milestone:
 | 02 | [Supabase backend](./02-supabase-backend.md) | **In progress** — Phase A–D done; Phase E hardening next | 01 | 03, 04, 05, 06 |
 | 03 | [XP & competitive rank](./03-xp-and-ranking.md) | **In progress** — Phase 1–2 + Phase 4 server XP shipped | 01, 02 (partial) | 05, 06 |
 | 04 | [Third-party integrations](./04-third-party-integrations.md) | Planned | 01, 02 | 05 |
-| 05 | [Matchmaking, feed & social sync](./05-matchmaking-and-feed.md) | **In progress** — Phase 1–4 shipped | 02 (Phase C+) | — |
+| 05 | [Matchmaking, feed & social sync](./05-matchmaking-and-feed.md) | **Done** — Phase 1–5 shipped | 02 (Phase C+) | — |
 | 06 | [Account, gating & cosmetics](./06-account-gating-and-cosmetics.md) | **In progress** — Phase 1 settings + Phase 2 achievements shipped | 02, 03 | — |
 
 ---
@@ -41,9 +41,10 @@ When adding a milestone:
 | Elo & rank UI (Me tab, solo match) | [05](./05-matchmaking-and-feed.md) Phase 2 **shipped** |
 | Friends feed & richer cards | [05](./05-matchmaking-and-feed.md) Phase 3 **shipped** |
 | Solo matchmaking queue | [05](./05-matchmaking-and-feed.md) Phase 4 **shipped** |
+| Live match scoreboard + chat | [05](./05-matchmaking-and-feed.md) Phase 5 **shipped** |
 | Account settings | [06](./06-account-gating-and-cosmetics.md) Phase 1 **shipped** |
 | Achievements (server-backed) | [06](./06-account-gating-and-cosmetics.md) Phase 2 **shipped** |
-| Avatar rank decorative borders | [06](./06-account-gating-and-cosmetics.md) Phase 3 · tiers in [03](./03-xp-and-ranking.md) |
+| Avatar rank decorative borders | [06](./06-account-gating-and-cosmetics.md) Phase 3 **shipped** (Me, feed, solo — not team rosters) |
 | Level blocking features | [06](./06-account-gating-and-cosmetics.md) Phase 4 |
 | Paywall blocking features | [06](./06-account-gating-and-cosmetics.md) Phase 5 |
 

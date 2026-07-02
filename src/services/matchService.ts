@@ -241,24 +241,8 @@ export async function fetchActiveSoloMatch(userId: string): Promise<ActiveSoloMa
   );
 }
 
-export async function fetchActiveMatchId(userId: string): Promise<string | null> {
+export async function fetchActiveSoloMatchId(userId: string): Promise<string | null> {
   if (!supabase) return null;
-
-  const teamId = await fetchUserTeamId(userId);
-  if (teamId) {
-    const { data, error } = await supabase
-      .from('matches')
-      .select('id')
-      .eq('kind', 'team')
-      .eq('status', 'active')
-      .or(`home_team_id.eq.${teamId},away_team_id.eq.${teamId}`)
-      .order('ends_at', { ascending: false })
-      .limit(1)
-      .maybeSingle();
-
-    if (error) throw error;
-    if (data?.id) return data.id;
-  }
 
   const { data: soloParticipant, error: soloError } = await supabase
     .from('match_participants')
@@ -270,6 +254,35 @@ export async function fetchActiveMatchId(userId: string): Promise<string | null>
 
   if (soloError) throw soloError;
   return soloParticipant?.match_id ?? null;
+}
+
+export async function fetchActiveTeamMatchId(userId: string): Promise<string | null> {
+  if (!supabase) return null;
+
+  const teamId = await fetchUserTeamId(userId);
+  if (!teamId) return null;
+
+  const { data, error } = await supabase
+    .from('matches')
+    .select('id')
+    .eq('kind', 'team')
+    .eq('status', 'active')
+    .or(`home_team_id.eq.${teamId},away_team_id.eq.${teamId}`)
+    .order('ends_at', { ascending: false })
+    .limit(1)
+    .maybeSingle();
+
+  if (error) throw error;
+  return data?.id ?? null;
+}
+
+export async function fetchActiveMatchId(userId: string): Promise<string | null> {
+  const soloMatchId = await fetchActiveSoloMatchId(userId);
+  if (soloMatchId) {
+    return soloMatchId;
+  }
+
+  return fetchActiveTeamMatchId(userId);
 }
 
 export function fallbackTeamMatch(): ActiveTeamMatch {

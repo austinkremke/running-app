@@ -16,7 +16,7 @@ import { experienceFromTotalXp, levelFromTotalXp } from './levelCurve';
 import {
   formatMatchDistanceMiles,
   formatMatchDuration,
-  matchPointsForDistanceMeters,
+  matchPointsForActivity,
 } from './match/matchScoring';
 
 type MatchRow = Tables<'matches'>;
@@ -174,6 +174,7 @@ export function mapTeamMatchRow(
 
   return {
     id: match.id,
+    endsAt: match.ends_at,
     homeTeam: buildTeamSide(
       homeTeam,
       homeMembers,
@@ -218,6 +219,7 @@ export function mapSoloMatchRow(
 
   return {
     id: match.id,
+    endsAt: match.ends_at,
     homeRunner: buildSoloRunner(homeProfile, homeLevel, homePoints, 'lime'),
     awayRunner: buildSoloRunner(awayProfile, awayLevel, awayPoints, 'purple'),
     countdown: countdownFromEndsAt(match.ends_at),
@@ -278,7 +280,10 @@ function mapSoloActivities(
       dayLabel: formatActivityDayLabel(activity.started_at),
       distanceMiles: (activity.distance_meters ?? 0) / 1609.34,
       durationLabel: formatMatchDuration(activity.duration_seconds ?? 0),
-      pointsEarned: matchPointsForDistanceMeters(activity.distance_meters ?? 0),
+      pointsEarned: matchPointsForActivity(
+        activity.distance_meters ?? 0,
+        activity.duration_seconds ?? 0,
+      ),
       accent: activity.user_id === homeUserId ? 'lime' : 'purple',
     }));
 }

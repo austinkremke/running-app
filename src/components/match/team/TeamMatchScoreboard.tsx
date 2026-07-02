@@ -2,6 +2,7 @@ import { Ionicons } from '@expo/vector-icons';
 import { StyleSheet, Text, View } from 'react-native';
 
 import type { ActiveTeamMatch } from '../../../mock';
+import { useLiveCountdown } from '../../../hooks/useLiveCountdown';
 import { colors, spacing } from '../../../theme';
 import { MatchVsIndicator } from '../MatchVsIndicator';
 import { formatMatchPoints, getTeamMatchAccentColor } from './matchTheme';
@@ -14,7 +15,8 @@ type TeamMatchScoreboardProps = {
 };
 
 export function TeamMatchScoreboard({ match }: TeamMatchScoreboardProps) {
-  const { homeTeam, awayTeam, countdown } = match;
+  const { homeTeam, awayTeam } = match;
+  const countdown = useLiveCountdown(match.endsAt);
   const pointDiff = homeTeam.totalPoints - awayTeam.totalPoints;
   const leadingTeam = pointDiff >= 0 ? homeTeam : awayTeam;
   const leadColor = getTeamMatchAccentColor(leadingTeam.accent);

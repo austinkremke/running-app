@@ -1,8 +1,7 @@
-import { useState } from 'react';
-import { StyleSheet, Text, View } from 'react-native';
+import { useEffect, useState } from 'react';
+import { ActivityIndicator, StyleSheet, Text, View } from 'react-native';
 
-import type { TeamChatMessage } from '../../../../mock';
-import { MOCK_TEAM_CHAT_MESSAGES } from '../../../../mock';
+import { useMatchChat } from '../../../../hooks/useMatchChat';
 import { colors, spacing } from '../../../../theme';
 import { BottomSheetDrawer } from '../../../drawer';
 import { TeamChatComposer } from './TeamChatComposer';
@@ -10,35 +9,29 @@ import { TeamChatMessageList } from './TeamChatMessageList';
 
 type TeamChatDrawerProps = {
   visible: boolean;
+  matchId: string | null;
+  subtitle: string;
   onClose: () => void;
 };
 
-function formatSentTime(date: Date) {
-  return date.toLocaleTimeString('en-US', {
-    hour: 'numeric',
-    minute: '2-digit',
-  });
-}
-
-export function TeamChatDrawer({ visible, onClose }: TeamChatDrawerProps) {
-  const [messages, setMessages] = useState<TeamChatMessage[]>(MOCK_TEAM_CHAT_MESSAGES);
+export function TeamChatDrawer({ visible, matchId, subtitle, onClose }: TeamChatDrawerProps) {
   const [draft, setDraft] = useState('');
+  const { messages, loading, sending, error, send } = useMatchChat(matchId, visible);
+  const chatAvailable = matchId != null;
 
-  function handleSend() {
+  useEffect(() => {
+    if (!visible) {
+      setDraft('');
+    }
+  }, [visible]);
+
+  async function handleSend() {
     const body = draft.trim();
     if (!body) {
       return;
     }
 
-    const nextMessage: TeamChatMessage = {
-      id: `chat-${Date.now()}`,
-      authorName: 'Austin',
-      body,
-      sentAt: formatSentTime(new Date()),
-      isCurrentUser: true,
-    };
-
-    setMessages((current) => [...current, nextMessage]);
+    await send(body);
     setDraft('');
   }
 
@@ -46,7 +39,16 @@ export function TeamChatDrawer({ visible, onClose }: TeamChatDrawerProps) {
     <BottomSheetDrawer
       accessibilityLabel="Close team chat"
       footer={
-        <TeamChatComposer onChangeText={setDraft} onSend={handleSend} value={draft} />
+        chatAvailable ? (
+          <TeamChatComposer
+            disabled={sending}
+            onChangeText={setDraft}
+            onSend={() => {
+              void handleSend();
+            }}
+            value={draft}
+          />
+        ) : null
       }
       heightRatio={0.82}
       keyboardAvoiding
@@ -56,9 +58,21 @@ export function TeamChatDrawer({ visible, onClose }: TeamChatDrawerProps) {
       <View style={styles.container}>
         <View style={styles.header}>
           <Text style={styles.title}>Team Chat</Text>
-          <Text style={styles.subtitle}>Road Warriors match thread</Text>
+          <Text style={styles.subtitle}>{subtitle}</Text>
         </View>
-        <TeamChatMessageList messages={messages} />
+
+        {!chatAvailable ? (
+          <Text style={styles.message}>Join an active team match to chat with your crew.</Text>
+        ) : loading ? (
+          <View style={styles.centered}>
+            <ActivityIndicator color={colors.accentLime} />
+          </View>
+        ) : (
+          <>
+            {error ? <Text style={styles.error}>{error}</Text> : null}
+            <TeamChatMessageList messages={messages} />
+          </>
+        )}
       </View>
     </BottomSheetDrawer>
   );
@@ -86,5 +100,24 @@ const styles = StyleSheet.create({
   subtitle: {
     color: colors.textSecondary,
     fontSize: 11,
+  },
+  centered: {
+    flex: 1,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  message: {
+    color: colors.textSecondary,
+    fontSize: 13,
+    lineHeight: 18,
+    textAlign: 'center',
+    paddingHorizontal: spacing.lg,
+    paddingTop: spacing.lg,
+  },
+  error: {
+    color: colors.danger,
+    fontSize: 12,
+    textAlign: 'center',
+    marginBottom: spacing.sm,
   },
 });

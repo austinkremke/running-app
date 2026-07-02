@@ -1,5 +1,7 @@
 import { totalDistanceMeters, totalElapsedSeconds } from './activityMetrics';
 import { buildActivityPolyline } from './activityPolyline';
+import { fetchActiveSoloMatchId } from './matchService';
+import { notifyMatchRefresh } from './matchRefreshBus';
 import { supabase } from './supabase';
 import type { StoredActivity } from '../types/activity';
 import type { TablesInsert } from '../types/database';
@@ -60,6 +62,18 @@ async function uploadActivityTrack(
   if (error) throw error;
 }
 
+async function resolveActivityMatchId(
+  userId: string,
+  sessionMatchId: string | null | undefined,
+): Promise<string | null> {
+  const soloMatchId = await fetchActiveSoloMatchId(userId);
+  if (soloMatchId) {
+    return soloMatchId;
+  }
+
+  return sessionMatchId ?? null;
+}
+
 export async function syncActivityToServer(
   activity: StoredActivity,
   userId: string,
@@ -72,6 +86,8 @@ export async function syncActivityToServer(
 
   try {
     const row = toActivityRow(activity, userId);
+    row.match_id = await resolveActivityMatchId(userId, row.match_id);
+
     const { error: upsertError } = await supabase.from('activities').upsert(row, {
       onConflict: 'id',
     });
@@ -87,6 +103,8 @@ export async function syncActivityToServer(
 
       if (creditError) {
         console.warn('Match activity credit failed', creditError.message);
+      } else {
+        notifyMatchRefresh();
       }
     }
 

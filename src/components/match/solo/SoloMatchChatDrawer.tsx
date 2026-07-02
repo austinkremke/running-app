@@ -1,8 +1,7 @@
-import { useState } from 'react';
-import { StyleSheet, Text, View } from 'react-native';
+import { useEffect, useState } from 'react';
+import { ActivityIndicator, StyleSheet, Text, View } from 'react-native';
 
-import type { TeamChatMessage } from '../../../mock';
-import { MOCK_SOLO_CHAT_MESSAGES } from '../../../mock/soloChat';
+import { useMatchChat } from '../../../hooks/useMatchChat';
 import { colors, spacing } from '../../../theme';
 import { BottomSheetDrawer } from '../../drawer';
 import { TeamChatComposer } from '../team/chat/TeamChatComposer';
@@ -10,40 +9,33 @@ import { TeamChatMessageList } from '../team/chat/TeamChatMessageList';
 
 type SoloMatchChatDrawerProps = {
   visible: boolean;
+  matchId: string;
   opponentName: string;
   onClose: () => void;
 };
 
-function formatSentTime(date: Date) {
-  return date.toLocaleTimeString('en-US', {
-    hour: 'numeric',
-    minute: '2-digit',
-  });
-}
-
 export function SoloMatchChatDrawer({
   visible,
+  matchId,
   opponentName,
   onClose,
 }: SoloMatchChatDrawerProps) {
-  const [messages, setMessages] = useState<TeamChatMessage[]>(MOCK_SOLO_CHAT_MESSAGES);
   const [draft, setDraft] = useState('');
+  const { messages, loading, sending, error, send } = useMatchChat(matchId, visible);
 
-  function handleSend() {
+  useEffect(() => {
+    if (!visible) {
+      setDraft('');
+    }
+  }, [visible]);
+
+  async function handleSend() {
     const body = draft.trim();
     if (!body) {
       return;
     }
 
-    const nextMessage: TeamChatMessage = {
-      id: `solo-chat-${Date.now()}`,
-      authorName: 'Austin',
-      body,
-      sentAt: formatSentTime(new Date()),
-      isCurrentUser: true,
-    };
-
-    setMessages((current) => [...current, nextMessage]);
+    await send(body);
     setDraft('');
   }
 
@@ -52,8 +44,11 @@ export function SoloMatchChatDrawer({
       accessibilityLabel="Close match chat"
       footer={
         <TeamChatComposer
+          disabled={sending}
           onChangeText={setDraft}
-          onSend={handleSend}
+          onSend={() => {
+            void handleSend();
+          }}
           placeholder={`Message ${opponentName}...`}
           value={draft}
         />
@@ -68,7 +63,17 @@ export function SoloMatchChatDrawer({
           <Text style={styles.title}>Match Chat</Text>
           <Text style={styles.subtitle}>1v1 thread with {opponentName}</Text>
         </View>
-        <TeamChatMessageList messages={messages} />
+
+        {loading ? (
+          <View style={styles.centered}>
+            <ActivityIndicator color={colors.accentLime} />
+          </View>
+        ) : (
+          <>
+            {error ? <Text style={styles.error}>{error}</Text> : null}
+            <TeamChatMessageList messages={messages} />
+          </>
+        )}
       </View>
     </BottomSheetDrawer>
   );
@@ -96,5 +101,16 @@ const styles = StyleSheet.create({
   subtitle: {
     color: colors.textSecondary,
     fontSize: 11,
+  },
+  centered: {
+    flex: 1,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  error: {
+    color: colors.danger,
+    fontSize: 12,
+    textAlign: 'center',
+    marginBottom: spacing.sm,
   },
 });

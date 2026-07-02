@@ -8,6 +8,7 @@ type TeamChatComposerProps = {
   onChangeText: (text: string) => void;
   onSend: () => void;
   placeholder?: string;
+  disabled?: boolean;
 };
 
 export function TeamChatComposer({
@@ -15,12 +16,14 @@ export function TeamChatComposer({
   onChangeText,
   onSend,
   placeholder = 'Message your team...',
+  disabled = false,
 }: TeamChatComposerProps) {
-  const canSend = value.trim().length > 0;
+  const canSend = !disabled && value.trim().length > 0;
 
   return (
     <View style={styles.container}>
       <TextInput
+        editable={!disabled}
         multiline
         onChangeText={onChangeText}
         placeholder={placeholder}

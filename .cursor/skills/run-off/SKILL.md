@@ -38,9 +38,10 @@ When you finish a **milestone**, **milestone 02 phase**, or any PR that changes 
 ### Also when schema changed
 
 1. New migration in `supabase/migrations/`
-2. `supabase gen types` → `src/types/database.ts`
-3. `supabase db push` (remote) or `supabase db reset` (local)
-4. Seed/reference data in `seed.sql` if needed
+2. Rollback script in `supabase/rollbacks/<timestamp>_<slug>.down.sql`
+3. `supabase db push` (remote) or `supabase db reset` (local) — **agents run this, don't leave it to the user**
+4. `supabase gen types typescript --linked > src/types/database.ts` (or `--local` after local reset)
+5. Seed/reference data in `seed.sql` if needed
 
 ### Commit message hint
 
@@ -56,7 +57,7 @@ Mention milestone/phase in the subject (e.g. `milestone 02 Phase C`) and note do
 | 02 | Supabase backend | **In progress** — Phase A–D done; Phase E next |
 | 03 | XP & rank (separate systems) | **In progress** — Phase 1–2 + Phase 4 server XP shipped |
 | 04 | Garmin / Strava | Planned |
-| 05 | Matchmaking & feed | **In progress** — Phase 1–4 shipped |
+| 05 | Matchmaking & feed | **Done** — Phase 1–5 shipped |
 | 06 | Account settings, achievements, rank avatar borders, level & paywall gates | Planned |
 
 ---

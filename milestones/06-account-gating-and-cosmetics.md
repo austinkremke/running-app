@@ -1,7 +1,7 @@
 # Account settings, gating & progression cosmetics
 
 > **Milestone:** 06  
-> **Status:** **In progress** — Phase 1 account settings shipped; Phase 3 rank avatar borders next  
+> **Status:** **In progress** — Phase 1–3 shipped; Phase 4 level gates next  
 > **Depends on:** [02 Supabase](./02-supabase-backend.md) (auth + profiles), [03 XP & rank](./03-xp-and-ranking.md) (level, rank tiers, achievements data model)  
 > **Unblocks:** —
 
@@ -253,11 +253,11 @@ Achievement XP is **one-time only** — supplementary to run XP, not a farming l
 3. Confirm official Instagram/TikTok URLs for follow links.
 4. Review flow: `StoreReview.requestReview()` only vs. deep link + confirm tap.
 
-### Phase 3 — Avatar rank decorative borders
+### Phase 3 — Avatar rank decorative borders **shipped**
 
-- Map `rank_tiers` → border asset / color token
-- Feed `RunCardHeader`, Me `ProfileTopSection`, team roster avatars
-- Fallback border for unranked / default tier
+**Shipped:** `rank_tiers` → border asset / color token; feed `RunCardHeader`, Me `ProfileTopSection`, solo match profile, friend search results. Unranked users get plain avatar (no border).
+
+**Intentionally excluded:** team roster avatars — on a team, **team rank** is the signal; individual competitive rank borders stay off team/match roster UI.
 
 ### Phase 4 — Level blocking features
 
@@ -278,7 +278,7 @@ Achievement XP is **one-time only** — supplementary to run XP, not a farming l
 
 | Rule | Detail |
 |------|--------|
-| **Level ≠ rank for cosmetics** | Avatar borders reflect **competitive rank tier** ([03](./03-xp-and-ranking.md)). Level gates unlock **features**, not rank frame. |
+| **Level ≠ rank for cosmetics** | Avatar borders reflect **competitive rank tier** ([03](./03-xp-and-ranking.md)) on Me, feed, and solo — not on team rosters (team rank is the team-context signal). Level gates unlock **features**, not rank frame. |
 | **Two gate systems** | Never conflate “needs level 12” with “needs Pro” — show the correct unlock path. |
 | **DB-first catalogs** | Achievement defs, feature gate tables, and rank tier art keys live in Postgres seeds ([02](./02-supabase-backend.md#db-first-catalogs-reference-data)). |
 | **Mock until wired** | ~~Keep mock achievements until Phase 2 ships~~ Phase 2 shipped; mock profile stats still placeholder. |

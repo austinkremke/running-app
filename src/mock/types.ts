@@ -267,6 +267,7 @@ export type TeamMatchCountdown = {
 
 export type ActiveTeamMatch = {
   id: string;
+  endsAt: string;
   homeTeam: TeamMatchTeam;
   awayTeam: TeamMatchTeam;
   countdown: TeamMatchCountdown;
@@ -320,6 +321,7 @@ export type SoloMatchHighlight = {
 
 export type ActiveSoloMatch = {
   id: string;
+  endsAt: string;
   homeRunner: SoloMatchRunner;
   awayRunner: SoloMatchRunner;
   countdown: TeamMatchCountdown;

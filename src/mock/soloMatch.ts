@@ -14,7 +14,7 @@ export const MOCK_SOLO_MATCHMAKING: SoloMatchmaking = {
     overview:
       'You have 3 days to outscore your opponent head-to-head. Every run you log during the match counts toward your total.',
     scoringDetails:
-      'Points come from your cumulative distance and pace—the more miles you cover, and the faster you run them, the higher your score.',
+      'Distance sets your base score (~10 pts/mi). Faster pace than 10:00/mi boosts points up to 25%; slower pace reduces them down to 15%.',
   },
   seasonRecord: {
     wins: 18,
