@@ -28,7 +28,7 @@ When adding a milestone:
 | 02 | [Supabase backend](./02-supabase-backend.md) | **In progress** — Phase A–D done; Phase E hardening next | 01 | 03, 04, 05, 06 |
 | 03 | [XP & competitive rank](./03-xp-and-ranking.md) | **In progress** — Phase 1–2 + Phase 4 server XP shipped | 01, 02 (partial) | 05, 06 |
 | 04 | [Third-party integrations](./04-third-party-integrations.md) | Planned | 01, 02 | 05 |
-| 05 | [Matchmaking, feed & social sync](./05-matchmaking-and-feed.md) | **Done** — Phase 1–5 shipped | 02 (Phase C+) | — |
+| 05 | [Matchmaking, feed & social sync](./05-matchmaking-and-feed.md) | **Done** — Phase 1–6 shipped | 02 (Phase C+) | — |
 | 06 | [Account, gating & cosmetics](./06-account-gating-and-cosmetics.md) | **In progress** — Phase 1 settings + Phase 2 achievements shipped | 02, 03 | — |
 
 ---
@@ -42,6 +42,8 @@ When adding a milestone:
 | Friends feed & richer cards | [05](./05-matchmaking-and-feed.md) Phase 3 **shipped** |
 | Solo matchmaking queue | [05](./05-matchmaking-and-feed.md) Phase 4 **shipped** |
 | Live match scoreboard + chat | [05](./05-matchmaking-and-feed.md) Phase 5 **shipped** |
+| Solo completion drawer + friend challenges | [05](./05-matchmaking-and-feed.md) Phase 6 **shipped** |
+| Match tab indicators + mid-match forfeit | [05](./05-matchmaking-and-feed.md) Phase 6 **shipped** |
 | Dynamic pace match scoring | [05](./05-matchmaking-and-feed.md) backlog — replace fixed 10:00/mi reference |
 | Account settings | [06](./06-account-gating-and-cosmetics.md) Phase 1 **shipped** |
 | Achievements (server-backed) | [06](./06-account-gating-and-cosmetics.md) Phase 2 **shipped** |

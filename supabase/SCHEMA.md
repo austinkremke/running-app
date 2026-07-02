@@ -98,6 +98,7 @@ feed_reactions                  — post_id, user_id, reaction (like); PK (post_
 feed_comments                   — post_id, user_id, body, created_at
 
 friendships                     — user_id, friend_user_id (bidirectional rows via add_friend RPC)
+solo_match_challenges           — challenger_id, challenged_id, status, match_type_id, match_id?, expires_at
 achievement_definitions         — catalog, criteria_type, criteria_json, xp_reward (seed)
 user_achievements               — user_id, achievement_id, unlocked_at
 achievement_events              — user_id, event_type (review, notifications, social follow, share)
@@ -113,6 +114,7 @@ achievement_events              — user_id, event_type (review, notifications, 
 **05 Phase 3 ships:** `friendships`, `add_friend` RPC, friends feed RLS; `can_view_feed_post` includes friends audience.  
 **05 Phase 4 (shipped):** `match_queue`, solo matchmaking RPCs, `credit_match_activity`, `finalize_solo_match` → Elo. See [05-matchmaking-and-feed.md](../milestones/05-matchmaking-and-feed.md#phase-4--matchmaking-shipped).  
 **05 Phase 5 (shipped):** `match_messages`; Realtime publication on `match_participants`, `activities`, `matches`, `match_messages`. See [05-matchmaking-and-feed.md](../milestones/05-matchmaking-and-feed.md#phase-5--real-time-polish-shipped).  
+**05 Phase 6 (shipped):** `solo_match_challenges`; completion persistence in `matches.state_json`; `get_my_solo_match_completions`, `forfeit_solo_match`, friend-challenge RPCs; `evaluate_achievements_system` for system finalize. See [05-matchmaking-and-feed.md](../milestones/05-matchmaking-and-feed.md#phase-6--solo-match-ux-challenges--forfeit-shipped).  
 **06 Phase 2 (shipped):** `achievement_definitions`, `user_achievements`, `achievement_events`; `evaluate_achievements` + `record_achievement_event` RPCs. See [06-account-gating-and-cosmetics.md](../milestones/06-account-gating-and-cosmetics.md#phase-2--achievements).  
 **06 Phase 1 (shipped):** `avatars` storage bucket, `delete_own_account` RPC.
 
@@ -122,6 +124,7 @@ achievement_events              — user_id, event_type (review, notifications, 
 **05 Phase 3:** `20250621000001_friends_graph.sql`.  
 **05 Phase 4:** `20250623000001_matchmaking.sql`, `20250623000002_match_activities_rls.sql`.  
 **05 Phase 5:** `20250624000001_match_realtime.sql`.  
+**05 Phase 6:** `20250625000001_match_pace_scoring.sql`, `20250625000002_match_finalize_results.sql`, `20250625000003_persist_match_completion.sql`, `20250625000004_solo_completion_sync.sql`, `20250625000005_fix_finalize_achievements.sql`, `20250625000006_solo_friend_challenges.sql`, `20250625000007_solo_match_forfeit.sql`.  
 **06 Phase 2:** `20250620000001_achievements.sql`.  
 **06 Phase 1:** `20250622000001_account_settings.sql`.
 
@@ -147,6 +150,13 @@ Full detail: [02-supabase-backend.md](../milestones/02-supabase-backend.md).
 | `get_solo_matchmaking_status` | Queue / active-match state for current user |
 | `credit_match_activity` | Award match points for a synced run (idempotent) |
 | `finalize_solo_match` | Complete due solo match and apply Elo |
+| `forfeit_solo_match` | End active solo match early; forfeiter loses, opponent wins |
+| `get_my_solo_match_completions` | Fetch persisted completion payloads for result drawer |
+| `send_solo_match_challenge` | Challenge a friend to 1v1 (must be mutual friends) |
+| `accept_solo_match_challenge` | Accept challenge → creates active solo match |
+| `decline_solo_match_challenge` / `cancel_solo_match_challenge` | Reject or withdraw pending challenge |
+| `get_solo_match_challenge_status` | Sent + received pending challenges for Solo tab |
+| `has_incoming_solo_match_challenge` | Boolean for Match/Solo tab indicators |
 | `evaluate_achievements` | Check + grant eligible achievement unlocks + XP |
 | `record_achievement_event` | One-time client events (share, review, follow, notifications) |
 
@@ -163,6 +173,7 @@ Full detail: [02-supabase-backend.md](../milestones/02-supabase-backend.md).
 | `feed_posts` | `audiences text[]`: `community`, `friends`, `team`; unique `activity_id` |
 | `matches` | `kind` team/solo, `state_json` UI shell, `ends_at` for countdown |
 | `match_participants` | `user_id`, `side`, `points`; solo enroll on first view |
+| `solo_match_challenges` | Pending friend 1v1 invites; `status` pending/accepted/declined/cancelled/expired |
 | `xp_ledger` | Per-award audit trail; idempotent run awards via partial unique index |
 | `player_progress` | `total_xp`, `streak_days`, `last_award_date`, `rolling_avg_pace_sec` |
 

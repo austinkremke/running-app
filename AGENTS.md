@@ -25,7 +25,7 @@ Mapbox requires a **dev client** build (`npx expo run:ios`), not Expo Go.
 - `ActivityRecord[]` is the source of truth for runs; maps/charts are derived.
 - XP/level and competitive rank are **separate** (see milestone 03). XP awards are **server-authoritative** via `award_run_xp` RPC; local AsyncStorage cache for offline UX.
 - **Milestone 02:** Phase A–D shipped; **Phase E hardening** is next.
-- **Milestone 05:** Phase 1–5 shipped (feed engagement, Elo UI, friends feed, solo matchmaking, live scoreboard + match chat).
+- **Milestone 05:** Phase 1–6 shipped (feed engagement, Elo UI, friends feed, solo matchmaking, live scoreboard + chat, completion drawer, friend challenges, forfeit, tab indicators).
 - **Milestone 06:** Phase 1 account settings + Phase 2 achievements shipped.
 - Summaries in Postgres, bulky tracks in Storage.
 - Feed + team screens read from Supabase (`feedService`, `teamService`); feed cards show static route maps from `activities.polyline`; likes/comments persisted on `feed_posts`.

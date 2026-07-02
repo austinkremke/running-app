@@ -1,7 +1,7 @@
 # Matchmaking, Feed & Social Sync
 
 > **Milestone:** 05  
-> **Status:** **In progress** — Phase 1–5 shipped  
+> **Status:** **Done** — Phase 1–6 shipped  
 > **Depends on:** [02 Supabase](./02-supabase-backend.md) (Phase A–D shipped; Phase C `feed_posts` required for Phase 1)  
 > **Unblocks:** —
 
@@ -11,7 +11,7 @@
 
 Replace remaining mock match/social data with server-backed state: real opponents, persisted results, competitive rank updates — while keeping **level (XP)** and **rank (Elo)** separate per [03](./03-xp-and-ranking.md).
 
-**Partially done in milestone 02:** `feed_posts`, team join/list, community + team feed tabs, active match screens (Phase D), static route maps on feed cards. **Phase 1 shipped:** persisted likes & comments. **Phase 2 shipped:** Elo rank UI. **Phase 3 shipped:** friends graph + friends feed + richer cards. **Phase 4 shipped:** solo matchmaking queue + pairing, activity scoring, match completion → Elo. **Phase 5 shipped:** live solo scoreboard (Realtime + post-run refresh), live countdown, persisted match chat (solo + team).
+**Partially done in milestone 02:** `feed_posts`, team join/list, community + team feed tabs, active match screens (Phase D), static route maps on feed cards. **Phase 1 shipped:** persisted likes & comments. **Phase 2 shipped:** Elo rank UI. **Phase 3 shipped:** friends graph + friends feed + richer cards. **Phase 4 shipped:** solo matchmaking queue + pairing, activity scoring, match completion → Elo. **Phase 5 shipped:** live solo scoreboard (Realtime + post-run refresh), live countdown, persisted match chat (solo + team). **Phase 6 shipped:** reliable match-completion drawer, friend solo challenges, match-tab indicators, solo streak highlights, mid-match forfeit, instant Match tab navigation.
 
 ---
 
@@ -19,8 +19,9 @@ Replace remaining mock match/social data with server-backed state: real opponent
 
 | Area | Today | Target |
 |------|-------|--------|
-| Solo / team matches | **Solo** queue + paired 1v1 from server; team lineup still mock | **Active** match screens from Postgres; team lineup still mock |
-| Match results | **Solo** runs credit match points; due matches finalize → Elo | Runs linked to `activity_id`; Elo update |
+| Solo / team matches | **Solo** queue + paired 1v1 from server; **friend challenges** send/accept; **forfeit** mid-match; team lineup still mock | **Active** match screens from Postgres; team lineup still mock |
+| Match results | **Solo** runs credit match points; due matches finalize → Elo; **completion drawer** on end/forfeit; season record in payload | Runs linked to `activity_id`; Elo update |
+| Match UX | **Tab indicators** (active match + incoming challenge); **streak highlights** on active solo screen; **instant** Match tab nav | Real-time polish |
 | Feed | **Server** posts + **static route maps**; **persisted likes & comments**; **friends feed**; pace highlights + photo layout; **live solo scoreboard** | Real-time polish |
 | Teams | **Server** (join, members, top list) — stats/activity mock | Full team stats, activity stream |
 | Team chat | **Server** `match_messages` + Realtime | Realtime or polled messages ([02](./02-supabase-backend.md)) |
@@ -77,6 +78,26 @@ Replace remaining mock match/social data with server-backed state: real opponent
 **Out of scope:** team lineup mock; team scoreboard still reads demo `state_json` until team scoring ships.
 
 **Match scoring (v1):** `match_points_for_activity` — base ~10 pts/mi (≥0.1 mi), pace multiplier vs fixed **10:00/mi** reference (0.85×–1.25×). See migration `20250625000001_match_pace_scoring.sql`.
+
+### Phase 6 — Solo match UX, challenges & forfeit **shipped**
+
+**Shipped:**
+
+- **Match completion flow** — `get_my_solo_match_completions` RPC; `persist_solo_match_completions` on finalize; `evaluate_achievements_system` for cross-user finalize; `SoloMatchCompletionProvider` + result drawer with Elo/season record; centralized sync on mount, foreground, route change, and match-end events.
+- **Friend solo challenges** — `solo_match_challenges` table; RPCs `send_solo_match_challenge`, `accept_solo_match_challenge`, `decline_solo_match_challenge`, `cancel_solo_match_challenge`, `get_solo_match_challenge_status`, `has_incoming_solo_match_challenge`; `ChallengeFriendDrawer` + `IncomingChallengeCard` + `ProposedChallengeCard` on Solo tab; accept creates live 1v1 via `create_solo_match_for_users`.
+- **Match tab indicators** — red dot on bottom **Match** tab when user has a live solo/team match or an **incoming** friend challenge; red dot on **Solo** sub-tab when a challenge awaits accept (`useMatchTabIndicators`, `TabAppHeader` badges).
+- **Active match highlights** — current run streak (`player_progress.streak_days`), best pace, longest run on solo match screen; best win streak on season record card (`fetchSoloBestWinStreak`).
+- **Mid-match forfeit** — `forfeit_solo_match` RPC; ⋮ menu → Quit Match → confirmation; quitter loses, opponent wins, Elo + season record update; completion drawer for forfeiter.
+- **Navigation perf** — Match tab navigates immediately; solo-match redirect and completion sync run in background (`fetchActiveSoloMatchId` with `skipFinalize` for lightweight checks).
+- **Stale match hygiene** — active team/solo queries ignore expired `ends_at`; demo seed matches should not leave zombie `status = active` rows.
+
+**Manual QA (friend challenge, two accounts):** User A opens Solo tab → **Challenge Friend** → picks B → send. B sees red dots on Match + Solo tabs → opens Solo → **Accept** → both land in active 1v1. Decline/cancel clears pending state and indicators.
+
+**Manual QA (forfeit):** User A in active solo match → ⋮ → **Quit Match** → confirm. A sees loss in completion drawer; B gets win on next app sync / completion poll.
+
+**Key client files:** `challengeService.ts`, `useSoloMatchChallenges.ts`, `SoloMatchCompletionContext.tsx`, `soloMatchCompletionFlow.ts`, `useMatchTabIndicators.ts`, `SoloMatchOptionsDrawer.tsx`, `matchmakingService.ts` (`forfeitSoloMatch`).
+
+**Migrations:** `20250625000002_match_finalize_results.sql`, `20250625000003_persist_match_completion.sql`, `20250625000004_solo_completion_sync.sql`, `20250625000005_fix_finalize_achievements.sql`, `20250625000006_solo_friend_challenges.sql`, `20250625000007_solo_match_forfeit.sql`.
 
 ### Future follow-ups (milestone 05 backlog)
 
