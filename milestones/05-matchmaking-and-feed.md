@@ -90,6 +90,7 @@ Replace remaining mock match/social data with server-backed state: real opponent
 - **Mid-match forfeit** — `forfeit_solo_match` RPC; ⋮ menu → Quit Match → confirmation; quitter loses, opponent wins, Elo + season record update; completion drawer for forfeiter.
 - **Navigation perf** — Match tab navigates immediately; solo-match redirect and completion sync run in background (`fetchActiveSoloMatchId` with `skipFinalize` for lightweight checks).
 - **Stale match hygiene** — active team/solo queries ignore expired `ends_at`; demo seed matches should not leave zombie `status = active` rows.
+- **In-app notification drawer** — global `InAppNotificationProvider` + bottom drawer surfaces incoming friend challenges with accept/decline anywhere in the app (polls challenge status every 10s + on foreground; `InAppNotificationContext.tsx`, `InAppNotificationDrawer.tsx`).
 
 **Manual QA (friend challenge, two accounts):** User A opens Solo tab → **Challenge Friend** → picks B → send. B sees red dots on Match + Solo tabs → opens Solo → **Accept** → both land in active 1v1. Decline/cancel clears pending state and indicators.
 

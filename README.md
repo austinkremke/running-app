@@ -61,10 +61,10 @@ Mapbox on device often needs a recent Xcode beta; see project notes in your shel
 | 02 Supabase — Phase C teams/feed | **Done** |
 | 02 Supabase — Phase D matches | **Done** |
 | 02 Supabase — Phase E hardening | **Next** |
-| 03 XP & rank | **In progress** — Phase 1–2 + Phase 4 server XP shipped |
+| 03 XP & rank | **In progress** — Phase 1–2 + 4 shipped; Phase 3 solo Elo via 05; Phase 5 achievements via 06 |
 | 04 Garmin / Strava | Planned |
 | 05 Matchmaking & feed | **Done** — Phase 1–6 shipped ([05](./milestones/05-matchmaking-and-feed.md)) |
-| 06 Account, gating & cosmetics | **In progress** — Phase 1 settings + Phase 2 achievements ([06](./milestones/06-account-gating-and-cosmetics.md)) |
+| 06 Account, gating & cosmetics | **In progress** — Phase 1–3 shipped (settings, achievements, rank avatar borders); Phase 4 level gates next ([06](./milestones/06-account-gating-and-cosmetics.md)) |
 
 ### Still mock / placeholder (honest)
 
@@ -76,7 +76,7 @@ Mapbox on device often needs a recent Xcode beta; see project notes in your shel
 | Match tab indicators | **Shipped** — active match + incoming challenge dots ([05 Phase 6](./milestones/05-matchmaking-and-feed.md)) |
 | Team match chat | **Shipped** — server-backed when on active team match ([05 Phase 5](./milestones/05-matchmaking-and-feed.md)) |
 | Solo match / Elo on completion | **Shipped** — queue, activity points, finalize/forfeit → Elo ([05 Phase 4–6](./milestones/05-matchmaking-and-feed.md)) |
-| Me tab profile | Name/avatar from server; **level + XP bar real**; **rank tier + rating from server**; achievements/stats still mock |
+| Me tab profile | Name/avatar from server; **level + XP bar real**; **rank tier + rating from server**; **achievements from server**; profile stats still mock |
 | Post-run XP drawer | **Real** staged breakdown + segmented bar fill on “Lock in your run” |
 | Achievements on Me tab | **Shipped** — server unlocks + Community actions ([06 Phase 2](./milestones/06-account-gating-and-cosmetics.md)) |
 | Account settings | **Shipped** — profile edit, avatar upload, units, sign out, delete account ([06 Phase 1](./milestones/06-account-gating-and-cosmetics.md)) |
@@ -111,7 +111,7 @@ Mapbox on device often needs a recent Xcode beta; see project notes in your shel
 
 1. Join **Road Warriors** → active team match vs Pacers loads on Team Match screen.
 2. **Solo matchmaking** — Solo tab → **Find Match** joins `match_queue`; pairing by rating band (±400); or **Challenge Friend** to send a directed 1v1 invite.
-3. **Friend challenges** — recipient sees incoming card on Solo tab (+ red indicators on Match/Solo tabs); accept creates active match, decline/cancel clears pending state.
+3. **Friend challenges** — recipient sees incoming card on Solo tab (+ red indicators on Match/Solo tabs); a global in-app notification drawer prompts accept/decline anywhere in the app; accept creates active match, decline/cancel clears pending state.
 4. Active solo match — scoreboard, streak highlights, chat; runs during match credit points via `credit_match_activity`.
 5. Match ends at `ends_at` or via **Quit Match** (forfeit) → `finalize_solo_match` / `forfeit_solo_match` → Elo + season W/L → completion drawer.
 6. Runs started during an active match get `activities.match_id` on sync.
@@ -133,7 +133,7 @@ Details: [03-xp-and-ranking.md](milestones/03-xp-and-ranking.md).
 | Activities | `activitySync.ts`, `activityPolyline.ts`, `activitySyncQueue.ts` |
 | Social | `feedService.ts`, `feedEngagementService.ts`, `rankService.ts`, `teamService.ts`, `socialMappers.ts` |
 | Feed route preview | `StaticRouteMapPreview.tsx`, `polylineToGpsPoints` in `activityAdapters.ts` |
-| Matches | `matchService.ts`, `matchmakingService.ts`, `challengeService.ts`, `matchMappers.ts`, `hooks/useActiveTeamMatch.ts`, `hooks/useActiveSoloMatch.ts`, `hooks/useSoloMatchChallenges.ts`, `hooks/useSoloMatchmaking.ts`, `context/SoloMatchCompletionContext.tsx` |
+| Matches | `matchService.ts`, `matchmakingService.ts`, `challengeService.ts`, `matchMappers.ts`, `hooks/useActiveTeamMatch.ts`, `hooks/useActiveSoloMatch.ts`, `hooks/useSoloMatchChallenges.ts`, `hooks/useSoloMatchmaking.ts`, `context/SoloMatchCompletionContext.tsx`, `context/InAppNotificationContext.tsx` |
 | Progression | `PlayerProgressContext.tsx`, `services/progression/*`, `storage/progressionStorage.ts` |
 
 Details: [02-supabase-backend.md](milestones/02-supabase-backend.md).

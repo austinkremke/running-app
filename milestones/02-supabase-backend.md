@@ -194,7 +194,7 @@ feed_posts        — activity_id, audiences[], title, description, …         
 matches           — type_id → match_types, status, started_at, …                [SHIPPED]
 match_types       — reference catalog (id, display_name, …)                     [SHIPPED]
 match_participants                                                                [SHIPPED]
-match_results                                                                     [planned]
+match_results                                                                     [superseded — completion persisted in matches.state_json, 05 Phase 6]
 feed_reactions    — post_id, user_id, reaction (like)                               [05 Phase 1]
 feed_comments     — post_id, user_id, body, created_at                            [05 Phase 1]
 

@@ -123,7 +123,7 @@ achievement_events              — user_id, event_type (review, notifications, 
 **05 Phase 2:** `20250619000001_elo_rank_rpc.sql`.  
 **05 Phase 3:** `20250621000001_friends_graph.sql`.  
 **05 Phase 4:** `20250623000001_matchmaking.sql`, `20250623000002_match_activities_rls.sql`.  
-**05 Phase 5:** `20250624000001_match_realtime.sql`.  
+**05 Phase 5:** `20250624000001_match_realtime.sql`, `20250624000002_repair_solo_match_credits.sql` (repair: re-credit solo match points).  
 **05 Phase 6:** `20250625000001_match_pace_scoring.sql`, `20250625000002_match_finalize_results.sql`, `20250625000003_persist_match_completion.sql`, `20250625000004_solo_completion_sync.sql`, `20250625000005_fix_finalize_achievements.sql`, `20250625000006_solo_friend_challenges.sql`, `20250625000007_solo_match_forfeit.sql`.  
 **06 Phase 2:** `20250620000001_achievements.sql`.  
 **06 Phase 1:** `20250622000001_account_settings.sql`.

@@ -1,7 +1,7 @@
 # XP & Leveling + Competitive Rank
 
 > **Milestone:** 03  
-> **Status:** In progress — Phase 1–2 + Phase 4 server XP shipped  
+> **Status:** In progress — Phase 1–2 + Phase 4 server XP shipped; Phase 3 solo Elo shipped via 05 (percentile / team aggregates pending); Phase 5 achievements shipped via 06 Phase 2  
 > **Depends on:** [01 Activity recording](./01-activity-recording.md), [02 Supabase](./02-supabase-backend.md) (Phase A–C shipped; `player_progress` + activities on server)  
 > **Unblocks:** [05 Matchmaking & feed](./05-matchmaking-and-feed.md)
 
@@ -338,7 +338,8 @@ Duplicate awards for the same `activity_id` are blocked. Zero-XP attempts do not
 
 - Me tab + solo match tab read **`player_rank` + `rank_tiers`** (`useRankDisplay`, `rankService`)
 - Server Elo via **`apply_elo_match_result`** RPC; clients cannot self-update `player_rank`
-- Still TODO: auto-invoke Elo on match completion; global percentile; team leaderboard aggregates
+- Auto-invoke Elo on match completion **shipped** in [05 Phase 4/6](./05-matchmaking-and-feed.md) (`finalize_solo_match` / `forfeit_solo_match` → `apply_elo_match_result_system`)
+- Still TODO: global percentile; team leaderboard aggregates
 
 ### Phase 4 — Server-authoritative **shipped**
 
@@ -348,11 +349,11 @@ Duplicate awards for the same `activity_id` are blocked. Zero-XP attempts do not
 - `bootstrap_progression_from_local` one-time import when server XP is 0 and local > 0
 - Client falls back to local-only award if RPC unavailable (offline / migration pending)
 
-### Phase 5 — Achievements & progression hooks (feeds [06](./06-account-gating-and-cosmetics.md))
+### Phase 5 — Achievements & progression hooks **mostly shipped** (via [06](./06-account-gating-and-cosmetics.md))
 
-- **`achievement_definitions` catalog + evaluators** — full v1 list and schema in [06 Phase 2](./06-account-gating-and-cosmetics.md#phase-2--achievements)
-- Achievement XP grants via ledger (`source: 'achievement'`)
-- Export level + rank tier readers for level gates and avatar rank borders
+- **`achievement_definitions` catalog + evaluators** — **shipped** in [06 Phase 2](./06-account-gating-and-cosmetics.md#phase-2--achievements)
+- Achievement XP grants via ledger (`source: 'achievement'`) — **shipped**
+- Rank tier readers for avatar rank borders — **shipped** ([06 Phase 3](./06-account-gating-and-cosmetics.md#phase-3--avatar-rank-decorative-borders-shipped)); level readers for level gates — pending [06 Phase 4](./06-account-gating-and-cosmetics.md#phase-4--level-blocking-features)
 
 ---
 

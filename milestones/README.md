@@ -26,10 +26,10 @@ When adding a milestone:
 |---|-----------|--------|------------|----------|
 | 01 | [Activity recording](./01-activity-recording.md) | **Done** | — | 02, 03, 04 |
 | 02 | [Supabase backend](./02-supabase-backend.md) | **In progress** — Phase A–D done; Phase E hardening next | 01 | 03, 04, 05, 06 |
-| 03 | [XP & competitive rank](./03-xp-and-ranking.md) | **In progress** — Phase 1–2 + Phase 4 server XP shipped | 01, 02 (partial) | 05, 06 |
+| 03 | [XP & competitive rank](./03-xp-and-ranking.md) | **In progress** — Phase 1–2 + 4 shipped; Phase 3 solo Elo via 05; Phase 5 achievements via 06 (percentile / team aggregates pending) | 01, 02 (partial) | 05, 06 |
 | 04 | [Third-party integrations](./04-third-party-integrations.md) | Planned | 01, 02 | 05 |
 | 05 | [Matchmaking, feed & social sync](./05-matchmaking-and-feed.md) | **Done** — Phase 1–6 shipped | 02 (Phase C+) | — |
-| 06 | [Account, gating & cosmetics](./06-account-gating-and-cosmetics.md) | **In progress** — Phase 1 settings + Phase 2 achievements shipped | 02, 03 | — |
+| 06 | [Account, gating & cosmetics](./06-account-gating-and-cosmetics.md) | **In progress** — Phase 1–3 shipped (settings, achievements, rank avatar borders); Phase 4 level gates next | 02, 03 | — |
 
 ---
 

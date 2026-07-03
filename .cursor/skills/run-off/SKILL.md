@@ -55,10 +55,10 @@ Mention milestone/phase in the subject (e.g. `milestone 02 Phase C`) and note do
 |---|--------|--------|
 | 01 | Activity recording (local) | Done |
 | 02 | Supabase backend | **In progress** — Phase A–D done; Phase E next |
-| 03 | XP & rank (separate systems) | **In progress** — Phase 1–2 + Phase 4 server XP shipped |
+| 03 | XP & rank (separate systems) | **In progress** — Phase 1–2 + 4 shipped; Phase 3 solo Elo via 05; Phase 5 achievements via 06 |
 | 04 | Garmin / Strava | Planned |
 | 05 | Matchmaking & feed | **Done** — Phase 1–6 shipped |
-| 06 | Account settings, achievements, rank avatar borders, level & paywall gates | Planned |
+| 06 | Account settings, achievements, rank avatar borders, level & paywall gates | **In progress** — Phase 1–3 shipped; Phase 4 level gates next |
 
 ---
 
@@ -222,7 +222,7 @@ Full risk catalog: [reference.md](reference.md)
 | XP UI | `XpGainDrawer.tsx`, `PlayerProgressContext.tsx`, `services/progression/*` |
 | Auth + sync | `AuthContext.tsx`, `services/supabase.ts`, `activitySync.ts`, `activitySyncQueue.ts` |
 | Social | `feedService.ts`, `feedEngagementService.ts`, `rankService.ts`, `teamService.ts`, `socialMappers.ts`, `FeedCommentsDrawer.tsx`, `activityAdapters.ts` (`polylineToGpsPoints`) |
-| Matches | `matchService.ts`, `matchmakingService.ts`, `challengeService.ts`, `matchMappers.ts`, `useActiveTeamMatch.ts`, `useActiveSoloMatch.ts`, `useSoloMatchmaking.ts`, `useSoloMatchChallenges.ts`, `SoloMatchCompletionContext.tsx` |
+| Matches | `matchService.ts`, `matchmakingService.ts`, `challengeService.ts`, `matchMappers.ts`, `useActiveTeamMatch.ts`, `useActiveSoloMatch.ts`, `useSoloMatchmaking.ts`, `useSoloMatchChallenges.ts`, `SoloMatchCompletionContext.tsx`, `InAppNotificationContext.tsx` |
 | Progression | `PlayerProgressContext.tsx`, `services/progression/*`, `progressionStorage.ts`, `config/xpRewards.ts` |
 | Tests | `npm test`, `src/services/progression/__tests__/` |
 | Milestones | `milestones/*.md` |
