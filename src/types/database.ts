@@ -1093,6 +1093,16 @@ export type Database = {
         }
         Returns: string
       }
+      create_team: {
+        Args: {
+          p_logo_accent?: string
+          p_logo_icon?: string
+          p_motto?: string
+          p_name: string
+          p_tag: string
+        }
+        Returns: Json
+      }
       credit_match_activity: { Args: { p_activity_id: string }; Returns: Json }
       cumulative_xp_for_level: { Args: { p_level: number }; Returns: number }
       decline_solo_match_challenge: {
@@ -1100,6 +1110,8 @@ export type Database = {
         Returns: Json
       }
       delete_own_account: { Args: never; Returns: undefined }
+      demote_member: { Args: { p_user_id: string }; Returns: undefined }
+      disband_team: { Args: never; Returns: undefined }
       elo_expected_score: {
         Args: { p_rating_a: number; p_rating_b: number }
         Returns: number
@@ -1138,6 +1150,7 @@ export type Database = {
         Args: { p_match_id: string; p_user_id?: string }
         Returns: boolean
       }
+      kick_member: { Args: { p_user_id: string }; Returns: undefined }
       level_from_total_xp: { Args: { p_total_xp: number }; Returns: number }
       match_points_for_activity: {
         Args: { p_distance_meters: number; p_duration_seconds?: number }
@@ -1151,6 +1164,7 @@ export type Database = {
         Args: { p_match_id: string; p_result: Json }
         Returns: undefined
       }
+      promote_member: { Args: { p_user_id: string }; Returns: undefined }
       record_achievement_event: {
         Args: { p_event_type: string; p_metadata?: Json }
         Returns: Json
@@ -1164,7 +1178,23 @@ export type Database = {
         Args: { p_match_type_id: string }
         Returns: string
       }
+      team_has_active_match: { Args: { p_team_id: string }; Returns: boolean }
+      team_role_for: {
+        Args: { p_team_id: string; p_user_id: string }
+        Returns: string
+      }
+      transfer_leadership: { Args: { p_user_id: string }; Returns: undefined }
       try_pair_solo_queue: { Args: never; Returns: string }
+      update_team: {
+        Args: {
+          p_logo_accent?: string
+          p_logo_icon?: string
+          p_motto?: string
+          p_name?: string
+          p_team_id: string
+        }
+        Returns: undefined
+      }
       user_has_live_active_solo_match: {
         Args: { p_user_id: string }
         Returns: boolean

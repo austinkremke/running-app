@@ -9,11 +9,13 @@ import { TeamRoleBadge } from './TeamRoleBadge';
 type TeamMemberRowProps = {
   member: TeamMember;
   showDivider?: boolean;
+  /** Shows the ⋮ menu and handles taps — pass only when the viewer can manage this member. */
+  onOptionsPress?: (member: TeamMember) => void;
 };
 
 const AVATAR_SIZE = 36;
 
-export function TeamMemberRow({ member, showDivider = true }: TeamMemberRowProps) {
+export function TeamMemberRow({ member, showDivider = true, onOptionsPress }: TeamMemberRowProps) {
   return (
     <View>
       <View style={styles.row}>
@@ -59,9 +61,19 @@ export function TeamMemberRow({ member, showDivider = true }: TeamMemberRowProps
           <Text style={styles.powerValue}>{member.power}</Text>
         </View>
 
-        <Pressable accessibilityLabel="Member options" hitSlop={8} style={styles.menu}>
-          <Ionicons color={colors.textSecondary} name="ellipsis-vertical" size={14} />
-        </Pressable>
+        {onOptionsPress ? (
+          <Pressable
+            accessibilityLabel="Member options"
+            accessibilityRole="button"
+            hitSlop={8}
+            onPress={() => onOptionsPress(member)}
+            style={styles.menu}
+          >
+            <Ionicons color={colors.textSecondary} name="ellipsis-vertical" size={14} />
+          </Pressable>
+        ) : (
+          <View style={styles.menu} />
+        )}
       </View>
 
       {showDivider ? <View style={styles.divider} /> : null}

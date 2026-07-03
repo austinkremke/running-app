@@ -105,6 +105,101 @@ export async function leaveTeam(userId: string): Promise<void> {
   if (error) throw error;
 }
 
+export type CreateTeamInput = {
+  name: string;
+  tag: string;
+  motto?: string;
+  logoIcon?: string;
+  logoAccent?: string;
+};
+
+/** Creates a team with the caller as leader. Level-gated server-side (`create_team`, L10). */
+export async function createTeam(input: CreateTeamInput): Promise<string> {
+  if (!supabase) {
+    throw new Error('Supabase is not configured.');
+  }
+
+  const { data, error } = await supabase.rpc('create_team', {
+    p_name: input.name,
+    p_tag: input.tag,
+    p_motto: input.motto ?? '',
+    p_logo_icon: input.logoIcon ?? 'paw',
+    p_logo_accent: input.logoAccent ?? 'lime',
+  });
+
+  if (error) throw error;
+
+  return (data as { team_id: string }).team_id;
+}
+
+export type UpdateTeamInput = {
+  name?: string;
+  motto?: string;
+  logoIcon?: string;
+  logoAccent?: string;
+};
+
+export async function updateTeam(teamId: string, input: UpdateTeamInput): Promise<void> {
+  if (!supabase) {
+    throw new Error('Supabase is not configured.');
+  }
+
+  const { error } = await supabase.rpc('update_team', {
+    p_team_id: teamId,
+    p_name: input.name ?? undefined,
+    p_motto: input.motto ?? undefined,
+    p_logo_icon: input.logoIcon ?? undefined,
+    p_logo_accent: input.logoAccent ?? undefined,
+  });
+
+  if (error) throw error;
+}
+
+export async function promoteMember(userId: string): Promise<void> {
+  if (!supabase) {
+    throw new Error('Supabase is not configured.');
+  }
+
+  const { error } = await supabase.rpc('promote_member', { p_user_id: userId });
+  if (error) throw error;
+}
+
+export async function demoteMember(userId: string): Promise<void> {
+  if (!supabase) {
+    throw new Error('Supabase is not configured.');
+  }
+
+  const { error } = await supabase.rpc('demote_member', { p_user_id: userId });
+  if (error) throw error;
+}
+
+export async function kickMember(userId: string): Promise<void> {
+  if (!supabase) {
+    throw new Error('Supabase is not configured.');
+  }
+
+  const { error } = await supabase.rpc('kick_member', { p_user_id: userId });
+  if (error) throw error;
+}
+
+export async function transferLeadership(userId: string): Promise<void> {
+  if (!supabase) {
+    throw new Error('Supabase is not configured.');
+  }
+
+  const { error } = await supabase.rpc('transfer_leadership', { p_user_id: userId });
+  if (error) throw error;
+}
+
+export async function disbandTeam(): Promise<void> {
+  if (!supabase) {
+    throw new Error('Supabase is not configured.');
+  }
+
+  const { error } = await supabase.rpc('disband_team');
+  if (error) throw error;
+}
+
 export async function listTopTeams(limit = 50): Promise<TopTeamListing[]> {
   if (!supabase) return [];
 

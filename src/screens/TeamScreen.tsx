@@ -3,15 +3,31 @@ import { ActivityIndicator, Alert, ScrollView, StyleSheet, Text, View } from 're
 
 import {
   TeamActivitySection,
+  TeamFormDrawer,
   TeamJoinPrompt,
+  TeamManageSection,
   TeamMembersSection,
   TeamStatsSection,
   TeamTopSection,
+  type TeamFormValues,
 } from '../components/team';
 import { useAuth, useUserId } from '../context';
 import { useAchievementUnlockPresentation } from '../hooks/useAchievementUnlockPresentation';
+import { useFeatureGate } from '../hooks/useFeatureGate';
 import { useMyTeam } from '../hooks/useMyTeam';
-import { joinTeam, ROAD_WARRIORS_TEAM_ID } from '../services/teamService';
+import type { TeamMember } from '../mock';
+import {
+  createTeam,
+  demoteMember,
+  disbandTeam,
+  joinTeam,
+  kickMember,
+  leaveTeam,
+  promoteMember,
+  ROAD_WARRIORS_TEAM_ID,
+  transferLeadership,
+  updateTeam,
+} from '../services/teamService';
 import { colors, spacing } from '../theme';
 
 type TeamScreenProps = {
@@ -23,7 +39,23 @@ export function TeamScreen({ onOpenTopTeams }: TeamScreenProps) {
   const { refreshGameState } = useAuth();
   const { runEvaluation } = useAchievementUnlockPresentation();
   const { team, loading, error, refresh } = useMyTeam();
+  const createGate = useFeatureGate('create_team');
   const [joining, setJoining] = useState(false);
+  const [formVisible, setFormVisible] = useState(false);
+  const [formMode, setFormMode] = useState<'create' | 'edit'>('create');
+  const [submitting, setSubmitting] = useState(false);
+
+  const viewerRole = team?.members.find((member) => member.id === userId)?.role;
+
+  async function refreshAll() {
+    await refreshGameState();
+    await refresh();
+  }
+
+  function showError(title: string, caught: unknown, fallback: string) {
+    const message = caught instanceof Error ? caught.message : fallback;
+    Alert.alert(title, message);
+  }
 
   async function handleJoinTeam() {
     if (!userId) return;
@@ -31,16 +63,123 @@ export function TeamScreen({ onOpenTopTeams }: TeamScreenProps) {
     setJoining(true);
     try {
       await joinTeam(userId, ROAD_WARRIORS_TEAM_ID);
-      await refreshGameState();
-      await refresh();
+      await refreshAll();
       await runEvaluation();
     } catch (joinError) {
-      const message =
-        joinError instanceof Error ? joinError.message : 'Could not join the team.';
-      Alert.alert('Join team failed', message);
+      showError('Join team failed', joinError, 'Could not join the team.');
     } finally {
       setJoining(false);
     }
+  }
+
+  async function handleSubmitTeamForm(values: TeamFormValues) {
+    setSubmitting(true);
+    try {
+      if (formMode === 'create') {
+        await createTeam({
+          name: values.name,
+          tag: values.tag,
+          motto: values.motto,
+          logoIcon: values.logoIcon,
+          logoAccent: values.logoAccent,
+        });
+        await runEvaluation();
+      } else if (team) {
+        await updateTeam(team.id, {
+          name: values.name,
+          motto: values.motto,
+          logoIcon: values.logoIcon,
+          logoAccent: values.logoAccent,
+        });
+      }
+      setFormVisible(false);
+      await refreshAll();
+    } catch (submitError) {
+      showError(
+        formMode === 'create' ? 'Create team failed' : 'Update team failed',
+        submitError,
+        'Something went wrong.',
+      );
+    } finally {
+      setSubmitting(false);
+    }
+  }
+
+  function confirmAction(title: string, message: string, action: () => Promise<void>) {
+    Alert.alert(title, message, [
+      { text: 'Cancel', style: 'cancel' },
+      {
+        text: 'Confirm',
+        style: 'destructive',
+        onPress: () => {
+          void (async () => {
+            try {
+              await action();
+              await refreshAll();
+            } catch (actionError) {
+              showError(title, actionError, 'Something went wrong.');
+            }
+          })();
+        },
+      },
+    ]);
+  }
+
+  function handleMemberOptions(member: TeamMember) {
+    const options: { text: string; style?: 'destructive' | 'cancel'; onPress?: () => void }[] = [];
+
+    if (viewerRole === 'leader') {
+      if (member.role === 'co-leader') {
+        options.push({
+          text: 'Demote to Member',
+          onPress: () => confirmAction('Demote member', `Demote ${member.name} to member?`, () => demoteMember(member.id)),
+        });
+      } else {
+        options.push({
+          text: 'Promote to Co-Leader',
+          onPress: () => confirmAction('Promote member', `Promote ${member.name} to co-leader?`, () => promoteMember(member.id)),
+        });
+      }
+      options.push({
+        text: 'Transfer Leadership',
+        onPress: () =>
+          confirmAction(
+            'Transfer leadership',
+            `Make ${member.name} the team leader? You will become a co-leader.`,
+            () => transferLeadership(member.id),
+          ),
+      });
+    }
+
+    options.push({
+      text: 'Remove from Team',
+      style: 'destructive',
+      onPress: () => confirmAction('Remove member', `Remove ${member.name} from the team?`, () => kickMember(member.id)),
+    });
+    options.push({ text: 'Cancel', style: 'cancel' });
+
+    Alert.alert(member.name, undefined, options);
+  }
+
+  function handleLeaveTeam() {
+    const message =
+      viewerRole === 'leader' && (team?.memberCount ?? 0) > 1
+        ? 'Leadership will pass to the next member. Leave the team?'
+        : 'Are you sure you want to leave the team?';
+
+    confirmAction('Leave team', message, async () => {
+      if (userId) {
+        await leaveTeam(userId);
+      }
+    });
+  }
+
+  function handleDisbandTeam() {
+    confirmAction(
+      'Disband team',
+      'This permanently deletes the team for every member. Disband?',
+      () => disbandTeam(),
+    );
   }
 
   if (loading) {
@@ -60,25 +199,80 @@ export function TeamScreen({ onOpenTopTeams }: TeamScreenProps) {
   }
 
   if (!team) {
-    return <TeamJoinPrompt joining={joining} onJoin={() => void handleJoinTeam()} />;
+    return (
+      <>
+        <TeamJoinPrompt
+          createLockedLabel={createGate.lockedLabel}
+          joining={joining}
+          onCreate={() => {
+            setFormMode('create');
+            setFormVisible(true);
+          }}
+          onJoin={() => void handleJoinTeam()}
+        />
+        <TeamFormDrawer
+          mode="create"
+          onClose={() => setFormVisible(false)}
+          onSubmit={(values) => void handleSubmitTeamForm(values)}
+          submitting={submitting}
+          visible={formVisible && formMode === 'create'}
+        />
+      </>
+    );
   }
 
   return (
-    <ScrollView
-      contentContainerStyle={styles.content}
-      showsVerticalScrollIndicator={false}
-      style={styles.scroll}
-    >
-      <TeamTopSection onRankPress={onOpenTopTeams} team={team} />
-      <TeamStatsSection stats={team.stats} />
-      <TeamMembersSection
-        memberCount={team.memberCount}
-        memberMax={team.memberMax}
-        members={team.members}
+    <>
+      <ScrollView
+        contentContainerStyle={styles.content}
+        showsVerticalScrollIndicator={false}
+        style={styles.scroll}
+      >
+        <TeamTopSection onRankPress={onOpenTopTeams} team={team} />
+        <TeamStatsSection stats={team.stats} />
+        <TeamMembersSection
+          canManageMember={(member) =>
+            member.id !== userId &&
+            member.role !== 'leader' &&
+            (viewerRole === 'leader' || (viewerRole === 'co-leader' && !member.role))
+          }
+          memberCount={team.memberCount}
+          memberMax={team.memberMax}
+          members={team.members}
+          onMemberOptionsPress={
+            viewerRole === 'leader' || viewerRole === 'co-leader'
+              ? handleMemberOptions
+              : undefined
+          }
+        />
+        <TeamManageSection
+          onDisbandTeam={handleDisbandTeam}
+          onEditTeam={() => {
+            setFormMode('edit');
+            setFormVisible(true);
+          }}
+          onLeaveTeam={handleLeaveTeam}
+          role={viewerRole}
+        />
+        <TeamActivitySection activities={team.activities} />
+        <View style={styles.bottomSpacer} />
+      </ScrollView>
+
+      <TeamFormDrawer
+        initialValues={{
+          name: team.name,
+          tag: team.tag,
+          motto: team.motto,
+          logoIcon: team.shieldIcon,
+          logoAccent: team.shieldAccent,
+        }}
+        mode="edit"
+        onClose={() => setFormVisible(false)}
+        onSubmit={(values) => void handleSubmitTeamForm(values)}
+        submitting={submitting}
+        visible={formVisible && formMode === 'edit'}
       />
-      <TeamActivitySection activities={team.activities} />
-      <View style={styles.bottomSpacer} />
-    </ScrollView>
+    </>
   );
 }
 

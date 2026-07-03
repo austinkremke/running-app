@@ -129,7 +129,8 @@ feature_gates                   — feature_id, display_name, min_level, is_acti
 **05 Phase 6:** `20250625000001_match_pace_scoring.sql`, `20250625000002_match_finalize_results.sql`, `20250625000003_persist_match_completion.sql`, `20250625000004_solo_completion_sync.sql`, `20250625000005_fix_finalize_achievements.sql`, `20250625000006_solo_friend_challenges.sql`, `20250625000007_solo_match_forfeit.sql`.  
 **06 Phase 2:** `20250620000001_achievements.sql`.  
 **06 Phase 1:** `20250622000001_account_settings.sql`.  
-**06 Phase 4:** `20250702000001_feature_gates.sql`, `20250702000002_fix_level_fn_overload.sql`.
+**06 Phase 4:** `20250702000001_feature_gates.sql`, `20250702000002_fix_level_fn_overload.sql`.  
+**07 Phase 1:** `20250703000001_team_management.sql` — team management RPCs; leader-succession + empty-team-disband triggers on `team_members`; `create_team` gate activated.
 
 Storage buckets: `activities` (private tracks), `avatars` (public profile photos).
 
@@ -163,6 +164,8 @@ Full detail: [02-supabase-backend.md](../milestones/02-supabase-backend.md).
 | `evaluate_achievements` | Check + grant eligible achievement unlocks + XP |
 | `record_achievement_event` | One-time client events (share, review, follow, notifications) |
 | `assert_feature_gate` | Raise “Reach level N to unlock X” when below an active `feature_gates` threshold (via `level_from_total_xp`); called by BEFORE triggers on `match_queue`, `solo_match_challenges`, `feed_comments` |
+| `create_team` | Level-gated (L10) team create; leader membership in same transaction |
+| `update_team` / `promote_member` / `demote_member` / `kick_member` / `transfer_leadership` / `disband_team` | Role-checked team management (writes to `teams` / `team_members` roles go through these only) |
 
 ---
 

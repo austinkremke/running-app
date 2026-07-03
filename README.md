@@ -65,6 +65,7 @@ Mapbox on device often needs a recent Xcode beta; see project notes in your shel
 | 04 Garmin / Strava | Planned |
 | 05 Matchmaking & feed | **Done** — Phase 1–6 shipped ([05](./milestones/05-matchmaking-and-feed.md)) |
 | 06 Account, gating & cosmetics | **In progress** — Phase 1–4 shipped (settings, achievements, rank avatar borders, level gates); Phase 5 paywall next ([06](./milestones/06-account-gating-and-cosmetics.md)) |
+| 07 Team play | **In progress** — Phase 1 creation/management shipped; team rating + matchmaking next ([07](./milestones/07-team-play.md)) |
 
 ### Still mock / placeholder (honest)
 
@@ -102,7 +103,7 @@ Mapbox on device often needs a recent Xcode beta; see project notes in your shel
 
 **Social (Phase C)**
 
-1. Team tab → join a team (seeded **Road Warriors** for dev).
+1. Team tab → join a team (seeded **Road Warriors** for dev) or **create a team** (level 10+; `create_team` RPC — leader role, tag validation). Leaders/co-leaders manage the roster (promote, demote, kick, transfer) and team profile; leader departure auto-promotes a successor; last member out disbands.
 2. Post-run → “Add to Activity Feed” syncs the activity if needed, then creates `feed_posts` linked to `activities`.
 3. Feed tabs load posts from Postgres; each card shows a **static route map** from the activity `polyline`. The **Friends** tab shows runs from mutual friends; cards include pace highlights and side-by-side photo layout when available.
 4. Feed engagement: toggle like (`feed_reactions`) and comment thread (`feed_comments`) on visible posts ([05 Phase 1](./milestones/05-matchmaking-and-feed.md)).

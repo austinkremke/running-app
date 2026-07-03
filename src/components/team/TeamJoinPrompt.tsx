@@ -1,3 +1,4 @@
+import { Ionicons } from '@expo/vector-icons';
 import { ActivityIndicator, Pressable, StyleSheet, Text, View } from 'react-native';
 
 import { colors, spacing } from '../../theme';
@@ -5,9 +6,19 @@ import { colors, spacing } from '../../theme';
 type TeamJoinPromptProps = {
   joining?: boolean;
   onJoin: () => void;
+  onCreate?: () => void;
+  /** Level-gate CTA, e.g. "Reach level 10" — locks the create button when set. */
+  createLockedLabel?: string | null;
 };
 
-export function TeamJoinPrompt({ joining = false, onJoin }: TeamJoinPromptProps) {
+export function TeamJoinPrompt({
+  joining = false,
+  onJoin,
+  onCreate,
+  createLockedLabel = null,
+}: TeamJoinPromptProps) {
+  const createLocked = Boolean(createLockedLabel);
+
   return (
     <View style={styles.container}>
       <Text style={styles.title}>Join a team</Text>
@@ -27,6 +38,32 @@ export function TeamJoinPrompt({ joining = false, onJoin }: TeamJoinPromptProps)
           <Text style={styles.buttonLabel}>JOIN ROAD WARRIORS</Text>
         )}
       </Pressable>
+
+      {onCreate ? (
+        <Pressable
+          accessibilityRole="button"
+          accessibilityLabel="Create a team"
+          accessibilityState={{ disabled: createLocked || joining }}
+          disabled={createLocked || joining}
+          onPress={onCreate}
+          style={({ pressed }) => [
+            styles.createButton,
+            createLocked && styles.createButtonLocked,
+            pressed && !createLocked ? styles.pressed : null,
+          ]}
+        >
+          {createLocked ? (
+            <View style={styles.createLockedRow}>
+              <Ionicons color={colors.textSecondary} name="lock-closed" size={14} />
+              <Text style={styles.createLockedLabel}>
+                {createLockedLabel} to create a team
+              </Text>
+            </View>
+          ) : (
+            <Text style={styles.createLabel}>CREATE A TEAM</Text>
+          )}
+        </Pressable>
+      ) : null}
     </View>
   );
 }
@@ -62,14 +99,44 @@ const styles = StyleSheet.create({
     paddingVertical: spacing.md,
     paddingHorizontal: spacing.lg,
   },
-  pressed: {
-    opacity: 0.85,
-  },
   buttonLabel: {
     color: colors.background,
     fontSize: 14,
     fontWeight: '800',
     fontStyle: 'italic',
     letterSpacing: 0.5,
+  },
+  createButton: {
+    minWidth: 220,
+    alignItems: 'center',
+    justifyContent: 'center',
+    borderWidth: 1.5,
+    borderColor: colors.accentLime,
+    borderRadius: 12,
+    paddingVertical: spacing.md,
+    paddingHorizontal: spacing.lg,
+  },
+  createButtonLocked: {
+    borderColor: colors.border,
+  },
+  createLockedRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: spacing.xs,
+  },
+  createLockedLabel: {
+    color: colors.textSecondary,
+    fontSize: 12,
+    fontWeight: '600',
+  },
+  createLabel: {
+    color: colors.accentLime,
+    fontSize: 14,
+    fontWeight: '800',
+    fontStyle: 'italic',
+    letterSpacing: 0.5,
+  },
+  pressed: {
+    opacity: 0.85,
   },
 });

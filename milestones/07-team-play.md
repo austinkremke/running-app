@@ -1,7 +1,7 @@
 # Team Play — Creation, Management & Team Matchmaking
 
 > **Milestone:** 07  
-> **Status:** Next  
+> **Status:** In progress — Phase 1 creation/management shipped; Phase 2 team rating next  
 > **Depends on:** [02 Supabase](./02-supabase-backend.md) (Phase C teams + Phase D match shell), [03 XP & rank](./03-xp-and-ranking.md) (rank separation rules), [05 Matchmaking & feed](./05-matchmaking-and-feed.md) (solo queue/Elo/completion patterns to mirror), [06](./06-account-gating-and-cosmetics.md) Phase 4 (`feature_gates` — `create_team` reserved at L10)  
 > **Unblocks:** team challenges, seasonal team leaderboards
 
@@ -33,12 +33,18 @@ Replace the seeded demo team match and mock lineup with a real team lifecycle: *
 
 ## Rollout phases
 
-### Phase 1 — Team creation & management
+### Phase 1 — Team creation & management **shipped**
 
-- `create_team` RPC — `assert_feature_gate('create_team', …)`, unique-tag validation, creates team + leader membership in one transaction; **activate the gate seed row** (`is_active = true`)
-- Management RPCs (security definer, role-checked): `update_team` (leader/co), `promote_member` / `demote_member` (leader), `kick_member` (leader/co; cannot kick leader), `transfer_leadership` (leader), `disband_team` (leader; blocked mid-match)
-- Leave rules: leader must transfer or disband first; last member leaving disbands
-- UI: **Create Team** flow from Team tab (name, tag, motto, logo icon/accent — existing team card fields); roster row long-press → manage drawer (promote/kick); team settings screen (edit fields, transfer, disband); locked create CTA below level 10 (`useFeatureGate('create_team')`)
+**Shipped (migration `20250703000001_team_management.sql`):**
+
+- `create_team` RPC — `assert_feature_gate('create_team')`, tag/name/motto validation, team + leader membership in one transaction; **gate activated** (`is_active = true`, L10)
+- Management RPCs (security definer, role-checked): `update_team` (leader/co; tag immutable), `promote_member` / `demote_member` / `transfer_leadership` (leader), `kick_member` (leader any non-leader; co-leader members only), `disband_team` (leader; blocked during active team match)
+- **Leave rules (revised from plan):** leader departure **auto-promotes a successor** (longest-tenured co-leader, else member) via row trigger — covers `delete_own_account` cascade so a leader deleting their account never blocks or bricks the team; explicit `transfer_leadership` remains the in-app path. Last member out auto-disbands (trigger).
+- UI: **Create a Team** button on the join prompt (locked “Reach level 10” below gate via `useFeatureGate('create_team')`); `TeamFormDrawer` (create + edit modes: name, tag, motto, logo icon/accent with live preview); roster row **⋮ menu** (promote/demote/transfer/remove with confirmations); `TeamManageSection` (Edit Team, Disband, Leave)
+
+**Known v1 limits:** member ⋮ menu uses `Alert` (iOS-first; Android caps at 3 buttons); join flow still points at seeded Road Warriors — team browse/search is backlog.
+
+**Key files:** `teamService.ts` (create/update/promote/demote/kick/transfer/disband), `TeamFormDrawer.tsx`, `TeamManageSection.tsx`, `TeamScreen.tsx`.
 
 ### Phase 2 — Team rating & top teams
 

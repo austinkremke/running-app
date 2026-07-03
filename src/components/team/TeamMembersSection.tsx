@@ -9,12 +9,18 @@ type TeamMembersSectionProps = {
   members: TeamMember[];
   memberCount: number;
   memberMax: number;
+  /** Per-member ⋮ menu handler; rows without management rights hide the menu. */
+  onMemberOptionsPress?: (member: TeamMember) => void;
+  /** Restrict which rows show the ⋮ menu (e.g. not yourself, not the leader). */
+  canManageMember?: (member: TeamMember) => boolean;
 };
 
 export function TeamMembersSection({
   members,
   memberCount,
   memberMax,
+  onMemberOptionsPress,
+  canManageMember,
 }: TeamMembersSectionProps) {
   return (
     <View style={styles.container}>
@@ -33,6 +39,11 @@ export function TeamMembersSection({
           <TeamMemberRow
             key={member.id}
             member={member}
+            onOptionsPress={
+              onMemberOptionsPress && (canManageMember?.(member) ?? true)
+                ? onMemberOptionsPress
+                : undefined
+            }
             showDivider={index < members.length - 1}
           />
         ))}

@@ -27,7 +27,7 @@ Mapbox requires a **dev client** build (`npx expo run:ios`), not Expo Go.
 - **Milestone 02:** Phase A–D shipped; **Phase E hardening** is next.
 - **Milestone 05:** Phase 1–6 shipped (feed engagement, Elo UI, friends feed, solo matchmaking, live scoreboard + chat, completion drawer, friend challenges, forfeit, tab indicators, in-app challenge notification drawer).
 - **Milestone 06:** Phase 1–4 shipped (account settings, achievements, rank avatar borders, level gates); Phase 5 paywall next. Level gates: `feature_gates` catalog in DB, server triggers + `useFeatureGate` locked UI — never hardcode thresholds in TS.
-- **Milestone 07 (next):** team play — creation/management, team Elo (`team_rank`), team matchmaking with top-N contributor scoring. See [milestones/07-team-play.md](milestones/07-team-play.md).
+- **Milestone 07 (in progress):** team play — Phase 1 creation/management shipped (`create_team` L10-gated, role-checked management RPCs, leader auto-succession); next: team Elo (`team_rank`) + team matchmaking with top-N contributor scoring. See [milestones/07-team-play.md](milestones/07-team-play.md).
 - Summaries in Postgres, bulky tracks in Storage.
 - Feed + team screens read from Supabase (`feedService`, `teamService`); feed cards show static route maps from `activities.polyline`; likes/comments persisted on `feed_posts`.
 - Post-run “Add to feed” uses `publishActivityToFeed` (sync activity, then `feed_posts` insert).
