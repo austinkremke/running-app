@@ -44,9 +44,6 @@ export function TeamTopSection({ team, onRankPress }: TeamTopSectionProps) {
             <Pressable accessibilityLabel="Edit team name" hitSlop={8} style={styles.editButton}>
               <Ionicons color={colors.textSecondary} name="pencil" size={12} />
             </Pressable>
-          </View>
-
-          <View style={styles.tagRow}>
             <View style={styles.tag}>
               <Text style={styles.tagText}>{team.tag}</Text>
             </View>
@@ -122,11 +119,6 @@ const styles = StyleSheet.create({
   },
   editButton: {
     flexShrink: 0,
-  },
-  tagRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 6,
   },
   tag: {
     flexShrink: 0,
