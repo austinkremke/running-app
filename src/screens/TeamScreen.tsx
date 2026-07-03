@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { ActivityIndicator, Alert, ScrollView, StyleSheet, Text, View } from 'react-native';
 
 import {
@@ -15,7 +15,7 @@ import { useAuth, useUserId } from '../context';
 import { useAchievementUnlockPresentation } from '../hooks/useAchievementUnlockPresentation';
 import { useFeatureGate } from '../hooks/useFeatureGate';
 import { useMyTeam } from '../hooks/useMyTeam';
-import type { TeamMember } from '../mock';
+import type { TeamMember, TopTeamListing } from '../mock';
 import {
   createTeam,
   demoteMember,
@@ -23,8 +23,8 @@ import {
   joinTeam,
   kickMember,
   leaveTeam,
+  listTopTeams,
   promoteMember,
-  ROAD_WARRIORS_TEAM_ID,
   transferLeadership,
   updateTeam,
 } from '../services/teamService';
@@ -40,12 +40,38 @@ export function TeamScreen({ onOpenTopTeams }: TeamScreenProps) {
   const { runEvaluation } = useAchievementUnlockPresentation();
   const { team, loading, error, refresh } = useMyTeam();
   const createGate = useFeatureGate('create_team');
-  const [joining, setJoining] = useState(false);
+  const [joiningTeamId, setJoiningTeamId] = useState<string | null>(null);
+  const [joinableTeams, setJoinableTeams] = useState<TopTeamListing[]>([]);
+  const [joinableLoading, setJoinableLoading] = useState(false);
   const [formVisible, setFormVisible] = useState(false);
   const [formMode, setFormMode] = useState<'create' | 'edit'>('create');
   const [submitting, setSubmitting] = useState(false);
 
   const viewerRole = team?.members.find((member) => member.id === userId)?.role;
+
+  useEffect(() => {
+    if (loading || team) {
+      return;
+    }
+
+    let cancelled = false;
+    setJoinableLoading(true);
+
+    listTopTeams()
+      .then((teams) => {
+        if (!cancelled) setJoinableTeams(teams);
+      })
+      .catch(() => {
+        if (!cancelled) setJoinableTeams([]);
+      })
+      .finally(() => {
+        if (!cancelled) setJoinableLoading(false);
+      });
+
+    return () => {
+      cancelled = true;
+    };
+  }, [loading, team]);
 
   async function refreshAll() {
     await refreshGameState();
@@ -57,18 +83,18 @@ export function TeamScreen({ onOpenTopTeams }: TeamScreenProps) {
     Alert.alert(title, message);
   }
 
-  async function handleJoinTeam() {
+  async function handleJoinTeam(teamId: string) {
     if (!userId) return;
 
-    setJoining(true);
+    setJoiningTeamId(teamId);
     try {
-      await joinTeam(userId, ROAD_WARRIORS_TEAM_ID);
+      await joinTeam(userId, teamId);
       await refreshAll();
       await runEvaluation();
     } catch (joinError) {
       showError('Join team failed', joinError, 'Could not join the team.');
     } finally {
-      setJoining(false);
+      setJoiningTeamId(null);
     }
   }
 
@@ -203,12 +229,14 @@ export function TeamScreen({ onOpenTopTeams }: TeamScreenProps) {
       <>
         <TeamJoinPrompt
           createLockedLabel={createGate.lockedLabel}
-          joining={joining}
+          joiningTeamId={joiningTeamId}
+          loadingTeams={joinableLoading}
           onCreate={() => {
             setFormMode('create');
             setFormVisible(true);
           }}
-          onJoin={() => void handleJoinTeam()}
+          onJoinTeam={(teamId) => void handleJoinTeam(teamId)}
+          teams={joinableTeams}
         />
         <TeamFormDrawer
           mode="create"

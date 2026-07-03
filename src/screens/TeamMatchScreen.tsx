@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { ActivityIndicator, ScrollView, StyleSheet, View } from 'react-native';
+import { ActivityIndicator, ScrollView, StyleSheet, Text, View } from 'react-native';
 
 import {
   TeamChatDrawer,
@@ -19,10 +19,21 @@ export function TeamMatchScreen({ onRunPress }: TeamMatchScreenProps) {
   const { match, loading, fromServer } = useActiveTeamMatch();
   const [chatVisible, setChatVisible] = useState(false);
 
-  if (loading || !match) {
+  if (loading) {
     return (
       <View style={styles.centered}>
         <ActivityIndicator color={colors.accentLime} />
+      </View>
+    );
+  }
+
+  if (!match) {
+    return (
+      <View style={styles.centered}>
+        <Text style={styles.emptyTitle}>No active team match</Text>
+        <Text style={styles.emptyBody}>
+          Your team’s next matchup will show up here. Team matchmaking is on the way.
+        </Text>
       </View>
     );
   }
@@ -77,5 +88,20 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
     backgroundColor: colors.background,
+    paddingHorizontal: spacing.xl,
+    gap: spacing.sm,
+  },
+  emptyTitle: {
+    color: colors.textPrimary,
+    fontSize: 16,
+    fontWeight: '800',
+    fontStyle: 'italic',
+    textTransform: 'uppercase',
+  },
+  emptyBody: {
+    color: colors.textSecondary,
+    fontSize: 13,
+    textAlign: 'center',
+    lineHeight: 19,
   },
 });

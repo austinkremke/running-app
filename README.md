@@ -71,7 +71,7 @@ Mapbox on device often needs a recent Xcode beta; see project notes in your shel
 
 | Area | State |
 |------|--------|
-| Match / matchmaking lineup UI | Team lineup mock; **solo Find Match + paired 1v1 + friend challenges from server** |
+| Match / matchmaking lineup UI | **Solo Find Match + paired 1v1 + friend challenges from server**; team tab shows “no active match” empty state (mock Road Warriors fallback removed) until team matchmaking ships ([07 Phase 3](./milestones/07-team-play.md)) |
 | Solo match live scoreboard + chat | **Shipped** — Realtime score updates + `match_messages` ([05 Phase 5](./milestones/05-matchmaking-and-feed.md)) |
 | Solo match completion + forfeit | **Shipped** — result drawer, Elo sync, quit/forfeit ([05 Phase 6](./milestones/05-matchmaking-and-feed.md)) |
 | Match tab indicators | **Shipped** — active match + incoming challenge dots ([05 Phase 6](./milestones/05-matchmaking-and-feed.md)) |
@@ -104,7 +104,7 @@ Mapbox on device often needs a recent Xcode beta; see project notes in your shel
 
 **Social (Phase C)**
 
-1. Team tab → join a team (seeded **Road Warriors** for dev) or **create a team** (level 10+; `create_team` RPC — leader role, tag validation). Leaders/co-leaders manage the roster (promote, demote, kick, transfer) and team profile; leader departure auto-promotes a successor; last member out disbands.
+1. Team tab → browse and **join any team** (`list_top_teams`) or **create a team** (level 10+; `create_team` RPC — leader role, tag validation). Leaders/co-leaders manage the roster (promote, demote, kick, transfer) and team profile; leader departure auto-promotes a successor; last member out disbands.
 2. Post-run → “Add to Activity Feed” syncs the activity if needed, then creates `feed_posts` linked to `activities`.
 3. Feed tabs load posts from Postgres; each card shows a **static route map** from the activity `polyline`. The **Friends** tab shows runs from mutual friends; cards include pace highlights and side-by-side photo layout when available.
 4. Feed engagement: toggle like (`feed_reactions`) and comment thread (`feed_comments`) on visible posts ([05 Phase 1](./milestones/05-matchmaking-and-feed.md)).

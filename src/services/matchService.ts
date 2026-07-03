@@ -1,6 +1,5 @@
 import type { ActiveSoloMatch, ActiveTeamMatch } from '../mock';
 import { MOCK_ACTIVE_SOLO_MATCH } from '../mock/soloActiveMatch';
-import { MOCK_ACTIVE_TEAM_MATCH } from '../mock/teamMatch';
 import type { Tables } from '../types/database';
 import { mapSoloMatchRow, mapTeamMatchRow, isMatchTimerExpired } from './matchMappers';
 import { finalizeDueSoloMatches } from './matchmakingService';
@@ -240,7 +239,6 @@ async function fetchParticipantBundle(
     opponent: { ...opponent, profiles: opponent.profiles },
     activities: activities ?? [],
     matchType: matchType ?? null,
-    homeRating: 1000,
   };
 }
 
@@ -440,10 +438,6 @@ export async function fetchSoloBestWinStreak(userId: string): Promise<number> {
   });
 
   return computeBestWinStreak(outcomes);
-}
-
-export function fallbackTeamMatch(): ActiveTeamMatch {
-  return MOCK_ACTIVE_TEAM_MATCH;
 }
 
 export function fallbackSoloMatch(): ActiveSoloMatch {

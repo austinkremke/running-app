@@ -1,23 +1,33 @@
 import { Ionicons } from '@expo/vector-icons';
-import { ActivityIndicator, Pressable, StyleSheet, Text, View } from 'react-native';
+import { ActivityIndicator, Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
 
+import type { TopTeamListing } from '../../mock';
 import { colors, spacing } from '../../theme';
+import { TeamLogo } from './TeamLogo';
+
+type IoniconsName = React.ComponentProps<typeof Ionicons>['name'];
 
 type TeamJoinPromptProps = {
-  joining?: boolean;
-  onJoin: () => void;
+  teams: TopTeamListing[];
+  loadingTeams?: boolean;
+  /** Team id currently being joined; disables all join buttons while set. */
+  joiningTeamId?: string | null;
+  onJoinTeam: (teamId: string) => void;
   onCreate?: () => void;
   /** Level-gate CTA, e.g. "Reach level 10" — locks the create button when set. */
   createLockedLabel?: string | null;
 };
 
 export function TeamJoinPrompt({
-  joining = false,
-  onJoin,
+  teams,
+  loadingTeams = false,
+  joiningTeamId = null,
+  onJoinTeam,
   onCreate,
   createLockedLabel = null,
 }: TeamJoinPromptProps) {
   const createLocked = Boolean(createLockedLabel);
+  const joining = Boolean(joiningTeamId);
 
   return (
     <View style={styles.container}>
@@ -25,19 +35,56 @@ export function TeamJoinPrompt({
       <Text style={styles.body}>
         Team runs, chat, and feed posts show up here once you join a squad.
       </Text>
-      <Pressable
-        accessibilityRole="button"
-        accessibilityLabel="Join Road Warriors"
-        disabled={joining}
-        onPress={onJoin}
-        style={({ pressed }) => [styles.button, (pressed || joining) && styles.pressed]}
-      >
-        {joining ? (
-          <ActivityIndicator color={colors.background} />
-        ) : (
-          <Text style={styles.buttonLabel}>JOIN ROAD WARRIORS</Text>
-        )}
-      </Pressable>
+
+      {loadingTeams ? (
+        <View style={styles.listPlaceholder}>
+          <ActivityIndicator color={colors.accentLime} />
+        </View>
+      ) : teams.length > 0 ? (
+        <ScrollView showsVerticalScrollIndicator={false} style={styles.list}>
+          {teams.map((team, index) => (
+            <View key={team.id}>
+              <View style={styles.teamRow}>
+                <TeamLogo
+                  accent={team.shieldAccent}
+                  icon={team.shieldIcon as IoniconsName}
+                  size={34}
+                />
+                <View style={styles.teamMeta}>
+                  <Text numberOfLines={1} style={styles.teamName}>
+                    {team.name}
+                  </Text>
+                  <Text numberOfLines={1} style={styles.teamSub}>
+                    {team.tag} · {team.memberCount}/{team.memberMax} members
+                  </Text>
+                </View>
+                <Pressable
+                  accessibilityLabel={`Join ${team.name}`}
+                  accessibilityRole="button"
+                  disabled={joining || team.memberCount >= team.memberMax}
+                  onPress={() => onJoinTeam(team.id)}
+                  style={({ pressed }) => [
+                    styles.joinButton,
+                    (joining || team.memberCount >= team.memberMax) && styles.joinButtonDisabled,
+                    pressed && styles.pressed,
+                  ]}
+                >
+                  {joiningTeamId === team.id ? (
+                    <ActivityIndicator color={colors.background} size="small" />
+                  ) : (
+                    <Text style={styles.joinLabel}>
+                      {team.memberCount >= team.memberMax ? 'FULL' : 'JOIN'}
+                    </Text>
+                  )}
+                </Pressable>
+              </View>
+              {index < teams.length - 1 ? <View style={styles.divider} /> : null}
+            </View>
+          ))}
+        </ScrollView>
+      ) : (
+        <Text style={styles.empty}>No teams yet — start the first one.</Text>
+      )}
 
       {onCreate ? (
         <Pressable
@@ -71,10 +118,11 @@ export function TeamJoinPrompt({
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    alignItems: 'center',
-    justifyContent: 'center',
     paddingHorizontal: spacing.xl,
+    paddingTop: spacing.xl,
+    paddingBottom: spacing.lg,
     gap: spacing.md,
+    backgroundColor: colors.background,
   },
   title: {
     color: colors.textPrimary,
@@ -86,28 +134,72 @@ const styles = StyleSheet.create({
   body: {
     color: colors.textSecondary,
     fontSize: 14,
-    textAlign: 'center',
     lineHeight: 20,
   },
-  button: {
-    marginTop: spacing.sm,
-    minWidth: 220,
+  listPlaceholder: {
+    flex: 1,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  list: {
+    flex: 1,
+    backgroundColor: colors.surface,
+    borderRadius: 14,
+    borderWidth: 1,
+    borderColor: colors.border,
+    paddingHorizontal: spacing.md,
+  },
+  teamRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: spacing.sm,
+    paddingVertical: spacing.md,
+  },
+  teamMeta: {
+    flex: 1,
+    gap: 2,
+  },
+  teamName: {
+    color: colors.textPrimary,
+    fontSize: 14,
+    fontWeight: '700',
+    fontStyle: 'italic',
+  },
+  teamSub: {
+    color: colors.textSecondary,
+    fontSize: 11,
+  },
+  joinButton: {
+    minWidth: 64,
     alignItems: 'center',
     justifyContent: 'center',
     backgroundColor: colors.accentLime,
-    borderRadius: 12,
-    paddingVertical: spacing.md,
-    paddingHorizontal: spacing.lg,
+    borderRadius: 10,
+    paddingVertical: spacing.sm,
+    paddingHorizontal: spacing.md,
   },
-  buttonLabel: {
+  joinButtonDisabled: {
+    opacity: 0.5,
+  },
+  joinLabel: {
     color: colors.background,
-    fontSize: 14,
+    fontSize: 12,
     fontWeight: '800',
     fontStyle: 'italic',
     letterSpacing: 0.5,
   },
+  divider: {
+    height: 1,
+    backgroundColor: colors.border,
+  },
+  empty: {
+    flex: 1,
+    color: colors.textSecondary,
+    fontSize: 13,
+    textAlign: 'center',
+    paddingTop: spacing.xl,
+  },
   createButton: {
-    minWidth: 220,
     alignItems: 'center',
     justifyContent: 'center',
     borderWidth: 1.5,

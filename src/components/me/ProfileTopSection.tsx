@@ -34,10 +34,12 @@ export function ProfileTopSection({ profile, onEditAvatar }: ProfileTopSectionPr
       <View style={styles.rightColumn}>
         <View style={styles.identity}>
           <Text style={styles.name}>{profile.name}</Text>
-          <View style={styles.clanRow}>
-            <Ionicons color={colors.accentLime} name="shield-outline" size={12} />
-            <Text style={styles.clanName}>{profile.clanName}</Text>
-          </View>
+          {profile.clanName ? (
+            <View style={styles.clanRow}>
+              <Ionicons color={colors.accentLime} name="shield-outline" size={12} />
+              <Text style={styles.clanName}>{profile.clanName}</Text>
+            </View>
+          ) : null}
         </View>
 
         <View style={styles.levelRankRow}>

@@ -5,7 +5,7 @@ import { polylineToGpsPoints } from './activityAdapters';
 import { metersToMiles, formatDurationParts, formatPace } from './distanceService';
 import { paceHighlightFromSummary, photoUrlFromPost } from './feedCardPresentation';
 import type { FeedEngagementSummary } from './feedEngagementService';
-import { experienceFromTotalXp, levelFromTotalXp } from './levelCurve';
+import { levelFromTotalXp } from './levelCurve';
 import { tierFromRating } from './rank/tierFromRating';
 import type { ResolvedRankTier } from '../types/rank';
 import { formatRelativeTime } from '../utils/formatRelativeTime';
@@ -15,8 +15,6 @@ type ProfileRow = Tables<'profiles'>;
 type ActivityRow = Tables<'activities'>;
 type TeamRow = Tables<'teams'>;
 type TeamMemberRow = Tables<'team_members'>;
-
-export const ROAD_WARRIORS_TEAM_ID = '11111111-1111-4111-8111-111111111111';
 
 const LOGO_ACCENTS = new Set<TeamLogoAccent>(['lime', 'purple', 'gold', 'silver', 'cyan', 'blue']);
 
@@ -199,9 +197,8 @@ export function mapTeamRow(
     name: team.name,
     tag: team.tag,
     motto: team.motto,
-    // Team level = combined member lifetime XP on the shared curve.
+    // Team level = combined member lifetime XP on the shared curve (snapshot, no XP bar).
     level: levelFromTotalXp(totalMemberXp),
-    experience: experienceFromTotalXp(totalMemberXp),
     teamRank: overview
       ? {
           rank: overview.rankPosition,

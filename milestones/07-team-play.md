@@ -42,7 +42,9 @@ Replace the seeded demo team match and mock lineup with a real team lifecycle: *
 - **Leave rules (revised from plan):** leader departure **auto-promotes a successor** (longest-tenured co-leader, else member) via row trigger — covers `delete_own_account` cascade so a leader deleting their account never blocks or bricks the team; explicit `transfer_leadership` remains the in-app path. Last member out auto-disbands (trigger).
 - UI: **Create a Team** button on the join prompt (locked “Reach level 10” below gate via `useFeatureGate('create_team')`); `TeamFormDrawer` (create + edit modes: name, tag, motto, logo icon/accent with live preview); roster row **⋮ menu** (promote/demote/transfer/remove with confirmations); `TeamManageSection` (Edit Team, Disband, Leave)
 
-**Known v1 limits:** member ⋮ menu uses `Alert` (iOS-first; Android caps at 3 buttons); join flow still points at seeded Road Warriors — team browse/search is backlog.
+**Known v1 limits:** member ⋮ menu uses `Alert` (iOS-first; Android caps at 3 buttons).
+
+**Post-ship additions:** join prompt is now a **real team browser** (`list_top_teams` → join any non-full team; hardcoded Road Warriors join removed); Me tab shows the user's **real team name** (hidden when teamless); team XP bar removed (level badge only — combined-XP level is a snapshot, not a progression; clan points bar is backlog); Match tab shows a **“No active team match” empty state** instead of the mock Road Warriors vs Pacers fallback.
 
 **Key files:** `teamService.ts` (create/update/promote/demote/kick/transfer/disband), `TeamFormDrawer.tsx`, `TeamManageSection.tsx`, `TeamScreen.tsx`.
 

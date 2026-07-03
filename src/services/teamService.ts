@@ -5,11 +5,8 @@ import {
   mapTeamListingRow,
   mapTeamMemberRow,
   mapTeamRow,
-  ROAD_WARRIORS_TEAM_ID,
   type TeamOverview,
 } from './socialMappers';
-
-export { ROAD_WARRIORS_TEAM_ID };
 
 type TeamMemberQueryRow = Tables<'team_members'> & {
   profiles: Tables<'profiles'> & {
@@ -129,6 +126,21 @@ export async function fetchMyTeam(userId: string): Promise<Team | null> {
   });
 
   return mapTeamRow(team, members, members.length, totalMemberXp, overview);
+}
+
+/** Lightweight team name lookup for profile display (Me tab). */
+export async function fetchTeamNameById(teamId: string): Promise<string | null> {
+  if (!supabase) return null;
+
+  const { data, error } = await supabase
+    .from('teams')
+    .select('name')
+    .eq('id', teamId)
+    .maybeSingle();
+
+  if (error) throw error;
+
+  return data?.name ?? null;
 }
 
 export async function joinTeam(userId: string, teamId: string): Promise<void> {

@@ -1,4 +1,4 @@
-import { useCallback, useMemo, useState } from 'react';
+import { useCallback, useEffect, useMemo, useState } from 'react';
 import { ScrollView, StyleSheet, Text, View } from 'react-native';
 
 import {
@@ -17,6 +17,7 @@ import { MOCK_PROFILE } from '../mock';
 import { performAchievementCardAction } from '../services/achievementCardActions';
 import type { AchievementListItem } from '../services/achievementService';
 import { sortAchievementsForMeCarousel } from '../services/achievementService';
+import { fetchTeamNameById } from '../services/teamService';
 import { colors, spacing } from '../theme';
 
 type MeScreenProps = {
@@ -34,10 +35,34 @@ export function MeScreen({ onOpenSettings }: MeScreenProps) {
     onUnlock: showAchievementUnlocks,
   });
   const [viewAllVisible, setViewAllVisible] = useState(false);
+  const [teamName, setTeamName] = useState('');
   const carouselAchievements = useMemo(
     () => sortAchievementsForMeCarousel(allAchievements),
     [allAchievements],
   );
+
+  const teamId = gameState?.profile.team_id ?? null;
+
+  useEffect(() => {
+    if (!teamId) {
+      setTeamName('');
+      return;
+    }
+
+    let cancelled = false;
+
+    fetchTeamNameById(teamId)
+      .then((name) => {
+        if (!cancelled) setTeamName(name ?? '');
+      })
+      .catch(() => {
+        if (!cancelled) setTeamName('');
+      });
+
+    return () => {
+      cancelled = true;
+    };
+  }, [teamId]);
 
   const handleAchievementPress = useCallback(
     async (achievement: AchievementListItem) => {
@@ -57,6 +82,7 @@ export function MeScreen({ onOpenSettings }: MeScreenProps) {
     ...MOCK_PROFILE,
     name: gameState?.profile.display_name ?? MOCK_PROFILE.name,
     avatarUrl: gameState?.profile.avatar_url ?? undefined,
+    clanName: teamName,
     level,
     experience,
     rank: profileRank,
