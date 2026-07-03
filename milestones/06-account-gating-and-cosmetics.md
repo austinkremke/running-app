@@ -26,7 +26,7 @@ Rank-based **avatar decorative borders** are cosmetic only — not paywalled unl
 | Achievements | **Server catalog + unlocks** (`achievementService`, Me tab, Community block) | View All + progress bars polish |
 | Avatar rank borders | Plain avatars on feed / Me / team | Decorative frame from **competitive rank tier** (not level) |
 | Paywall blocking | None | Entitlements block premium features (e.g. advanced stats, extra match slots — TBD catalog) |
-| Level blocking | None | Feature flags keyed by `levelFromTotalXp` (e.g. team create, match types — TBD catalog) |
+| Level blocking | None | Feature gates keyed by `levelFromTotalXp` — [catalog decided](#decided-gate-catalog-v1): ranked queue L5, challenges L3, comments L2, team create L10 reserved |
 
 ---
 
@@ -259,11 +259,29 @@ Achievement XP is **one-time only** — supplementary to run XP, not a farming l
 
 **Intentionally excluded:** team roster avatars — on a team, **team rank** is the signal; individual competitive rank borders stay off team/match roster UI.
 
-### Phase 4 — Level blocking features
+### Phase 4 — Level blocking features **next — catalog decided**
 
-- Central `featureGates` config: `{ featureId, minLevel }`
-- UI: locked state + “Reach level N” CTA (not subscription copy)
-- Server enforcement where abuse matters (Edge Function or RLS helper)
+#### Decided gate catalog (v1)
+
+| `feature_id` | Gate | Server enforcement | Locked UI |
+|--------------|------|--------------------|-----------|
+| `ranked_solo_queue` | **Level 5** | `enqueue_solo_matchmaking` rejects under-leveled users | Solo tab **Find Match** → locked card + “Reach level 5” CTA |
+| `send_friend_challenge` | **Level 3** | `send_solo_match_challenge` **and** `accept_solo_match_challenge` reject (both sides must qualify — challenges affect Elo) | **Challenge Friend** button locked; incoming accept shows “Reach level 3” |
+| `feed_comments` | **Level 2** | comment insert path checks level | Comment composer locked on `FeedCommentsDrawer` |
+| `create_team` | **Level 10** | reserved — feature not built yet; seed row `is_active = false` | — |
+
+**Rationale:** ranked queue is the flagship gate (Elo integrity, smurf deterrent, guarantees pace history before match scoring, ~first week of running). Challenges lower (L3) since both parties consent. Comments (L2) = one real run; cheap spam deterrent. Likes stay free.
+
+**Never gated:** run recording, XP lock-in, own history/stats/achievements, feed viewing + posting, likes, add friend, join team, settings, delete account.
+
+**Premium earmarks (Phase 5 — do not level-gate):** advanced stats/analytics, GPX export, concurrent match slots, premium cosmetics. Rank avatar borders stay free.
+
+#### Implementation shape
+
+- **DB-first catalog:** `feature_gates` table (`feature_id` PK, `display_name`, `min_level`, `is_active`, `sort_order`) + `seed.sql` rows; authenticated read-all RLS ([02 § DB-first catalogs](./02-supabase-backend.md#db-first-catalogs-reference-data)). Tune gates without an app release.
+- **Server level check:** `level_from_total_xp(total_xp)` SQL helper mirroring `levelCurve.ts` (`120 * 1.09^L`) — same client/server duplication precedent as the XP formula in `award_run_xp`; add unit-test parity fixtures.
+- **Client:** `featureGateService.ts` fetches + caches catalog; `useFeatureGate(featureId)` hook derives locked/unlocked from `PlayerProgressContext` level; locked UI uses “Reach level N” copy — never subscription copy.
+- Gates fail **open** on fetch error client-side (don’t brick UI offline); server checks remain authoritative.
 
 ### Phase 5 — Paywall blocking features
 
@@ -287,7 +305,7 @@ Achievement XP is **one-time only** — supplementary to run XP, not a farming l
 
 ## Open decisions
 
-1. Which features are **premium** vs **level-gated** vs **free**? (Maintain a single spreadsheet before Phase 4/5.)
+1. ~~Which features are **premium** vs **level-gated** vs **free**?~~ **Decided (Phase 4):** see [decided gate catalog](#decided-gate-catalog-v1); premium catalog itself still TBD in Phase 5.
 2. Achievement unlock: push notification on unlock? (See [06 Phase 2 catalog](./06-account-gating-and-cosmetics.md#phase-2--achievements).)
 3. Avatar borders: also show level badge, or rank-only frame?
 4. Delete account: hard delete vs soft delete + retention policy.
