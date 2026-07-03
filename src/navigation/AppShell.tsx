@@ -8,8 +8,10 @@ import {
   ProfileAvatarButton,
   TabAppHeader,
 } from '../components/header';
+import { NotificationCenterDrawer } from '../components/notification';
 import { useAuth, useOnboarding, useSoloMatchCompletion, useUserId, useInAppNotification } from '../context';
 import { useMatchTabIndicators } from '../hooks/useHasActiveMatch';
+import { useTeamNotifications } from '../hooks/useTeamNotifications';
 import type { FeedTab, MatchTab } from '../mock';
 import { initialsFromDisplayName } from '../services/profileAvatar';
 import { openSoloMatchMenu } from '../services/soloMatchMenuBus';
@@ -45,6 +47,14 @@ export function AppShell() {
   const { syncCompletions } = useSoloMatchCompletion();
   const { showMatchTabBadge, showSoloTabBadge } = useMatchTabIndicators();
   const { registerHandlers } = useInAppNotification();
+  const {
+    notifications: teamNotifications,
+    loading: teamNotificationsLoading,
+    actionLoadingId: teamNotificationActionId,
+    hasUnread: hasTeamNotifications,
+    respond: respondToTeamNotification,
+  } = useTeamNotifications();
+  const [notificationCenterVisible, setNotificationCenterVisible] = useState(false);
   const [activeRoute, setActiveRoute] = useState<AppRoute>('feed');
   const [runReturnRoute, setRunReturnRoute] = useState<AppRoute>('feed');
   const [settingsReturnRoute, setSettingsReturnRoute] = useState<AppRoute>('me');
@@ -243,8 +253,8 @@ export function AppShell() {
       <HeaderIconButton
         accessibilityLabel="Notifications"
         icon="notifications-outline"
-        onPress={() => {}}
-        showBadge
+        onPress={() => setNotificationCenterVisible(true)}
+        showBadge={hasTeamNotifications}
       />
     );
   }
@@ -370,10 +380,27 @@ export function AppShell() {
                   ? 'team'
                   : activeRoute
           }
-          badges={showMatchTabBadge ? { match: true } : undefined}
+          badges={{ match: showMatchTabBadge, feed: hasTeamNotifications }}
           onItemPress={handleNavPress}
         />
       ) : null}
+
+      <NotificationCenterDrawer
+        actionLoadingId={teamNotificationActionId}
+        loading={teamNotificationsLoading}
+        notifications={teamNotifications}
+        onClose={() => setNotificationCenterVisible(false)}
+        onRespond={(notification, accept) => {
+          void (async () => {
+            try {
+              await respondToTeamNotification(notification, accept);
+            } catch (error) {
+              console.warn('Could not respond to team notification', error);
+            }
+          })();
+        }}
+        visible={notificationCenterVisible}
+      />
     </View>
   );
 }

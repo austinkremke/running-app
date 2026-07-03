@@ -13,6 +13,8 @@ type TeamMembersSectionProps = {
   onMemberOptionsPress?: (member: TeamMember) => void;
   /** Restrict which rows show the ⋮ menu (e.g. not yourself, not the leader). */
   canManageMember?: (member: TeamMember) => boolean;
+  /** Shows the Invite button (leaders/co-leaders only). */
+  onInvitePress?: () => void;
 };
 
 export function TeamMembersSection({
@@ -21,6 +23,7 @@ export function TeamMembersSection({
   memberMax,
   onMemberOptionsPress,
   canManageMember,
+  onInvitePress,
 }: TeamMembersSectionProps) {
   return (
     <View style={styles.container}>
@@ -31,7 +34,7 @@ export function TeamMembersSection({
             {memberCount}/{memberMax} Members
           </Text>
         </View>
-        <TeamInviteButton />
+        {onInvitePress ? <TeamInviteButton onPress={onInvitePress} /> : null}
       </View>
 
       <View style={styles.list}>

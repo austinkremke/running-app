@@ -981,6 +981,64 @@ export type Database = {
           },
         ]
       }
+      team_membership_requests: {
+        Row: {
+          created_at: string
+          created_by: string
+          expires_at: string
+          id: string
+          kind: string
+          status: string
+          team_id: string
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          created_by: string
+          expires_at?: string
+          id?: string
+          kind: string
+          status?: string
+          team_id: string
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          created_by?: string
+          expires_at?: string
+          id?: string
+          kind?: string
+          status?: string
+          team_id?: string
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "team_membership_requests_created_by_fkey"
+            columns: ["created_by"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "team_membership_requests_team_id_fkey"
+            columns: ["team_id"]
+            isOneToOne: false
+            referencedRelation: "teams"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "team_membership_requests_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       team_rank: {
         Row: {
           competitive_rating: number
@@ -1194,6 +1252,10 @@ export type Database = {
       }
       cancel_solo_matchmaking: { Args: never; Returns: Json }
       cancel_team_matchmaking: { Args: never; Returns: Json }
+      cancel_team_membership_request: {
+        Args: { p_request_id: string }
+        Returns: Json
+      }
       create_solo_match_for_users: {
         Args: {
           p_away_user_id: string
@@ -1243,11 +1305,16 @@ export type Database = {
         Returns: Json
       }
       expire_stale_solo_match_challenges: { Args: never; Returns: undefined }
+      expire_stale_team_membership_requests: { Args: never; Returns: undefined }
       finalize_due_solo_matches_for_user: {
         Args: { p_user_id?: string }
         Returns: Json
       }
       finalize_solo_match: { Args: { p_match_id: string }; Returns: Json }
+      finalize_team_membership_join: {
+        Args: { p_team_id: string; p_user_id: string }
+        Returns: undefined
+      }
       forfeit_solo_match: { Args: { p_match_id: string }; Returns: Json }
       get_my_solo_match_completions: {
         Args: { p_limit?: number; p_user_id?: string }
@@ -1256,6 +1323,7 @@ export type Database = {
       get_solo_match_challenge_status: { Args: never; Returns: Json }
       get_solo_matchmaking_status: { Args: never; Returns: Json }
       get_team_matchmaking_status: { Args: never; Returns: Json }
+      get_team_notifications: { Args: never; Returns: Json }
       get_team_overview: { Args: { p_team_id: string }; Returns: Json }
       grant_achievement: {
         Args: { p_achievement_id: string; p_user_id: string }
@@ -1265,6 +1333,8 @@ export type Database = {
         Args: { p_user_id?: string }
         Returns: boolean
       }
+      has_team_notifications: { Args: never; Returns: boolean }
+      invite_to_team: { Args: { p_user_id: string }; Returns: Json }
       is_match_participant: {
         Args: { p_match_id: string; p_user_id?: string }
         Returns: boolean
@@ -1306,6 +1376,15 @@ export type Database = {
         Returns: Json
       }
       repair_solo_match_activity_credits: { Args: never; Returns: Json }
+      request_to_join_team: { Args: { p_team_id: string }; Returns: Json }
+      respond_to_join_request: {
+        Args: { p_accept: boolean; p_request_id: string }
+        Returns: Json
+      }
+      respond_to_team_invite: {
+        Args: { p_accept: boolean; p_request_id: string }
+        Returns: Json
+      }
       send_solo_match_challenge: {
         Args: { p_challenged_user_id: string; p_match_type_id?: string }
         Returns: Json

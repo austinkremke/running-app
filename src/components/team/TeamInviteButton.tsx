@@ -3,11 +3,16 @@ import { Pressable, StyleSheet, Text } from 'react-native';
 
 import { colors, spacing } from '../../theme';
 
-export function TeamInviteButton() {
+type TeamInviteButtonProps = {
+  onPress?: () => void;
+};
+
+export function TeamInviteButton({ onPress }: TeamInviteButtonProps) {
   return (
     <Pressable
       accessibilityRole="button"
       accessibilityLabel="Invite member"
+      onPress={onPress}
       style={({ pressed }) => [styles.button, pressed && styles.pressed]}
     >
       <Ionicons color={colors.background} name="person-add" size={12} />

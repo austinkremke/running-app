@@ -10,8 +10,10 @@ type IoniconsName = React.ComponentProps<typeof Ionicons>['name'];
 type TeamJoinPromptProps = {
   teams: TopTeamListing[];
   loadingTeams?: boolean;
-  /** Team id currently being joined; disables all join buttons while set. */
+  /** Team id whose request is in flight; disables all request buttons while set. */
   joiningTeamId?: string | null;
+  /** Teams the user has already requested to join this session. */
+  requestedTeamIds?: Set<string>;
   onJoinTeam: (teamId: string) => void;
   onCreate?: () => void;
   /** Level-gate CTA, e.g. "Reach level 10" — locks the create button when set. */
@@ -22,6 +24,7 @@ export function TeamJoinPrompt({
   teams,
   loadingTeams = false,
   joiningTeamId = null,
+  requestedTeamIds,
   onJoinTeam,
   onCreate,
   createLockedLabel = null,
@@ -58,25 +61,33 @@ export function TeamJoinPrompt({
                     {team.tag} · {team.memberCount}/{team.memberMax} members
                   </Text>
                 </View>
-                <Pressable
-                  accessibilityLabel={`Join ${team.name}`}
-                  accessibilityRole="button"
-                  disabled={joining || team.memberCount >= team.memberMax}
-                  onPress={() => onJoinTeam(team.id)}
-                  style={({ pressed }) => [
-                    styles.joinButton,
-                    (joining || team.memberCount >= team.memberMax) && styles.joinButtonDisabled,
-                    pressed && styles.pressed,
-                  ]}
-                >
-                  {joiningTeamId === team.id ? (
-                    <ActivityIndicator color={colors.background} size="small" />
-                  ) : (
-                    <Text style={styles.joinLabel}>
-                      {team.memberCount >= team.memberMax ? 'FULL' : 'JOIN'}
-                    </Text>
-                  )}
-                </Pressable>
+                {(() => {
+                  const full = team.memberCount >= team.memberMax;
+                  const requested = requestedTeamIds?.has(team.id) ?? false;
+                  const disabled = joining || full || requested;
+
+                  return (
+                    <Pressable
+                      accessibilityLabel={`Request to join ${team.name}`}
+                      accessibilityRole="button"
+                      disabled={disabled}
+                      onPress={() => onJoinTeam(team.id)}
+                      style={({ pressed }) => [
+                        styles.joinButton,
+                        disabled && styles.joinButtonDisabled,
+                        pressed && !disabled ? styles.pressed : null,
+                      ]}
+                    >
+                      {joiningTeamId === team.id ? (
+                        <ActivityIndicator color={colors.background} size="small" />
+                      ) : (
+                        <Text style={styles.joinLabel}>
+                          {full ? 'FULL' : requested ? 'REQUESTED' : 'REQUEST'}
+                        </Text>
+                      )}
+                    </Pressable>
+                  );
+                })()}
               </View>
               {index < teams.length - 1 ? <View style={styles.divider} /> : null}
             </View>

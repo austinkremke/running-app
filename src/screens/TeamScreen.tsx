@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react';
 import { ActivityIndicator, Alert, ScrollView, StyleSheet, Text, View } from 'react-native';
 
 import {
+  InviteToTeamDrawer,
   TeamActivitySection,
   TeamFormDrawer,
   TeamJoinPrompt,
@@ -20,7 +21,6 @@ import {
   createTeam,
   demoteMember,
   disbandTeam,
-  joinTeam,
   kickMember,
   leaveTeam,
   listTopTeams,
@@ -28,6 +28,8 @@ import {
   transferLeadership,
   updateTeam,
 } from '../services/teamService';
+import { requestToJoinTeam } from '../services/teamMembershipService';
+import { notifyTeamNotificationsChanged } from '../services/teamNotificationBus';
 import { colors, spacing } from '../theme';
 
 type TeamScreenProps = {
@@ -46,8 +48,11 @@ export function TeamScreen({ onOpenTopTeams }: TeamScreenProps) {
   const [formVisible, setFormVisible] = useState(false);
   const [formMode, setFormMode] = useState<'create' | 'edit'>('create');
   const [submitting, setSubmitting] = useState(false);
+  const [inviteVisible, setInviteVisible] = useState(false);
+  const [requestedTeamIds, setRequestedTeamIds] = useState<Set<string>>(new Set());
 
   const viewerRole = team?.members.find((member) => member.id === userId)?.role;
+  const canManageRoster = viewerRole === 'leader' || viewerRole === 'co-leader';
 
   useEffect(() => {
     if (loading || team) {
@@ -83,16 +88,24 @@ export function TeamScreen({ onOpenTopTeams }: TeamScreenProps) {
     Alert.alert(title, message);
   }
 
-  async function handleJoinTeam(teamId: string) {
+  async function handleRequestToJoin(teamId: string) {
     if (!userId) return;
 
     setJoiningTeamId(teamId);
     try {
-      await joinTeam(userId, teamId);
-      await refreshAll();
-      await runEvaluation();
+      const status = await requestToJoinTeam(teamId);
+      notifyTeamNotificationsChanged();
+
+      if (status === 'joined') {
+        // An outstanding invite for this team was auto-accepted.
+        await refreshAll();
+        await runEvaluation();
+      } else {
+        setRequestedTeamIds((previous) => new Set(previous).add(teamId));
+        Alert.alert('Request sent', 'The team’s leaders will review your request to join.');
+      }
     } catch (joinError) {
-      showError('Join team failed', joinError, 'Could not join the team.');
+      showError('Request failed', joinError, 'Could not send your join request.');
     } finally {
       setJoiningTeamId(null);
     }
@@ -235,7 +248,8 @@ export function TeamScreen({ onOpenTopTeams }: TeamScreenProps) {
             setFormMode('create');
             setFormVisible(true);
           }}
-          onJoinTeam={(teamId) => void handleJoinTeam(teamId)}
+          onJoinTeam={(teamId) => void handleRequestToJoin(teamId)}
+          requestedTeamIds={requestedTeamIds}
           teams={joinableTeams}
         />
         <TeamFormDrawer
@@ -267,11 +281,8 @@ export function TeamScreen({ onOpenTopTeams }: TeamScreenProps) {
           memberCount={team.memberCount}
           memberMax={team.memberMax}
           members={team.members}
-          onMemberOptionsPress={
-            viewerRole === 'leader' || viewerRole === 'co-leader'
-              ? handleMemberOptions
-              : undefined
-          }
+          onInvitePress={canManageRoster ? () => setInviteVisible(true) : undefined}
+          onMemberOptionsPress={canManageRoster ? handleMemberOptions : undefined}
         />
         <TeamManageSection
           onDisbandTeam={handleDisbandTeam}
@@ -300,6 +311,8 @@ export function TeamScreen({ onOpenTopTeams }: TeamScreenProps) {
         submitting={submitting}
         visible={formVisible && formMode === 'edit'}
       />
+
+      <InviteToTeamDrawer onClose={() => setInviteVisible(false)} visible={inviteVisible} />
     </>
   );
 }

@@ -21,6 +21,16 @@ import {
   getSoloChallengeStatus,
   type ReceivedSoloChallenge,
 } from '../services/challengeService';
+import {
+  fetchTeamNotifications,
+  respondToJoinRequest,
+  respondToTeamInvite,
+  type TeamNotification,
+} from '../services/teamMembershipService';
+import {
+  notifyTeamNotificationsChanged,
+  subscribeTeamNotifications,
+} from '../services/teamNotificationBus';
 import { notifyMatchRefresh, subscribeMatchRefresh } from '../services/matchRefreshBus';
 import type {
   GenericInAppNotification,
@@ -47,6 +57,7 @@ export function InAppNotificationProvider({ children }: { children: ReactNode })
   const currentRef = useRef<InAppNotification | null>(null);
   const handlersRef = useRef<InAppNotificationHandlers>({});
   const promptedChallengeIdsRef = useRef<Set<string>>(new Set());
+  const promptedTeamIdsRef = useRef<Set<string>>(new Set());
 
   const current = queue[0] ?? null;
   currentRef.current = current;
@@ -135,6 +146,85 @@ export function InAppNotificationProvider({ children }: { children: ReactNode })
     [dismissNotification, showNotification],
   );
 
+  const enqueueTeamNotification = useCallback(
+    (notification: TeamNotification) => {
+      if (promptedTeamIdsRef.current.has(notification.id)) {
+        return;
+      }
+
+      promptedTeamIdsRef.current.add(notification.id);
+
+      const isInvite = notification.kind === 'invite';
+      const respond = async (accept: boolean) => {
+        setActionLoading(true);
+        try {
+          if (isInvite) {
+            await respondToTeamInvite(notification.id, accept);
+          } else {
+            await respondToJoinRequest(notification.id, accept);
+          }
+          notifyTeamNotificationsChanged();
+          dismissNotification();
+        } catch (error) {
+          console.warn('Could not respond to team notification', error);
+          promptedTeamIdsRef.current.delete(notification.id);
+        } finally {
+          setActionLoading(false);
+        }
+      };
+
+      showNotification({
+        kind: 'generic',
+        id: `team_${notification.id}`,
+        eyebrow: isInvite ? 'Team Invite' : 'Join Request',
+        title: isInvite
+          ? `${notification.teamName} invited you`
+          : `${notification.actorName} wants to join`,
+        message: isInvite
+          ? `${notification.actorName} invited you to join ${notification.teamName}.`
+          : `${notification.actorName} (Lvl ${notification.actorLevel}) asked to join ${notification.teamName}.`,
+        avatarUrl: notification.actorAvatarUrl,
+        avatarFallbackLabel: notification.actorName.slice(0, 1).toUpperCase(),
+        primaryAction: {
+          label: isInvite ? 'Join' : 'Approve',
+          variant: 'primary',
+          onPress: () => respond(true),
+        },
+        secondaryAction: {
+          label: 'Decline',
+          variant: 'secondary',
+          onPress: () => respond(false),
+        },
+      });
+    },
+    [dismissNotification, showNotification],
+  );
+
+  const syncIncomingTeamNotifications = useCallback(async () => {
+    if (!userId) {
+      promptedTeamIdsRef.current.clear();
+      return;
+    }
+
+    try {
+      const items = await fetchTeamNotifications();
+
+      for (const item of items) {
+        if (!promptedTeamIdsRef.current.has(item.id)) {
+          enqueueTeamNotification(item);
+        }
+      }
+
+      for (const promptedId of [...promptedTeamIdsRef.current]) {
+        if (!items.some((item) => item.id === promptedId)) {
+          promptedTeamIdsRef.current.delete(promptedId);
+        }
+      }
+    } catch (error) {
+      console.warn('Could not sync team notifications', error);
+    }
+  }, [enqueueTeamNotification, userId]);
+
   const syncIncomingChallenges = useCallback(async () => {
     if (!userId) {
       promptedChallengeIdsRef.current.clear();
@@ -168,15 +258,18 @@ export function InAppNotificationProvider({ children }: { children: ReactNode })
       return;
     }
 
-    void syncIncomingChallenges();
-
-    const interval = setInterval(() => {
+    const syncAll = () => {
       void syncIncomingChallenges();
-    }, CHALLENGE_POLL_MS);
+      void syncIncomingTeamNotifications();
+    };
+
+    syncAll();
+
+    const interval = setInterval(syncAll, CHALLENGE_POLL_MS);
 
     const subscription = AppState.addEventListener('change', (nextState) => {
       if (nextState === 'active') {
-        void syncIncomingChallenges();
+        syncAll();
       }
     });
 
@@ -184,13 +277,19 @@ export function InAppNotificationProvider({ children }: { children: ReactNode })
       clearInterval(interval);
       subscription.remove();
     };
-  }, [syncIncomingChallenges, userId]);
+  }, [syncIncomingChallenges, syncIncomingTeamNotifications, userId]);
 
   useEffect(() => {
     return subscribeMatchRefresh(() => {
       void syncIncomingChallenges();
     });
   }, [syncIncomingChallenges]);
+
+  useEffect(() => {
+    return subscribeTeamNotifications(() => {
+      void syncIncomingTeamNotifications();
+    });
+  }, [syncIncomingTeamNotifications]);
 
   const value = useMemo(
     () => ({
