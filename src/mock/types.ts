@@ -120,6 +120,8 @@ export type TeamRank = {
   rank: number;
   topPercent: string;
   subtitle: string;
+  tierId?: string;
+  tierTitle?: string;
 };
 
 export type TeamStat = {

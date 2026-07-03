@@ -162,7 +162,10 @@ export function mapTeamRow(
   memberCount: number,
   totalMemberXp: number,
   overview: TeamOverview | null,
+  tiers: ResolvedRankTier[] = [],
 ): Team {
+  const competitiveRating = overview?.competitiveRating ?? 1000;
+  const tier = tiers.length > 0 ? tierFromRating(competitiveRating, tiers) : undefined;
   const stats: Team['stats'] = [
     {
       id: 'team-stat-members',
@@ -199,7 +202,7 @@ export function mapTeamRow(
     motto: team.motto,
     // Team level = combined member lifetime XP on the shared curve (snapshot, no XP bar).
     level: levelFromTotalXp(totalMemberXp),
-    competitiveRating: overview?.competitiveRating ?? 1000,
+    competitiveRating,
     teamRank: overview
       ? {
           rank: overview.rankPosition,
@@ -208,8 +211,10 @@ export function mapTeamRow(
             Math.min(100, Math.ceil((overview.rankPosition / Math.max(1, overview.teamCount)) * 100)),
           )}%`,
           subtitle: `of ${overview.teamCount} teams`,
+          tierId: tier?.id,
+          tierTitle: tier?.displayName,
         }
-      : { rank: 0, topPercent: '—', subtitle: 'of all teams' },
+      : { rank: 0, topPercent: '—', subtitle: 'of all teams', tierId: tier?.id, tierTitle: tier?.displayName },
     shieldIcon: team.logo_icon,
     shieldAccent: asLogoAccent(team.logo_accent),
     stats,

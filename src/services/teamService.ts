@@ -1,5 +1,7 @@
 import type { Team, TopTeamListing } from '../mock';
 import type { Tables } from '../types/database';
+import { fetchRankTiers } from './rank/rankService';
+import { mapRankTierRow } from './rank/tierFromRating';
 import { supabase } from './supabase';
 import {
   mapTeamListingRow,
@@ -76,7 +78,7 @@ export async function fetchMyTeam(userId: string): Promise<Team | null> {
   if (teamError) throw teamError;
   if (!team) return null;
 
-  const [{ data: memberRows, error: membersError }, overview] = await Promise.all([
+  const [{ data: memberRows, error: membersError }, overview, tierRows] = await Promise.all([
     supabase
       .from('team_members')
       .select(
@@ -94,7 +96,10 @@ export async function fetchMyTeam(userId: string): Promise<Team | null> {
       .eq('team_id', team.id)
       .order('joined_at', { ascending: true }),
     fetchTeamOverview(team.id),
+    fetchRankTiers().catch(() => []),
   ]);
+
+  const tiers = tierRows.map(mapRankTierRow);
 
   if (membersError) throw membersError;
 
@@ -125,7 +130,7 @@ export async function fetchMyTeam(userId: string): Promise<Team | null> {
     );
   });
 
-  return mapTeamRow(team, members, members.length, totalMemberXp, overview);
+  return mapTeamRow(team, members, members.length, totalMemberXp, overview, tiers);
 }
 
 /** Lightweight team name lookup for profile display (Me tab). */

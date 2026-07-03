@@ -30,6 +30,8 @@ export const MOCK_TEAM: Team = {
     rank: 128,
     topPercent: 'Top 2%',
     subtitle: 'of all teams',
+    tierId: 'gold',
+    tierTitle: 'Gold Grinder',
   },
   shieldIcon: 'paw',
   shieldAccent: 'lime',

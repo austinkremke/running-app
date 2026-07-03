@@ -5,8 +5,7 @@ import { Pressable, StyleSheet, Text, View } from 'react-native';
 
 import type { Team } from '../../mock';
 import { colors, spacing } from '../../theme';
-import { TeamLevelXpRow } from './TeamLevelXpRow';
-import { TeamRankCard } from './TeamRankCard';
+import { rankTierColorForTier } from './rankAvatarBorderTheme';
 import { TeamLogo } from './TeamLogo';
 
 type TeamTopSectionProps = {
@@ -17,18 +16,23 @@ type TeamTopSectionProps = {
   onRankPress?: () => void;
 };
 
+function shortTierName(tierId?: string, tierTitle?: string): string {
+  if (tierId) {
+    return tierId.charAt(0).toUpperCase() + tierId.slice(1);
+  }
+
+  return tierTitle ?? 'Unranked';
+}
+
 export function TeamTopSection({ team, onRankPress }: TeamTopSectionProps) {
+  const tierName = shortTierName(team.teamRank.tierId, team.teamRank.tierTitle);
+  const tierColor = rankTierColorForTier(team.teamRank.tierId);
+
   return (
     <View style={styles.container}>
-      <TeamLogo
-        accent={team.shieldAccent}
-        filled
-        icon={team.shieldIcon as IoniconsName}
-        size={72}
-        stretch
-      />
+      <View style={styles.header}>
+        <TeamLogo accent={team.shieldAccent} filled icon={team.shieldIcon as IoniconsName} size={72} />
 
-      <View style={styles.content}>
         <View style={styles.meta}>
           <View style={styles.nameRow}>
             <Text numberOfLines={1} style={styles.name}>
@@ -47,32 +51,51 @@ export function TeamTopSection({ team, onRankPress }: TeamTopSectionProps) {
               {team.motto}
             </Text>
           </View>
+        </View>
+      </View>
 
-          <TeamLevelXpRow level={team.level} />
+      <Pressable
+        accessibilityHint="Opens the top teams leaderboard"
+        accessibilityLabel={`Level ${team.level}. Rank ${tierName}. ${team.competitiveRating} power rating.`}
+        accessibilityRole="button"
+        disabled={!onRankPress}
+        onPress={onRankPress}
+        style={styles.levelRankRow}
+      >
+        <View style={styles.levelBlock}>
+          <Text style={styles.label}>LEVEL</Text>
+          <Text style={styles.levelValue}>{team.level}</Text>
         </View>
 
-        <TeamRankCard
-          competitiveRating={team.competitiveRating}
-          onPress={onRankPress}
-          teamRank={team.teamRank}
-        />
-      </View>
+        <View style={styles.divider} />
+
+        <View style={styles.rankBlock}>
+          <Text style={styles.rankHeaderLine}>
+            <Text style={styles.label}>RANK: </Text>
+            <Text style={[styles.rankTitle, { color: tierColor }]}>{tierName}</Text>
+          </Text>
+          <Text style={styles.ratingLine}>
+            <Text style={styles.ratingValue}>{team.competitiveRating.toLocaleString()}</Text>
+            <Text style={styles.ratingSuffix}> Power Rating</Text>
+          </Text>
+          <Text numberOfLines={1} style={styles.standingLine}>
+            {team.teamRank.rank > 0 ? `#${team.teamRank.rank}` : '—'} · {team.teamRank.topPercent}{' '}
+            {team.teamRank.subtitle}
+          </Text>
+        </View>
+      </Pressable>
     </View>
   );
 }
 
 const styles = StyleSheet.create({
   container: {
-    flexDirection: 'row',
-    alignItems: 'stretch',
-    gap: spacing.xl,
+    gap: spacing.md,
   },
-  content: {
-    flex: 1,
+  header: {
     flexDirection: 'row',
-    alignItems: 'stretch',
-    minWidth: 0,
-    gap: spacing.sm,
+    alignItems: 'center',
+    gap: spacing.md,
   },
   meta: {
     flex: 1,
@@ -120,5 +143,69 @@ const styles = StyleSheet.create({
     flex: 1,
     color: colors.textSecondary,
     fontSize: 10,
+  },
+  levelRankRow: {
+    flexDirection: 'row',
+    alignItems: 'stretch',
+    gap: spacing.md,
+  },
+  levelBlock: {
+    minWidth: 44,
+  },
+  label: {
+    color: colors.textSecondary,
+    fontSize: 9,
+    fontWeight: '700',
+    letterSpacing: 0.8,
+    textTransform: 'uppercase',
+  },
+  levelValue: {
+    color: colors.textPrimary,
+    fontSize: 28,
+    fontWeight: '600',
+    fontStyle: 'italic',
+    lineHeight: 30,
+    marginTop: spacing.xs,
+  },
+  divider: {
+    width: 1,
+    backgroundColor: colors.divider,
+    marginVertical: spacing.xs,
+  },
+  rankBlock: {
+    flex: 1,
+    minWidth: 0,
+    gap: 2,
+  },
+  rankHeaderLine: {
+    marginTop: 0,
+  },
+  rankTitle: {
+    fontSize: 12,
+    fontWeight: '800',
+    fontStyle: 'italic',
+    letterSpacing: 0.3,
+  },
+  ratingLine: {
+    marginTop: spacing.xs,
+  },
+  ratingValue: {
+    color: colors.textPrimary,
+    fontSize: 24,
+    fontWeight: '600',
+    fontStyle: 'italic',
+    lineHeight: 26,
+  },
+  ratingSuffix: {
+    color: colors.textSecondary,
+    fontSize: 13,
+    fontWeight: '600',
+    fontStyle: 'italic',
+  },
+  standingLine: {
+    marginTop: 4,
+    color: colors.textSecondary,
+    fontSize: 10,
+    lineHeight: 14,
   },
 });
