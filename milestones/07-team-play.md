@@ -85,8 +85,25 @@ Replace the seeded demo team match and mock lineup with a real team lifecycle: *
 - Team season record card from `team_rank`
 - Tab indicators: `useMatchTabIndicators` already covers active team matches — extend for team queue “searching” state
 
+### Invites & join requests **shipped**
+
+**Shipped (migration `20250703000004_team_membership_requests.sql`):** unified `team_membership_requests` table (`kind` invite|request; `user_id` = prospective member; `created_by` = initiator; one pending per team+user).
+
+- **Invite** (leader/co-leader → user): `invite_to_team`; recipient accepts/declines via `respond_to_team_invite`.
+- **Request** (user → team): `request_to_join_team`; leaders/co-leaders accept/decline via `respond_to_join_request`. The team browser’s **JOIN button is now REQUEST** — joins go through approval.
+- **Auto-accept shortcut:** inviting a user who already requested (or requesting a team that already invited you) joins immediately.
+- **Notifications:** `get_team_notifications` returns the caller’s relevant pending items (invites to me + requests for teams I lead); `has_team_notifications` drives indicators. Delivered two ways, mirroring solo challenges:
+  1. **Feed bell** (top-left) → `NotificationCenterDrawer` lists all pending items with accept/decline; badge on the bell **and** the Feed bottom-tab icon (like the active-match dot).
+  2. **In-app auto-popup** via `InAppNotificationContext` (generic accept/decline drawer) when a new invite/request arrives.
+- **Invite picker** (`InviteToTeamDrawer`, leaders/co-leaders from the roster): friends **not on a team** first, plus search across all teamless users; per-row Invite. `fetchInvitableFriends` / `searchInvitableUsers` filter `team_id is null`.
+
+**Key files:** `teamMembershipService.ts`, `useTeamNotifications.ts`, `teamNotificationBus.ts`, `NotificationCenterDrawer.tsx`, `InviteToTeamDrawer.tsx`, `InAppNotificationContext.tsx`.
+
+**Known v1 limits:** "unread" = any pending item (no per-item read state); notifications poll every 10–15s (no Realtime yet); accept/decline is honor of first responder for join requests (any leader can act).
+
 ### Backlog (not v1)
 
+- [ ] Realtime delivery for invites/requests (replace polling)
 - [ ] Team challenges (directed team-vs-team invites — mirror `solo_match_challenges`)
 - [ ] Seasonal resets + team leaderboard snapshots
 - [ ] Leader-picked lineup as an alternative match type (uses existing lineup UI concepts)
@@ -107,7 +124,9 @@ Replace the seeded demo team match and mock lineup with a real team lifecycle: *
 
 ## Manual QA (needs two teams, multiple accounts)
 
-1. Level-10 user creates a team; sub-level-10 user sees locked create CTA but can join via existing flow.
+1. Level-10 user creates a team; sub-level-10 user sees locked create CTA but can request to join.
+7. Leader opens roster → Invite → sees teamless friends first, searches a non-friend by name, taps Invite. Invitee gets a bell badge + feed-tab dot + auto-popup; accepting joins the team.
+8. Teamless user taps REQUEST on a team in the browser; that team’s leaders get a notification and approve; requester joins.
 2. Leader promotes a co-leader; co-leader queues the team; member sees searching state but no cancel rights.
 3. Two queued teams within ±400 rating pair into an active match; both rosters render from server.
 4. Members run ≥0.1 mi → personal points on scoreboard; team total = top-N sum; a 6th contributor doesn’t raise the total (N=5).

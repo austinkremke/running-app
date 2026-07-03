@@ -104,7 +104,8 @@ Mapbox on device often needs a recent Xcode beta; see project notes in your shel
 
 **Social (Phase C)**
 
-1. Team tab → browse and **join any team** (`list_top_teams`) or **create a team** (level 10+; `create_team` RPC — leader role, tag validation). Leaders/co-leaders manage the roster (promote, demote, kick, transfer) and team profile; leader departure auto-promotes a successor; last member out disbands.
+1. Team tab → browse teams and **request to join** (leaders approve) or **create a team** (level 10+; `create_team` RPC — leader role, tag validation). Leaders/co-leaders manage the roster (promote, demote, kick, transfer), **invite** friends/searched users, and edit the team profile; leader departure auto-promotes a successor; last member out disbands.
+2. **Invites & join requests** — leaders invite (friends-not-on-a-team first + search); users request to join. Recipients get an in-app popup, the feed **bell** notification center, and a badge on the bell + Feed tab (`team_membership_requests`, `get_team_notifications`).
 2. Post-run → “Add to Activity Feed” syncs the activity if needed, then creates `feed_posts` linked to `activities`.
 3. Feed tabs load posts from Postgres; each card shows a **static route map** from the activity `polyline`. The **Friends** tab shows runs from mutual friends; cards include pace highlights and side-by-side photo layout when available.
 4. Feed engagement: toggle like (`feed_reactions`) and comment thread (`feed_comments`) on visible posts ([05 Phase 1](./milestones/05-matchmaking-and-feed.md)).
