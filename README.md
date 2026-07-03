@@ -65,13 +65,13 @@ Mapbox on device often needs a recent Xcode beta; see project notes in your shel
 | 04 Garmin / Strava | Planned |
 | 05 Matchmaking & feed | **Done** — Phase 1–6 shipped ([05](./milestones/05-matchmaking-and-feed.md)) |
 | 06 Account, gating & cosmetics | **In progress** — Phase 1–4 shipped (settings, achievements, rank avatar borders, level gates); Phase 5 paywall next ([06](./milestones/06-account-gating-and-cosmetics.md)) |
-| 07 Team play | **In progress** — Phase 1–2 shipped (creation/management, `team_rank` + real team stats); matchmaking next ([07](./milestones/07-team-play.md)) |
+| 07 Team play | **In progress** — Phase 1–3 shipped (creation/management, `team_rank`, matchmaking queue); scoring/finalize next ([07](./milestones/07-team-play.md)) |
 
 ### Still mock / placeholder (honest)
 
 | Area | State |
 |------|--------|
-| Match / matchmaking lineup UI | **Solo Find Match + paired 1v1 + friend challenges from server**; team tab shows “no active match” empty state (mock Road Warriors fallback removed) until team matchmaking ships ([07 Phase 3](./milestones/07-team-play.md)) |
+| Match / matchmaking lineup UI | **Solo + team Find Match from server**: solo paired 1v1 + friend challenges; **team matchmaking queue** pairs two teams by rating ([07 Phase 3](./milestones/07-team-play.md)). Team match scoring/finalize is Phase 4 |
 | Solo match live scoreboard + chat | **Shipped** — Realtime score updates + `match_messages` ([05 Phase 5](./milestones/05-matchmaking-and-feed.md)) |
 | Solo match completion + forfeit | **Shipped** — result drawer, Elo sync, quit/forfeit ([05 Phase 6](./milestones/05-matchmaking-and-feed.md)) |
 | Match tab indicators | **Shipped** — active match + incoming challenge dots ([05 Phase 6](./milestones/05-matchmaking-and-feed.md)) |

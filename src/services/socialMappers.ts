@@ -199,6 +199,7 @@ export function mapTeamRow(
     motto: team.motto,
     // Team level = combined member lifetime XP on the shared curve (snapshot, no XP bar).
     level: levelFromTotalXp(totalMemberXp),
+    competitiveRating: overview?.competitiveRating ?? 1000,
     teamRank: overview
       ? {
           rank: overview.rankPosition,

@@ -87,6 +87,19 @@ export async function fetchSoloMatchType(): Promise<Tables<'match_types'> | null
   return data;
 }
 
+export async function fetchTeamMatchType(): Promise<Tables<'match_types'> | null> {
+  if (!supabase) return null;
+
+  const { data, error } = await supabase
+    .from('match_types')
+    .select('*')
+    .eq('id', 'team_3day')
+    .maybeSingle();
+
+  if (error) throw error;
+  return data;
+}
+
 export async function fetchActiveTeamMatch(userId: string): Promise<ActiveTeamMatch | null> {
   if (!supabase) return null;
 

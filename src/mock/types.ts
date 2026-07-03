@@ -342,6 +342,7 @@ export type Team = {
   tag: string;
   motto: string;
   level: number;
+  competitiveRating: number;
   teamRank: TeamRank;
   shieldIcon: string;
   shieldAccent: TeamLogoAccent;

@@ -1,7 +1,7 @@
 # Team Play — Creation, Management & Team Matchmaking
 
 > **Milestone:** 07  
-> **Status:** In progress — Phase 1–2 shipped (creation/management, team rating + real team stats); Phase 3 team matchmaking next  
+> **Status:** In progress — Phase 1–3 shipped (creation/management, team rating, matchmaking queue); Phase 4 scoring/finalize next  
 > **Depends on:** [02 Supabase](./02-supabase-backend.md) (Phase C teams + Phase D match shell), [03 XP & rank](./03-xp-and-ranking.md) (rank separation rules), [05 Matchmaking & feed](./05-matchmaking-and-feed.md) (solo queue/Elo/completion patterns to mirror), [06](./06-account-gating-and-cosmetics.md) Phase 4 (`feature_gates` — `create_team` reserved at L10)  
 > **Unblocks:** team challenges, seasonal team leaderboards
 
@@ -59,12 +59,16 @@ Replace the seeded demo team match and mock lineup with a real team lifecycle: *
 - **Team tab de-mocked:** team level/XP = combined member lifetime XP on the shared curve; rank card = real position (`#N`, `Top X% of N teams`, `—` offline); stats = members / 7-day miles / season record; member rows show real 7-day distance + `Joined <date>` instead of fake presence
 - **Top Teams de-mocked:** ordered by rating; points column = `competitive_rating`; level = combined member XP
 
-### Phase 3 — Team matchmaking queue
+### Phase 3 — Team matchmaking queue **shipped**
 
-- `team_match_queue` (`team_id`, `match_type_id`, `competitive_rating`, `status`, `enqueued_by`)
-- RPCs mirroring solo: `enqueue_team_matchmaking` / `cancel_team_matchmaking` / `get_team_matchmaking_status` — role check (leader/co-leader) inside; min roster size to queue (v1 constant: 2)
-- Pairing mirror of `try_pair_solo_queue`: rating band ±400, same match type; creates `matches` row (`kind = 'team'`, both `*_team_id`) and enrolls **current members of both teams** as `match_participants` with side + `team_id` (roster snapshot)
-- Team tab: **Find Match** wired for leaders/co-leaders; searching card; members see who queued the team
+**Shipped (migration `20250703000003_team_matchmaking.sql`):**
+
+- `team_match_queue` (`team_id`, `match_type_id`, `competitive_rating`, `status`, `enqueued_by`); RLS: own-team members can read the queue row (drives searching state)
+- RPCs mirroring solo: `enqueue_team_matchmaking` / `cancel_team_matchmaking` / `get_team_matchmaking_status` — leader/co-leader role check inside; min roster (`team_min_roster_to_queue` = 2); team rating from `team_rank`
+- `try_pair_team_queue` mirrors `try_pair_solo_queue`: rating band ±400, same match type, different teams; creates `matches` row (`kind = 'team'`, both `*_team_id`) and `enroll_team_roster` enrolls **all current members of both teams** as `match_participants` with `team_id` + side (roster snapshot at pairing)
+- **Team tab de-mocked** (`TeamMatchTab`): real team summary (name, level, `competitive_rating`) from `useMyTeam`; real match format from `match_types`; **Find Match** via `useTeamMatchmaking` (`teamMatchmakingService`) with searching state + poll; leader/co-leader gating with "only leaders" notice; roster-too-small + no-team empty states. `MOCK_MATCHMAKING` and the lineup picker (`LineupSection` / `AvailableRunnersSection`) removed — top-N scoring needs no pre-match lineup.
+
+**Depends on Phase 4 to complete the loop:** paired team matches have no finalize yet, so they stay `active` until [Phase 4](#phase-4--scoring-finalize--completion) scoring + `finalize_team_match` ship. Away-roster overlay on the active screen is still Phase 5.
 
 ### Phase 4 — Scoring, finalize & completion
 

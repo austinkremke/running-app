@@ -25,6 +25,7 @@ export const MOCK_TEAM: Team = {
   tag: 'RWAR',
   motto: 'Run together. Win together.',
   level: 24,
+  competitiveRating: 1420,
   teamRank: {
     rank: 128,
     topPercent: 'Top 2%',

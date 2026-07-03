@@ -59,7 +59,7 @@ Mention milestone/phase in the subject (e.g. `milestone 02 Phase C`) and note do
 | 04 | Garmin / Strava | Planned |
 | 05 | Matchmaking & feed | **Done** — Phase 1–6 shipped |
 | 06 | Account settings, achievements, rank avatar borders, level & paywall gates | **In progress** — Phase 1–4 shipped; Phase 5 paywall next |
-| 07 | Team play — creation, management, team matchmaking | **In progress** — Phase 1–2 shipped (management, `team_rank`, real team stats); Phase 3 matchmaking next |
+| 07 | Team play — creation, management, team matchmaking | **In progress** — Phase 1–3 shipped (management, `team_rank`, matchmaking queue); Phase 4 scoring/finalize next |
 
 ---
 

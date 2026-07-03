@@ -30,7 +30,7 @@ When adding a milestone:
 | 04 | [Third-party integrations](./04-third-party-integrations.md) | Planned | 01, 02 | 05 |
 | 05 | [Matchmaking, feed & social sync](./05-matchmaking-and-feed.md) | **Done** — Phase 1–6 shipped | 02 (Phase C+) | — |
 | 06 | [Account, gating & cosmetics](./06-account-gating-and-cosmetics.md) | **In progress** — Phase 1–4 shipped (settings, achievements, rank avatar borders, level gates); Phase 5 paywall next | 02, 03 | 07 (`create_team` gate) |
-| 07 | [Team play — creation, management & team matchmaking](./07-team-play.md) | **In progress** — Phase 1–2 shipped (creation/management, team rating, real team stats); Phase 3 matchmaking next | 02, 03, 05, 06 (Phase 4) | team challenges, seasonal team boards |
+| 07 | [Team play — creation, management & team matchmaking](./07-team-play.md) | **In progress** — Phase 1–3 shipped (creation/management, team rating, matchmaking queue); Phase 4 scoring/finalize next | 02, 03, 05, 06 (Phase 4) | team challenges, seasonal team boards |
 
 ---
 

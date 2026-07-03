@@ -1,12 +1,13 @@
-import { useState } from 'react';
-import { ScrollView, StyleSheet, View } from 'react-native';
+import { useEffect, useState } from 'react';
+import { ActivityIndicator, ScrollView, StyleSheet, Text, View } from 'react-native';
 
-import { MOCK_MATCHMAKING } from '../../mock';
-import type { MatchRunner } from '../../mock';
+import type { TeamMatchFormat } from '../../mock';
+import { useUserId } from '../../context';
+import { useMyTeam } from '../../hooks/useMyTeam';
+import { useTeamMatchmaking } from '../../hooks/useTeamMatchmaking';
+import { fetchTeamMatchType } from '../../services/matchService';
 import { colors, spacing } from '../../theme';
-import { AvailableRunnersSection } from './AvailableRunnersSection';
 import { FindMatchButton } from './FindMatchButton';
-import { LineupSection } from './LineupSection';
 import { MatchFormatCard } from './MatchFormatCard';
 import { MatchTeamSummaryCard } from './MatchTeamSummaryCard';
 import { SearchingForTeamCard } from './SearchingForTeamCard';
@@ -16,45 +17,73 @@ type TeamMatchTabProps = {
   onViewActiveMatch?: () => void;
 };
 
+const MIN_ROSTER = 2;
+
 export function TeamMatchTab({ onViewActiveMatch }: TeamMatchTabProps) {
-  const config = MOCK_MATCHMAKING;
-  const [lineup, setLineup] = useState<MatchRunner[]>(config.lineup);
-  const [available, setAvailable] = useState<MatchRunner[]>(config.available);
-  const [isSearching, setIsSearching] = useState(false);
+  const userId = useUserId();
+  const { team, loading: teamLoading } = useMyTeam();
+  const {
+    status,
+    isSearching,
+    actionLoading,
+    hasActiveMatch,
+    findMatch,
+    cancelSearch,
+    refresh,
+    error,
+  } = useTeamMatchmaking();
+  const [matchFormat, setMatchFormat] = useState<TeamMatchFormat | null>(null);
 
-  const canAdd = lineup.length < config.maxLineup;
+  useEffect(() => {
+    void (async () => {
+      try {
+        const matchType = await fetchTeamMatchType();
+        if (!matchType) return;
+        setMatchFormat({
+          title: matchType.display_name,
+          durationLabel: matchType.duration_label,
+          winCondition: matchType.win_condition,
+          overview: matchType.overview,
+          scoringDetails: matchType.scoring_details,
+        });
+      } catch {
+        // Keep null format when offline; format card is hidden.
+      }
+    })();
+  }, []);
 
-  function handleRemove(runnerId: string) {
-    const runner = lineup.find((item) => item.id === runnerId);
-    if (!runner) {
-      return;
-    }
-
-    setLineup((current) => current.filter((item) => item.id !== runnerId));
-    setAvailable((current) => [...current, runner]);
+  async function handleFindMatch() {
+    await findMatch();
+    await refresh();
   }
 
-  function handleAdd(runnerId: string) {
-    if (!canAdd) {
-      return;
-    }
-
-    const runner = available.find((item) => item.id === runnerId);
-    if (!runner) {
-      return;
-    }
-
-    setAvailable((current) => current.filter((item) => item.id !== runnerId));
-    setLineup((current) => [...current, runner]);
+  if (teamLoading) {
+    return (
+      <View style={styles.centered}>
+        <ActivityIndicator color={colors.accentLime} />
+      </View>
+    );
   }
 
-  function handleFindMatch() {
-    setIsSearching(true);
+  if (!team) {
+    return (
+      <View style={styles.centered}>
+        <Text style={styles.emptyTitle}>Join a team to compete</Text>
+        <Text style={styles.emptyBody}>
+          Team matchmaking unlocks once you’re on a squad. Head to the Team tab to join or create
+          one.
+        </Text>
+      </View>
+    );
   }
 
-  function handleCancelSearch() {
-    setIsSearching(false);
-  }
+  const viewerRole = team.members.find((member) => member.id === userId)?.role;
+  const canQueue = viewerRole === 'leader' || viewerRole === 'co-leader';
+  const roster = team.memberCount;
+  const rosterTooSmall = roster < MIN_ROSTER;
+  const showActiveMatchButton = hasActiveMatch || status.status === 'in_match';
+  const findDisabled =
+    actionLoading || isSearching || rosterTooSmall || showActiveMatchButton || !canQueue;
 
   return (
     <View style={styles.container}>
@@ -64,31 +93,49 @@ export function TeamMatchTab({ onViewActiveMatch }: TeamMatchTabProps) {
         style={styles.scroll}
       >
         <MatchTeamSummaryCard
-          powerRating={config.powerRating}
-          shieldAccent={config.shieldAccent}
-          shieldIcon={config.shieldIcon}
-          teamLevel={config.teamLevel}
-          teamName={config.teamName}
+          powerRating={team.competitiveRating}
+          shieldAccent={team.shieldAccent}
+          shieldIcon={team.shieldIcon}
+          teamLevel={team.level}
+          teamName={team.name}
         />
 
-        <TeamMatchPreviewButton onPress={onViewActiveMatch} />
+        {showActiveMatchButton ? <TeamMatchPreviewButton onPress={onViewActiveMatch} /> : null}
 
         {isSearching ? (
-          <SearchingForTeamCard onCancel={handleCancelSearch} />
-        ) : (
-          <MatchFormatCard format={config.matchFormat} />
-        )}
+          <SearchingForTeamCard onCancel={() => void cancelSearch()} />
+        ) : matchFormat ? (
+          <MatchFormatCard format={matchFormat} />
+        ) : null}
 
-        <LineupSection
-          lineup={lineup}
-          maxLineup={config.maxLineup}
-          onRemove={handleRemove}
-        />
-        <AvailableRunnersSection canAdd={canAdd} onAdd={handleAdd} runners={available} />
+        {rosterTooSmall && !showActiveMatchButton ? (
+          <View style={styles.notice}>
+            <Text style={styles.noticeText}>
+              Your team needs at least {MIN_ROSTER} members to find a match.
+            </Text>
+          </View>
+        ) : null}
+
+        {!canQueue && !rosterTooSmall && !showActiveMatchButton ? (
+          <View style={styles.notice}>
+            <Text style={styles.noticeText}>
+              Only your team leader or a co-leader can start a match.
+            </Text>
+          </View>
+        ) : null}
+
+        {error ? (
+          <View style={styles.notice}>
+            <Text style={styles.noticeText}>{error}</Text>
+          </View>
+        ) : null}
+
         <View style={styles.bottomSpacer} />
       </ScrollView>
 
-      <FindMatchButton disabled={isSearching} onPress={handleFindMatch} />
+      {!showActiveMatchButton ? (
+        <FindMatchButton disabled={findDisabled} onPress={() => void handleFindMatch()} />
+      ) : null}
     </View>
   );
 }
@@ -108,5 +155,39 @@ const styles = StyleSheet.create({
   },
   bottomSpacer: {
     height: spacing.md,
+  },
+  centered: {
+    flex: 1,
+    alignItems: 'center',
+    justifyContent: 'center',
+    backgroundColor: colors.background,
+    paddingHorizontal: spacing.xl,
+    gap: spacing.sm,
+  },
+  emptyTitle: {
+    color: colors.textPrimary,
+    fontSize: 16,
+    fontWeight: '800',
+    fontStyle: 'italic',
+    textTransform: 'uppercase',
+  },
+  emptyBody: {
+    color: colors.textSecondary,
+    fontSize: 13,
+    textAlign: 'center',
+    lineHeight: 19,
+  },
+  notice: {
+    backgroundColor: colors.surface,
+    borderRadius: 12,
+    borderWidth: 1,
+    borderColor: colors.border,
+    padding: spacing.md,
+  },
+  noticeText: {
+    color: colors.textSecondary,
+    fontSize: 12,
+    textAlign: 'center',
+    lineHeight: 17,
   },
 });

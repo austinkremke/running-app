@@ -880,6 +880,71 @@ export type Database = {
           },
         ]
       }
+      team_match_queue: {
+        Row: {
+          competitive_rating: number
+          created_at: string
+          enqueued_by: string | null
+          id: string
+          match_id: string | null
+          match_type_id: string
+          status: string
+          team_id: string
+          updated_at: string
+        }
+        Insert: {
+          competitive_rating: number
+          created_at?: string
+          enqueued_by?: string | null
+          id?: string
+          match_id?: string | null
+          match_type_id: string
+          status?: string
+          team_id: string
+          updated_at?: string
+        }
+        Update: {
+          competitive_rating?: number
+          created_at?: string
+          enqueued_by?: string | null
+          id?: string
+          match_id?: string | null
+          match_type_id?: string
+          status?: string
+          team_id?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "team_match_queue_enqueued_by_fkey"
+            columns: ["enqueued_by"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "team_match_queue_match_id_fkey"
+            columns: ["match_id"]
+            isOneToOne: false
+            referencedRelation: "matches"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "team_match_queue_match_type_id_fkey"
+            columns: ["match_type_id"]
+            isOneToOne: false
+            referencedRelation: "match_types"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "team_match_queue_team_id_fkey"
+            columns: ["team_id"]
+            isOneToOne: false
+            referencedRelation: "teams"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       team_members: {
         Row: {
           joined_at: string
@@ -1128,6 +1193,7 @@ export type Database = {
         Returns: Json
       }
       cancel_solo_matchmaking: { Args: never; Returns: Json }
+      cancel_team_matchmaking: { Args: never; Returns: Json }
       create_solo_match_for_users: {
         Args: {
           p_away_user_id: string
@@ -1163,6 +1229,14 @@ export type Database = {
         Args: { p_match_type_id?: string }
         Returns: Json
       }
+      enqueue_team_matchmaking: {
+        Args: { p_match_type_id?: string }
+        Returns: Json
+      }
+      enroll_team_roster: {
+        Args: { p_match_id: string; p_side: string; p_team_id: string }
+        Returns: undefined
+      }
       evaluate_achievements: { Args: { p_user_id?: string }; Returns: Json }
       evaluate_achievements_system: {
         Args: { p_user_id: string }
@@ -1181,6 +1255,7 @@ export type Database = {
       }
       get_solo_match_challenge_status: { Args: never; Returns: Json }
       get_solo_matchmaking_status: { Args: never; Returns: Json }
+      get_team_matchmaking_status: { Args: never; Returns: Json }
       get_team_overview: { Args: { p_team_id: string }; Returns: Json }
       grant_achievement: {
         Args: { p_achievement_id: string; p_user_id: string }
@@ -1239,13 +1314,16 @@ export type Database = {
         Args: { p_match_type_id: string }
         Returns: string
       }
+      team_active_match_id: { Args: { p_team_id: string }; Returns: string }
       team_has_active_match: { Args: { p_team_id: string }; Returns: boolean }
+      team_min_roster_to_queue: { Args: never; Returns: number }
       team_role_for: {
         Args: { p_team_id: string; p_user_id: string }
         Returns: string
       }
       transfer_leadership: { Args: { p_user_id: string }; Returns: undefined }
       try_pair_solo_queue: { Args: never; Returns: string }
+      try_pair_team_queue: { Args: never; Returns: string }
       update_team: {
         Args: {
           p_logo_accent?: string
