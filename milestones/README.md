@@ -8,7 +8,7 @@ Chronological roadmap for **Run Off** (`running-app`). Each milestone is a self-
 
 **Backend order (milestone 02):** Auth → activity sync → teams/feed → matches. Phases A–D are **shipped**; Phase E (hardening) is **next**. See [02](./02-supabase-backend.md).
 
-**Product priority (next feature):** [02 Phase E — hardening](./02-supabase-backend.md) or [06 Phase 5 — paywall](./06-account-gating-and-cosmetics.md).
+**Product priority (next feature):** [07 Team play](./07-team-play.md) (creation → management → team matchmaking). Then [02 Phase E — hardening](./02-supabase-backend.md) or [06 Phase 5 — paywall](./06-account-gating-and-cosmetics.md).
 
 **When shipping work:** update docs before commit — checklist in [run-off SKILL § Docs sync](../.cursor/skills/run-off/SKILL.md#docs-sync-on-ship-required).
 
@@ -29,7 +29,8 @@ When adding a milestone:
 | 03 | [XP & competitive rank](./03-xp-and-ranking.md) | **In progress** — Phase 1–2 + 4 shipped; Phase 3 solo Elo via 05; Phase 5 achievements via 06 (percentile / team aggregates pending) | 01, 02 (partial) | 05, 06 |
 | 04 | [Third-party integrations](./04-third-party-integrations.md) | Planned | 01, 02 | 05 |
 | 05 | [Matchmaking, feed & social sync](./05-matchmaking-and-feed.md) | **Done** — Phase 1–6 shipped | 02 (Phase C+) | — |
-| 06 | [Account, gating & cosmetics](./06-account-gating-and-cosmetics.md) | **In progress** — Phase 1–4 shipped (settings, achievements, rank avatar borders, level gates); Phase 5 paywall next | 02, 03 | — |
+| 06 | [Account, gating & cosmetics](./06-account-gating-and-cosmetics.md) | **In progress** — Phase 1–4 shipped (settings, achievements, rank avatar borders, level gates); Phase 5 paywall next | 02, 03 | 07 (`create_team` gate) |
+| 07 | [Team play — creation, management & team matchmaking](./07-team-play.md) | **Next** — design decided; Phase 1 creation/management first | 02, 03, 05, 06 (Phase 4) | team challenges, seasonal team boards |
 
 ---
 
@@ -74,6 +75,9 @@ When adding a milestone:
         │
         ▼
 06 Account settings · achievements · rank avatar borders · level & paywall gates
+        │
+        ▼
+07 Team play — creation · management · team matchmaking (mirrors 05 solo patterns)
 ```
 
 *(06 can start Phase 1 account settings after 02 Phase A; phases 2–5 need [03](./03-xp-and-ranking.md) progression/rank.)*

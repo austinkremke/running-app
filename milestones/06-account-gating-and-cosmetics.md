@@ -3,7 +3,7 @@
 > **Milestone:** 06  
 > **Status:** **In progress** — Phase 1–4 shipped; Phase 5 paywall next  
 > **Depends on:** [02 Supabase](./02-supabase-backend.md) (auth + profiles), [03 XP & rank](./03-xp-and-ranking.md) (level, rank tiers, achievements data model)  
-> **Unblocks:** —
+> **Unblocks:** [07 Team play](./07-team-play.md) (`create_team` feature gate)
 
 ---
 

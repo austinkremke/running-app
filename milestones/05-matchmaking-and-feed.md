@@ -3,7 +3,7 @@
 > **Milestone:** 05  
 > **Status:** **Done** — Phase 1–6 shipped  
 > **Depends on:** [02 Supabase](./02-supabase-backend.md) (Phase A–D shipped; Phase C `feed_posts` required for Phase 1)  
-> **Unblocks:** —
+> **Unblocks:** [07 Team play](./07-team-play.md) (solo queue/Elo/completion patterns to mirror)
 
 ---
 
@@ -127,4 +127,4 @@ Replace remaining mock match/social data with server-backed state: real opponent
 
 ## Summary
 
-**Ship next:** [02 Phase E — hardening](./02-supabase-backend.md) or [06 Phase 4 — level gates](./06-account-gating-and-cosmetics.md).
+**Ship next:** [07 Team play](./07-team-play.md); then [02 Phase E — hardening](./02-supabase-backend.md) or [06 Phase 5 — paywall](./06-account-gating-and-cosmetics.md).
