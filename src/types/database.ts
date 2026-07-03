@@ -1,4 +1,3 @@
-Initialising login role...
 export type Json =
   | string
   | number
@@ -193,6 +192,36 @@ export type Database = {
             referencedColumns: ["id"]
           },
         ]
+      }
+      feature_gates: {
+        Row: {
+          created_at: string
+          display_name: string
+          feature_id: string
+          is_active: boolean
+          min_level: number
+          sort_order: number
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          display_name: string
+          feature_id: string
+          is_active?: boolean
+          min_level: number
+          sort_order?: number
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          display_name?: string
+          feature_id?: string
+          is_active?: boolean
+          min_level?: number
+          sort_order?: number
+          updated_at?: string
+        }
+        Relationships: []
       }
       feed_comments: {
         Row: {
@@ -786,6 +815,71 @@ export type Database = {
         }
         Relationships: []
       }
+      solo_match_challenges: {
+        Row: {
+          challenged_id: string
+          challenger_id: string
+          created_at: string
+          expires_at: string
+          id: string
+          match_id: string | null
+          match_type_id: string
+          status: string
+          updated_at: string
+        }
+        Insert: {
+          challenged_id: string
+          challenger_id: string
+          created_at?: string
+          expires_at?: string
+          id?: string
+          match_id?: string | null
+          match_type_id?: string
+          status?: string
+          updated_at?: string
+        }
+        Update: {
+          challenged_id?: string
+          challenger_id?: string
+          created_at?: string
+          expires_at?: string
+          id?: string
+          match_id?: string | null
+          match_type_id?: string
+          status?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "solo_match_challenges_challenged_id_fkey"
+            columns: ["challenged_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "solo_match_challenges_challenger_id_fkey"
+            columns: ["challenger_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "solo_match_challenges_match_id_fkey"
+            columns: ["match_id"]
+            isOneToOne: false
+            referencedRelation: "matches"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "solo_match_challenges_match_type_id_fkey"
+            columns: ["match_type_id"]
+            isOneToOne: false
+            referencedRelation: "match_types"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       team_members: {
         Row: {
           joined_at: string
@@ -937,6 +1031,10 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
+      accept_solo_match_challenge: {
+        Args: { p_challenge_id: string }
+        Returns: Json
+      }
       achievement_metric: {
         Args: { p_criteria: Json; p_criteria_type: string; p_user_id: string }
         Returns: number
@@ -966,6 +1064,10 @@ export type Database = {
         Args: { p_user_a: string; p_user_b: string }
         Returns: boolean
       }
+      assert_feature_gate: {
+        Args: { p_feature_id: string; p_user_id: string }
+        Returns: undefined
+      }
       award_run_xp: { Args: { p_activity_id: string }; Returns: Json }
       bootstrap_progression_from_local: {
         Args: {
@@ -978,9 +1080,25 @@ export type Database = {
       }
       can_view_feed_post: { Args: { p_post_id: string }; Returns: boolean }
       can_view_match: { Args: { p_match_id: string }; Returns: boolean }
+      cancel_solo_match_challenge: {
+        Args: { p_challenge_id: string }
+        Returns: Json
+      }
       cancel_solo_matchmaking: { Args: never; Returns: Json }
+      create_solo_match_for_users: {
+        Args: {
+          p_away_user_id: string
+          p_home_user_id: string
+          p_match_type_id?: string
+        }
+        Returns: string
+      }
       credit_match_activity: { Args: { p_activity_id: string }; Returns: Json }
       cumulative_xp_for_level: { Args: { p_level: number }; Returns: number }
+      decline_solo_match_challenge: {
+        Args: { p_challenge_id: string }
+        Returns: Json
+      }
       delete_own_account: { Args: never; Returns: undefined }
       elo_expected_score: {
         Args: { p_rating_a: number; p_rating_b: number }
@@ -991,15 +1109,30 @@ export type Database = {
         Returns: Json
       }
       evaluate_achievements: { Args: { p_user_id?: string }; Returns: Json }
+      evaluate_achievements_system: {
+        Args: { p_user_id: string }
+        Returns: Json
+      }
+      expire_stale_solo_match_challenges: { Args: never; Returns: undefined }
       finalize_due_solo_matches_for_user: {
         Args: { p_user_id?: string }
         Returns: Json
       }
       finalize_solo_match: { Args: { p_match_id: string }; Returns: Json }
+      forfeit_solo_match: { Args: { p_match_id: string }; Returns: Json }
+      get_my_solo_match_completions: {
+        Args: { p_limit?: number; p_user_id?: string }
+        Returns: Json
+      }
+      get_solo_match_challenge_status: { Args: never; Returns: Json }
       get_solo_matchmaking_status: { Args: never; Returns: Json }
       grant_achievement: {
         Args: { p_achievement_id: string; p_user_id: string }
         Returns: Json
+      }
+      has_incoming_solo_match_challenge: {
+        Args: { p_user_id?: string }
+        Returns: boolean
       }
       is_match_participant: {
         Args: { p_match_id: string; p_user_id?: string }
@@ -1014,16 +1147,32 @@ export type Database = {
         Args: { p_distance_meters: number }
         Returns: number
       }
+      persist_solo_match_completions: {
+        Args: { p_match_id: string; p_result: Json }
+        Returns: undefined
+      }
       record_achievement_event: {
         Args: { p_event_type: string; p_metadata?: Json }
         Returns: Json
       }
       repair_solo_match_activity_credits: { Args: never; Returns: Json }
+      send_solo_match_challenge: {
+        Args: { p_challenged_user_id: string; p_match_type_id?: string }
+        Returns: Json
+      }
       solo_match_duration_interval: {
         Args: { p_match_type_id: string }
         Returns: string
       }
       try_pair_solo_queue: { Args: never; Returns: string }
+      user_has_live_active_solo_match: {
+        Args: { p_user_id: string }
+        Returns: boolean
+      }
+      user_is_waiting_in_solo_queue: {
+        Args: { p_user_id: string }
+        Returns: boolean
+      }
       user_meets_achievement: {
         Args: {
           p_definition: Database["public"]["Tables"]["achievement_definitions"]["Row"]
@@ -1168,5 +1317,3 @@ export const Constants = {
     Enums: {},
   },
 } as const
-A new version of Supabase CLI is available: v2.109.0 (currently installed v2.84.2)
-We recommend updating regularly for new features and bug fixes: https://supabase.com/docs/guides/cli/getting-started#updating-the-supabase-cli
