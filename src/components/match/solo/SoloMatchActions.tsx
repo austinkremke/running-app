@@ -11,6 +11,10 @@ type SoloMatchActionsProps = {
   onChallengeFriend: () => void;
   status?: SoloMatchActionStatus;
   disabled?: boolean;
+  /** Level-gate CTA, e.g. "Reach level 5" — locks Find Match when set. */
+  findLockedLabel?: string | null;
+  /** Level-gate CTA, e.g. "Reach level 3" — locks Challenge Friend when set. */
+  challengeLockedLabel?: string | null;
 };
 
 export function SoloMatchActions({
@@ -18,18 +22,24 @@ export function SoloMatchActions({
   onChallengeFriend,
   status = 'idle',
   disabled = false,
+  findLockedLabel = null,
+  challengeLockedLabel = null,
 }: SoloMatchActionsProps) {
   const actionsDisabled = disabled || status !== 'idle';
+  const findDisabled = actionsDisabled || Boolean(findLockedLabel);
+  const challengeDisabled = actionsDisabled || Boolean(challengeLockedLabel);
 
-  const findSubtext =
-    status === 'searching'
+  const findSubtext = findLockedLabel
+    ? `${findLockedLabel} to unlock ranked matches`
+    : status === 'searching'
       ? 'Searching for an opponent'
       : status === 'challenge_pending'
         ? 'Waiting on challenge response'
         : 'Find a runner of similar skill';
 
-  const challengeSubtext =
-    status === 'searching'
+  const challengeSubtext = challengeLockedLabel
+    ? `${challengeLockedLabel} to unlock friend challenges`
+    : status === 'searching'
       ? 'Finish or cancel your current search'
       : status === 'challenge_pending'
         ? 'Challenge invite already sent'
@@ -39,25 +49,25 @@ export function SoloMatchActions({
       <Pressable
         accessibilityLabel="Find match"
         accessibilityRole="button"
-        accessibilityState={{ disabled: actionsDisabled }}
-        disabled={actionsDisabled}
+        accessibilityState={{ disabled: findDisabled }}
+        disabled={findDisabled}
         onPress={onFindMatch}
         style={({ pressed }) => [
           styles.findButton,
-          actionsDisabled && styles.findButtonDisabled,
-          pressed && !actionsDisabled ? styles.pressed : null,
+          findDisabled && styles.findButtonDisabled,
+          pressed && !findDisabled ? styles.pressed : null,
         ]}
       >
         <Ionicons
-          color={actionsDisabled ? colors.textSecondary : colors.background}
-          name="footsteps"
+          color={findDisabled ? colors.textSecondary : colors.background}
+          name={findLockedLabel ? 'lock-closed' : 'footsteps'}
           size={18}
         />
         <View style={styles.textBlock}>
-          <Text style={[styles.findLabel, actionsDisabled && styles.findLabelDisabled]}>
+          <Text style={[styles.findLabel, findDisabled && styles.findLabelDisabled]}>
             Find Match
           </Text>
-          <Text style={[styles.findSubtext, actionsDisabled && styles.findSubtextDisabled]}>
+          <Text style={[styles.findSubtext, findDisabled && styles.findSubtextDisabled]}>
             {findSubtext}
           </Text>
         </View>
@@ -68,22 +78,22 @@ export function SoloMatchActions({
       <Pressable
         accessibilityLabel="Challenge friend"
         accessibilityRole="button"
-        accessibilityState={{ disabled: actionsDisabled }}
-        disabled={actionsDisabled}
+        accessibilityState={{ disabled: challengeDisabled }}
+        disabled={challengeDisabled}
         onPress={onChallengeFriend}
         style={({ pressed }) => [
           styles.challengeButton,
-          actionsDisabled && styles.challengeButtonDisabled,
-          pressed && !actionsDisabled ? styles.pressed : null,
+          challengeDisabled && styles.challengeButtonDisabled,
+          pressed && !challengeDisabled ? styles.pressed : null,
         ]}
       >
         <Ionicons
-          color={actionsDisabled ? colors.textSecondary : colors.accentLime}
-          name="people-outline"
+          color={challengeDisabled ? colors.textSecondary : colors.accentLime}
+          name={challengeLockedLabel ? 'lock-closed' : 'people-outline'}
           size={18}
         />
         <View style={styles.textBlock}>
-          <Text style={[styles.challengeLabel, actionsDisabled && styles.challengeLabelDisabled]}>
+          <Text style={[styles.challengeLabel, challengeDisabled && styles.challengeLabelDisabled]}>
             Challenge Friend
           </Text>
           <Text style={styles.challengeSubtext}>{challengeSubtext}</Text>

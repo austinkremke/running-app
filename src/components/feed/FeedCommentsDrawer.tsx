@@ -1,3 +1,4 @@
+import { Ionicons } from '@expo/vector-icons';
 import { useCallback, useEffect, useState } from 'react';
 import {
   ActivityIndicator,
@@ -11,6 +12,7 @@ import {
 } from 'react-native';
 
 import type { FeedComment } from '../../mock';
+import { useFeatureGate } from '../../hooks/useFeatureGate';
 import { addFeedComment, fetchFeedComments } from '../../services/feedEngagementService';
 import { colors, spacing } from '../../theme';
 import { BottomSheetDrawer } from '../drawer';
@@ -28,6 +30,7 @@ export function FeedCommentsDrawer({
   onClose,
   onCommentAdded,
 }: FeedCommentsDrawerProps) {
+  const commentGate = useFeatureGate('feed_comments');
   const [comments, setComments] = useState<FeedComment[]>([]);
   const [loading, setLoading] = useState(false);
   const [draft, setDraft] = useState('');
@@ -85,32 +88,39 @@ export function FeedCommentsDrawer({
   return (
     <BottomSheetDrawer
       footer={
-        <View style={styles.composeRow}>
-          <TextInput
-            editable={!submitting}
-            multiline
-            onChangeText={setDraft}
-            placeholder="Add a comment…"
-            placeholderTextColor={colors.textSecondary}
-            style={styles.input}
-            value={draft}
-          />
-          <Pressable
-            accessibilityLabel="Post comment"
-            accessibilityRole="button"
-            disabled={submitting || !draft.trim()}
-            onPress={() => {
-              void handleSubmit();
-            }}
-            style={({ pressed }) => [
-              styles.sendButton,
-              (submitting || !draft.trim()) && styles.sendButtonDisabled,
-              pressed && styles.pressed,
-            ]}
-          >
-            <Text style={styles.sendLabel}>{submitting ? '…' : 'Post'}</Text>
-          </Pressable>
-        </View>
+        commentGate.locked ? (
+          <View style={styles.lockedRow}>
+            <Ionicons color={colors.textSecondary} name="lock-closed" size={14} />
+            <Text style={styles.lockedLabel}>{commentGate.lockedLabel} to comment</Text>
+          </View>
+        ) : (
+          <View style={styles.composeRow}>
+            <TextInput
+              editable={!submitting}
+              multiline
+              onChangeText={setDraft}
+              placeholder="Add a comment…"
+              placeholderTextColor={colors.textSecondary}
+              style={styles.input}
+              value={draft}
+            />
+            <Pressable
+              accessibilityLabel="Post comment"
+              accessibilityRole="button"
+              disabled={submitting || !draft.trim()}
+              onPress={() => {
+                void handleSubmit();
+              }}
+              style={({ pressed }) => [
+                styles.sendButton,
+                (submitting || !draft.trim()) && styles.sendButtonDisabled,
+                pressed && styles.pressed,
+              ]}
+            >
+              <Text style={styles.sendLabel}>{submitting ? '…' : 'Post'}</Text>
+            </Pressable>
+          </View>
+        )
       }
       heightRatio={0.62}
       keyboardAvoiding
@@ -230,6 +240,19 @@ const styles = StyleSheet.create({
     alignItems: 'flex-end',
     gap: spacing.sm,
     paddingTop: spacing.sm,
+  },
+  lockedRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: spacing.xs,
+    paddingTop: spacing.sm,
+    paddingBottom: spacing.xs,
+  },
+  lockedLabel: {
+    color: colors.textSecondary,
+    fontSize: 13,
+    fontWeight: '600',
   },
   input: {
     flex: 1,

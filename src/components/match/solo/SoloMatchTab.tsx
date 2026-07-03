@@ -6,6 +6,7 @@ import { MOCK_SOLO_MATCHMAKING } from '../../../mock';
 import type { TeamMatchFormat } from '../../../mock';
 import { useAuth, usePlayerProgress } from '../../../context';
 import { useActiveSoloMatch } from '../../../hooks/useActiveSoloMatch';
+import { useFeatureGate } from '../../../hooks/useFeatureGate';
 import { useRankDisplay } from '../../../hooks/useRankDisplay';
 import { useSoloMatchChallenges } from '../../../hooks/useSoloMatchChallenges';
 import { useSoloMatchmaking } from '../../../hooks/useSoloMatchmaking';
@@ -52,6 +53,8 @@ export function SoloMatchTab({ onViewActiveMatch }: SoloMatchTabProps) {
     hasIncomingChallenge,
     refresh: refreshChallenges,
   } = useSoloMatchChallenges();
+  const rankedQueueGate = useFeatureGate('ranked_solo_queue');
+  const challengeGate = useFeatureGate('send_friend_challenge');
   const [matchFormat, setMatchFormat] = useState<TeamMatchFormat>(DEFAULT_FORMAT);
   const [challengeDrawerVisible, setChallengeDrawerVisible] = useState(false);
   const [challengeFriends, setChallengeFriends] = useState<ChallengeFriend[]>([]);
@@ -161,6 +164,7 @@ export function SoloMatchTab({ onViewActiveMatch }: SoloMatchTabProps) {
         {challengeStatus.received.map((challenge) => (
           <IncomingChallengeCard
             key={challenge.id}
+            acceptLockedLabel={challengeGate.lockedLabel}
             challenge={challenge}
             disabled={actionLoading || hasActiveMatch}
             onAccept={() => {
@@ -218,7 +222,9 @@ export function SoloMatchTab({ onViewActiveMatch }: SoloMatchTabProps) {
       </ScrollView>
 
       <SoloMatchActions
+        challengeLockedLabel={challengeGate.lockedLabel}
         disabled={actionsDisabled}
+        findLockedLabel={rankedQueueGate.lockedLabel}
         onChallengeFriend={() => {
           void handleOpenChallengeDrawer();
         }}

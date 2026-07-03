@@ -8,6 +8,8 @@ import { colors, spacing } from '../../../theme';
 type IncomingChallengeCardProps = {
   challenge: ReceivedSoloChallenge;
   disabled?: boolean;
+  /** Level-gate CTA, e.g. "Reach level 3" — replaces Accept when the recipient is under-leveled. */
+  acceptLockedLabel?: string | null;
   onAccept: () => void;
   onDecline: () => void;
 };
@@ -17,9 +19,11 @@ const AVATAR_SIZE = 44;
 export function IncomingChallengeCard({
   challenge,
   disabled = false,
+  acceptLockedLabel = null,
   onAccept,
   onDecline,
 }: IncomingChallengeCardProps) {
+  const acceptDisabled = disabled || Boolean(acceptLockedLabel);
   const { challenger } = challenge;
   const pulse = useRef(new Animated.Value(0)).current;
 
@@ -116,16 +120,23 @@ export function IncomingChallengeCard({
           <Pressable
             accessibilityLabel="Accept challenge"
             accessibilityRole="button"
-            accessibilityState={{ disabled }}
-            disabled={disabled}
+            accessibilityState={{ disabled: acceptDisabled }}
+            disabled={acceptDisabled}
             onPress={onAccept}
             style={({ pressed }) => [
               styles.acceptButton,
-              disabled && styles.buttonDisabled,
-              pressed && !disabled ? styles.pressed : null,
+              acceptDisabled && styles.buttonDisabled,
+              pressed && !acceptDisabled ? styles.pressed : null,
             ]}
           >
-            <Text style={styles.acceptLabel}>Accept</Text>
+            {acceptLockedLabel ? (
+              <View style={styles.lockedRow}>
+                <Ionicons color={colors.background} name="lock-closed" size={12} />
+                <Text style={styles.acceptLabel}>{acceptLockedLabel}</Text>
+              </View>
+            ) : (
+              <Text style={styles.acceptLabel}>Accept</Text>
+            )}
           </Pressable>
         </View>
       </View>
@@ -250,6 +261,11 @@ const styles = StyleSheet.create({
   },
   buttonDisabled: {
     opacity: 0.6,
+  },
+  lockedRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 6,
   },
   declineLabel: {
     color: colors.textSecondary,
