@@ -102,6 +102,7 @@ solo_match_challenges           — challenger_id, challenged_id, status, match_
 achievement_definitions         — catalog, criteria_type, criteria_json, xp_reward (seed)
 user_achievements               — user_id, achievement_id, unlocked_at
 achievement_events              — user_id, event_type (review, notifications, social follow, share)
+feature_gates                   — feature_id, display_name, min_level, is_active (seed; level-gated features)
 ```
 
 **Phase A ships:** `profiles`, `player_progress`, `player_rank`, trigger, RLS, `rank_tiers` seed.  
@@ -116,7 +117,8 @@ achievement_events              — user_id, event_type (review, notifications, 
 **05 Phase 5 (shipped):** `match_messages`; Realtime publication on `match_participants`, `activities`, `matches`, `match_messages`. See [05-matchmaking-and-feed.md](../milestones/05-matchmaking-and-feed.md#phase-5--real-time-polish-shipped).  
 **05 Phase 6 (shipped):** `solo_match_challenges`; completion persistence in `matches.state_json`; `get_my_solo_match_completions`, `forfeit_solo_match`, friend-challenge RPCs; `evaluate_achievements_system` for system finalize. See [05-matchmaking-and-feed.md](../milestones/05-matchmaking-and-feed.md#phase-6--solo-match-ux-challenges--forfeit-shipped).  
 **06 Phase 2 (shipped):** `achievement_definitions`, `user_achievements`, `achievement_events`; `evaluate_achievements` + `record_achievement_event` RPCs. See [06-account-gating-and-cosmetics.md](../milestones/06-account-gating-and-cosmetics.md#phase-2--achievements).  
-**06 Phase 1 (shipped):** `avatars` storage bucket, `delete_own_account` RPC.
+**06 Phase 1 (shipped):** `avatars` storage bucket, `delete_own_account` RPC.  
+**06 Phase 4 (shipped):** `feature_gates` catalog + seed; `assert_feature_gate`; BEFORE triggers gate `match_queue` insert (L5), `solo_match_challenges` insert/accept (L3), `feed_comments` insert (L2). See [06-account-gating-and-cosmetics.md](../milestones/06-account-gating-and-cosmetics.md#phase-4--level-blocking-features-shipped).
 
 **Post–Phase D RLS fixes:** `20250615000001_fix_match_participants_rls.sql`, `20250616000001_fix_feed_posts_rls.sql` — security definer helpers to avoid policy recursion.  
 **05 Phase 1:** `20250618000001_feed_likes_comments.sql`.  
@@ -126,7 +128,8 @@ achievement_events              — user_id, event_type (review, notifications, 
 **05 Phase 5:** `20250624000001_match_realtime.sql`, `20250624000002_repair_solo_match_credits.sql` (repair: re-credit solo match points).  
 **05 Phase 6:** `20250625000001_match_pace_scoring.sql`, `20250625000002_match_finalize_results.sql`, `20250625000003_persist_match_completion.sql`, `20250625000004_solo_completion_sync.sql`, `20250625000005_fix_finalize_achievements.sql`, `20250625000006_solo_friend_challenges.sql`, `20250625000007_solo_match_forfeit.sql`.  
 **06 Phase 2:** `20250620000001_achievements.sql`.  
-**06 Phase 1:** `20250622000001_account_settings.sql`.
+**06 Phase 1:** `20250622000001_account_settings.sql`.  
+**06 Phase 4:** `20250702000001_feature_gates.sql`, `20250702000002_fix_level_fn_overload.sql`.
 
 Storage buckets: `activities` (private tracks), `avatars` (public profile photos).
 
@@ -159,6 +162,7 @@ Full detail: [02-supabase-backend.md](../milestones/02-supabase-backend.md).
 | `has_incoming_solo_match_challenge` | Boolean for Match/Solo tab indicators |
 | `evaluate_achievements` | Check + grant eligible achievement unlocks + XP |
 | `record_achievement_event` | One-time client events (share, review, follow, notifications) |
+| `assert_feature_gate` | Raise “Reach level N to unlock X” when below an active `feature_gates` threshold (via `level_from_total_xp`); called by BEFORE triggers on `match_queue`, `solo_match_challenges`, `feed_comments` |
 
 ---
 
@@ -176,6 +180,7 @@ Full detail: [02-supabase-backend.md](../milestones/02-supabase-backend.md).
 | `solo_match_challenges` | Pending friend 1v1 invites; `status` pending/accepted/declined/cancelled/expired |
 | `xp_ledger` | Per-award audit trail; idempotent run awards via partial unique index |
 | `player_progress` | `total_xp`, `streak_days`, `last_award_date`, `rolling_avg_pace_sec` |
+| `feature_gates` | Level-gate catalog (seeded): `feed_comments` L2, `send_friend_challenge` L3, `ranked_solo_queue` L5, `create_team` L10 (`is_active = false` until built) |
 
 ---
 

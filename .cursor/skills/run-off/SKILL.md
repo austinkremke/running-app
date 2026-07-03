@@ -58,7 +58,7 @@ Mention milestone/phase in the subject (e.g. `milestone 02 Phase C`) and note do
 | 03 | XP & rank (separate systems) | **In progress** — Phase 1–2 + 4 shipped; Phase 3 solo Elo via 05; Phase 5 achievements via 06 |
 | 04 | Garmin / Strava | Planned |
 | 05 | Matchmaking & feed | **Done** — Phase 1–6 shipped |
-| 06 | Account settings, achievements, rank avatar borders, level & paywall gates | **In progress** — Phase 1–3 shipped; Phase 4 level gates next |
+| 06 | Account settings, achievements, rank avatar borders, level & paywall gates | **In progress** — Phase 1–4 shipped; Phase 5 paywall next |
 
 ---
 
@@ -191,6 +191,7 @@ Before merging significant work, confirm relevant items:
 - [ ] **Solo completion (05 Phase 6):** `SoloMatchCompletionProvider` + `get_my_solo_match_completions`; do not block navigation on `syncCompletions`
 - [ ] **Friend challenges (05 Phase 6):** `challengeService` + `solo_match_challenges` RPCs; indicators via `useMatchTabIndicators`
 - [ ] **Forfeit (05 Phase 6):** `forfeit_solo_match` RPC; quitter = loss, opponent = win
+- [ ] **Level gates (06 Phase 4):** thresholds from `feature_gates` catalog, never TS constants; locked UI via `useFeatureGate` (fail-open); server triggers authoritative; level-curve changes must update SQL `level_from_total_xp` + parity fixtures
 - [ ] **Progression (03):** `award_run_xp` RPC on lock-in; local cache sync; `npm test` passes after XP formula changes
 - [ ] **Docs sync:** README, milestones, SCHEMA, AGENTS, skill updated for shipped scope
 - [ ] Permissions: location is foreground-only unless milestone says otherwise
@@ -224,6 +225,7 @@ Full risk catalog: [reference.md](reference.md)
 | Social | `feedService.ts`, `feedEngagementService.ts`, `rankService.ts`, `teamService.ts`, `socialMappers.ts`, `FeedCommentsDrawer.tsx`, `activityAdapters.ts` (`polylineToGpsPoints`) |
 | Matches | `matchService.ts`, `matchmakingService.ts`, `challengeService.ts`, `matchMappers.ts`, `useActiveTeamMatch.ts`, `useActiveSoloMatch.ts`, `useSoloMatchmaking.ts`, `useSoloMatchChallenges.ts`, `SoloMatchCompletionContext.tsx`, `InAppNotificationContext.tsx` |
 | Progression | `PlayerProgressContext.tsx`, `services/progression/*`, `progressionStorage.ts`, `config/xpRewards.ts` |
+| Feature gates | `featureGateService.ts`, `useFeatureGate.ts`, `levelCurve.ts` (+ SQL mirror in `20250620000001_achievements.sql`) |
 | Tests | `npm test`, `src/services/progression/__tests__/` |
 | Milestones | `milestones/*.md` |
 | Supabase schema | `supabase/migrations/`, `supabase/SCHEMA.md`, `src/types/database.ts` |

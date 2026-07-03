@@ -8,7 +8,7 @@ Chronological roadmap for **Run Off** (`running-app`). Each milestone is a self-
 
 **Backend order (milestone 02):** Auth → activity sync → teams/feed → matches. Phases A–D are **shipped**; Phase E (hardening) is **next**. See [02](./02-supabase-backend.md).
 
-**Product priority (next feature):** [02 Phase E — hardening](./02-supabase-backend.md) or [06 Phase 4 — level gates](./06-account-gating-and-cosmetics.md).
+**Product priority (next feature):** [02 Phase E — hardening](./02-supabase-backend.md) or [06 Phase 5 — paywall](./06-account-gating-and-cosmetics.md).
 
 **When shipping work:** update docs before commit — checklist in [run-off SKILL § Docs sync](../.cursor/skills/run-off/SKILL.md#docs-sync-on-ship-required).
 
@@ -29,7 +29,7 @@ When adding a milestone:
 | 03 | [XP & competitive rank](./03-xp-and-ranking.md) | **In progress** — Phase 1–2 + 4 shipped; Phase 3 solo Elo via 05; Phase 5 achievements via 06 (percentile / team aggregates pending) | 01, 02 (partial) | 05, 06 |
 | 04 | [Third-party integrations](./04-third-party-integrations.md) | Planned | 01, 02 | 05 |
 | 05 | [Matchmaking, feed & social sync](./05-matchmaking-and-feed.md) | **Done** — Phase 1–6 shipped | 02 (Phase C+) | — |
-| 06 | [Account, gating & cosmetics](./06-account-gating-and-cosmetics.md) | **In progress** — Phase 1–3 shipped (settings, achievements, rank avatar borders); Phase 4 level gates next | 02, 03 | — |
+| 06 | [Account, gating & cosmetics](./06-account-gating-and-cosmetics.md) | **In progress** — Phase 1–4 shipped (settings, achievements, rank avatar borders, level gates); Phase 5 paywall next | 02, 03 | — |
 
 ---
 
@@ -48,7 +48,7 @@ When adding a milestone:
 | Account settings | [06](./06-account-gating-and-cosmetics.md) Phase 1 **shipped** |
 | Achievements (server-backed) | [06](./06-account-gating-and-cosmetics.md) Phase 2 **shipped** |
 | Avatar rank decorative borders | [06](./06-account-gating-and-cosmetics.md) Phase 3 **shipped** (Me, feed, solo — not team rosters) |
-| Level blocking features | [06](./06-account-gating-and-cosmetics.md) Phase 4 |
+| Level blocking features | [06](./06-account-gating-and-cosmetics.md) Phase 4 **shipped** (ranked queue L5, challenges L3, comments L2) |
 | Paywall blocking features | [06](./06-account-gating-and-cosmetics.md) Phase 5 |
 
 ---

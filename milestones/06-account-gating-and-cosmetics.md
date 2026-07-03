@@ -1,7 +1,7 @@
 # Account settings, gating & progression cosmetics
 
 > **Milestone:** 06  
-> **Status:** **In progress** — Phase 1–3 shipped; Phase 4 level gates next  
+> **Status:** **In progress** — Phase 1–4 shipped; Phase 5 paywall next  
 > **Depends on:** [02 Supabase](./02-supabase-backend.md) (auth + profiles), [03 XP & rank](./03-xp-and-ranking.md) (level, rank tiers, achievements data model)  
 > **Unblocks:** —
 
@@ -26,7 +26,7 @@ Rank-based **avatar decorative borders** are cosmetic only — not paywalled unl
 | Achievements | **Server catalog + unlocks** (`achievementService`, Me tab, Community block) | View All + progress bars polish |
 | Avatar rank borders | Plain avatars on feed / Me / team | Decorative frame from **competitive rank tier** (not level) |
 | Paywall blocking | None | Entitlements block premium features (e.g. advanced stats, extra match slots — TBD catalog) |
-| Level blocking | None | Feature gates keyed by `levelFromTotalXp` — [catalog decided](#decided-gate-catalog-v1): ranked queue L5, challenges L3, comments L2, team create L10 reserved |
+| Level blocking | **Shipped** — `feature_gates` catalog, server triggers + locked UI (ranked queue L5, challenges L3, comments L2, team create L10 reserved) | Expand catalog as features ship |
 
 ---
 
@@ -259,7 +259,13 @@ Achievement XP is **one-time only** — supplementary to run XP, not a farming l
 
 **Intentionally excluded:** team roster avatars — on a team, **team rank** is the signal; individual competitive rank borders stay off team/match roster UI.
 
-### Phase 4 — Level blocking features **next — catalog decided**
+### Phase 4 — Level blocking features **shipped**
+
+**Shipped:** `feature_gates` catalog + seed (migration `20250702000001_feature_gates.sql`, fix `20250702000002`); server enforcement via BEFORE triggers on `match_queue`, `solo_match_challenges` (insert + pending→accepted), and `feed_comments` raising “Reach level N to unlock X”; `assert_feature_gate` reuses `level_from_total_xp(bigint)` from achievements; client `featureGateService.ts` + `useFeatureGate` (fail-open); locked UI on Find Match, Challenge Friend send/accept, and comment composer; level-curve parity fixtures in `src/services/__tests__/levelCurve.test.ts`.
+
+**Known rough edge (v1):** an under-leveled recipient tapping **Accept** in the in-app notification drawer fails silently (server rejects; `console.warn`); the Solo tab incoming card shows the “Reach level 3” explanation.
+
+**Manual QA (needs a fresh account, level 1):** comments composer shows “Reach level 2 to comment”; Solo tab Find Match/Challenge Friend show lock + “Reach level N” subtext; after ~600 XP (level 5) all unlock. Server check: calling `enqueue_solo_matchmaking` under level 5 errors with “Reach level 5 to unlock Ranked Matchmaking”.
 
 #### Decided gate catalog (v1)
 

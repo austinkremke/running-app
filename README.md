@@ -64,7 +64,7 @@ Mapbox on device often needs a recent Xcode beta; see project notes in your shel
 | 03 XP & rank | **In progress** — Phase 1–2 + 4 shipped; Phase 3 solo Elo via 05; Phase 5 achievements via 06 |
 | 04 Garmin / Strava | Planned |
 | 05 Matchmaking & feed | **Done** — Phase 1–6 shipped ([05](./milestones/05-matchmaking-and-feed.md)) |
-| 06 Account, gating & cosmetics | **In progress** — Phase 1–3 shipped (settings, achievements, rank avatar borders); Phase 4 level gates next ([06](./milestones/06-account-gating-and-cosmetics.md)) |
+| 06 Account, gating & cosmetics | **In progress** — Phase 1–4 shipped (settings, achievements, rank avatar borders, level gates); Phase 5 paywall next ([06](./milestones/06-account-gating-and-cosmetics.md)) |
 
 ### Still mock / placeholder (honest)
 
@@ -110,7 +110,7 @@ Mapbox on device often needs a recent Xcode beta; see project notes in your shel
 **Matches (Phase D + 05 solo)**
 
 1. Join **Road Warriors** → active team match vs Pacers loads on Team Match screen.
-2. **Solo matchmaking** — Solo tab → **Find Match** joins `match_queue`; pairing by rating band (±400); or **Challenge Friend** to send a directed 1v1 invite.
+2. **Solo matchmaking** — Solo tab → **Find Match** joins `match_queue` (level 5+; server-enforced `feature_gates`); pairing by rating band (±400); or **Challenge Friend** (level 3+, both sides) to send a directed 1v1 invite. Comments unlock at level 2.
 3. **Friend challenges** — recipient sees incoming card on Solo tab (+ red indicators on Match/Solo tabs); a global in-app notification drawer prompts accept/decline anywhere in the app; accept creates active match, decline/cancel clears pending state.
 4. Active solo match — scoreboard, streak highlights, chat; runs during match credit points via `credit_match_activity`.
 5. Match ends at `ends_at` or via **Quit Match** (forfeit) → `finalize_solo_match` / `forfeit_solo_match` → Elo + season W/L → completion drawer.
@@ -135,5 +135,6 @@ Details: [03-xp-and-ranking.md](milestones/03-xp-and-ranking.md).
 | Feed route preview | `StaticRouteMapPreview.tsx`, `polylineToGpsPoints` in `activityAdapters.ts` |
 | Matches | `matchService.ts`, `matchmakingService.ts`, `challengeService.ts`, `matchMappers.ts`, `hooks/useActiveTeamMatch.ts`, `hooks/useActiveSoloMatch.ts`, `hooks/useSoloMatchChallenges.ts`, `hooks/useSoloMatchmaking.ts`, `context/SoloMatchCompletionContext.tsx`, `context/InAppNotificationContext.tsx` |
 | Progression | `PlayerProgressContext.tsx`, `services/progression/*`, `storage/progressionStorage.ts` |
+| Feature gates | `featureGateService.ts`, `hooks/useFeatureGate.ts` — level-gated features from `feature_gates` catalog ([06 Phase 4](./milestones/06-account-gating-and-cosmetics.md)) |
 
 Details: [02-supabase-backend.md](milestones/02-supabase-backend.md).
