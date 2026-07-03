@@ -30,10 +30,10 @@ export function TeamTopSection({ team, onRankPress }: TeamTopSectionProps) {
 
   return (
     <View style={styles.container}>
-      <View style={styles.header}>
-        <TeamLogo accent={team.shieldAccent} filled icon={team.shieldIcon as IoniconsName} size={72} />
+      <TeamLogo accent={team.shieldAccent} filled icon={team.shieldIcon as IoniconsName} size={72} />
 
-        <View style={styles.meta}>
+      <View style={styles.rightColumn}>
+        <View style={styles.identity}>
           <View style={styles.nameRow}>
             <Text numberOfLines={1} style={styles.name}>
               {team.name}
@@ -52,54 +52,55 @@ export function TeamTopSection({ team, onRankPress }: TeamTopSectionProps) {
             </Text>
           </View>
         </View>
+
+        <Pressable
+          accessibilityHint="Opens the top teams leaderboard"
+          accessibilityLabel={`Level ${team.level}. Rank ${tierName}. ${team.competitiveRating} power rating.`}
+          accessibilityRole="button"
+          disabled={!onRankPress}
+          onPress={onRankPress}
+          style={styles.levelRankRow}
+        >
+          <View style={styles.levelBlock}>
+            <Text style={styles.label}>LEVEL</Text>
+            <Text style={styles.levelValue}>{team.level}</Text>
+          </View>
+
+          <View style={styles.divider} />
+
+          <View style={styles.rankBlock}>
+            <Text style={styles.rankHeaderLine}>
+              <Text style={styles.label}>RANK: </Text>
+              <Text style={[styles.rankTitle, { color: tierColor }]}>{tierName}</Text>
+            </Text>
+            <Text style={styles.ratingLine}>
+              <Text style={styles.ratingValue}>{team.competitiveRating.toLocaleString()}</Text>
+              <Text style={styles.ratingSuffix}> Power Rating</Text>
+            </Text>
+            <Text numberOfLines={1} style={styles.standingLine}>
+              {team.teamRank.rank > 0 ? `#${team.teamRank.rank}` : '—'} · {team.teamRank.topPercent}{' '}
+              {team.teamRank.subtitle}
+            </Text>
+          </View>
+        </Pressable>
       </View>
-
-      <Pressable
-        accessibilityHint="Opens the top teams leaderboard"
-        accessibilityLabel={`Level ${team.level}. Rank ${tierName}. ${team.competitiveRating} power rating.`}
-        accessibilityRole="button"
-        disabled={!onRankPress}
-        onPress={onRankPress}
-        style={styles.levelRankRow}
-      >
-        <View style={styles.levelBlock}>
-          <Text style={styles.label}>LEVEL</Text>
-          <Text style={styles.levelValue}>{team.level}</Text>
-        </View>
-
-        <View style={styles.divider} />
-
-        <View style={styles.rankBlock}>
-          <Text style={styles.rankHeaderLine}>
-            <Text style={styles.label}>RANK: </Text>
-            <Text style={[styles.rankTitle, { color: tierColor }]}>{tierName}</Text>
-          </Text>
-          <Text style={styles.ratingLine}>
-            <Text style={styles.ratingValue}>{team.competitiveRating.toLocaleString()}</Text>
-            <Text style={styles.ratingSuffix}> Power Rating</Text>
-          </Text>
-          <Text numberOfLines={1} style={styles.standingLine}>
-            {team.teamRank.rank > 0 ? `#${team.teamRank.rank}` : '—'} · {team.teamRank.topPercent}{' '}
-            {team.teamRank.subtitle}
-          </Text>
-        </View>
-      </Pressable>
     </View>
   );
 }
 
 const styles = StyleSheet.create({
   container: {
-    gap: spacing.md,
-  },
-  header: {
     flexDirection: 'row',
     alignItems: 'center',
     gap: spacing.md,
+    overflow: 'visible',
   },
-  meta: {
+  rightColumn: {
     flex: 1,
     minWidth: 0,
+    gap: spacing.lg,
+  },
+  identity: {
     gap: 6,
   },
   nameRow: {
