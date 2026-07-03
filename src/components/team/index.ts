@@ -1,4 +1,5 @@
 export { TeamActivitySection } from './TeamActivitySection';
+export { TeamAvatar } from './TeamAvatar';
 export { TeamFormDrawer, type TeamFormValues } from './TeamFormDrawer';
 export { TeamJoinPrompt } from './TeamJoinPrompt';
 export { TeamLogo } from './TeamLogo';

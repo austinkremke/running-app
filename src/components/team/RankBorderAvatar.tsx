@@ -1,3 +1,4 @@
+import type { ReactNode } from 'react';
 import { Image, StyleSheet, View } from 'react-native';
 
 import { colors } from '../../theme';
@@ -10,9 +11,11 @@ type RankBorderAvatarProps = {
   avatarUrl?: string;
   size: number;
   rankTierId?: string | null;
+  /** Rendered instead of the plain placeholder when there's no avatarUrl (e.g. a team icon badge). */
+  fallback?: ReactNode;
 };
 
-export function RankBorderAvatar({ avatarUrl, size, rankTierId }: RankBorderAvatarProps) {
+export function RankBorderAvatar({ avatarUrl, size, rankTierId, fallback }: RankBorderAvatarProps) {
   const borderSource = rankBorderSourceForTier(rankTierId);
   const { avatarDiameter, avatarLeft, avatarTop } = rankBorderAvatarLayout(size, rankTierId);
 
@@ -32,6 +35,8 @@ export function RankBorderAvatar({ avatarUrl, size, rankTierId }: RankBorderAvat
       >
         {avatarUrl ? (
           <Image source={{ uri: avatarUrl }} style={styles.avatarImage} />
+        ) : fallback ? (
+          fallback
         ) : (
           <View style={[styles.avatarImage, styles.avatarPlaceholder]} />
         )}

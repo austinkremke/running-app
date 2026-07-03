@@ -1,12 +1,10 @@
 import { Ionicons } from '@expo/vector-icons';
-
-type IoniconsName = React.ComponentProps<typeof Ionicons>['name'];
 import { Pressable, StyleSheet, Text, View } from 'react-native';
 
 import type { Team } from '../../mock';
 import { colors, spacing } from '../../theme';
 import { rankTierColorForTier } from './rankAvatarBorderTheme';
-import { TeamLogo } from './TeamLogo';
+import { TeamAvatar } from './TeamAvatar';
 
 type TeamTopSectionProps = {
   team: Pick<
@@ -30,7 +28,12 @@ export function TeamTopSection({ team, onRankPress }: TeamTopSectionProps) {
 
   return (
     <View style={styles.container}>
-      <TeamLogo accent={team.shieldAccent} filled icon={team.shieldIcon as IoniconsName} size={72} />
+      <TeamAvatar
+        accent={team.shieldAccent}
+        icon={team.shieldIcon}
+        rankTierId={team.teamRank.tierId}
+        size={72}
+      />
 
       <View style={styles.rightColumn}>
         <View style={styles.identity}>
