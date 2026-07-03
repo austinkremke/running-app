@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react';
 
 import { OnboardingChallengeDrawer } from '../components/onboarding';
-import { useAuth, useOnboarding, SoloMatchCompletionProvider } from '../context';
+import { useAuth, useOnboarding, SoloMatchCompletionProvider, InAppNotificationProvider } from '../context';
 import { MOCK_ONBOARDING_NPC } from '../mock/onboardingNpc';
 import { AuthLoadingScreen } from '../screens/onboarding/AuthLoadingScreen';
 import { AppShell } from './AppShell';
@@ -44,9 +44,11 @@ export function RootNavigator() {
 
   return (
     <>
-      <SoloMatchCompletionProvider>
-        <AppShell />
-      </SoloMatchCompletionProvider>
+      <InAppNotificationProvider>
+        <SoloMatchCompletionProvider>
+          <AppShell />
+        </SoloMatchCompletionProvider>
+      </InAppNotificationProvider>
       <OnboardingChallengeDrawer
         onAccept={acceptChallenge}
         onRunLater={dismissChallenge}

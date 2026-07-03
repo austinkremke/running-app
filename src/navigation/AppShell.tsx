@@ -8,7 +8,7 @@ import {
   ProfileAvatarButton,
   TabAppHeader,
 } from '../components/header';
-import { useAuth, useOnboarding, useSoloMatchCompletion, useUserId } from '../context';
+import { useAuth, useOnboarding, useSoloMatchCompletion, useUserId, useInAppNotification } from '../context';
 import { useMatchTabIndicators } from '../hooks/useHasActiveMatch';
 import type { FeedTab, MatchTab } from '../mock';
 import { initialsFromDisplayName } from '../services/profileAvatar';
@@ -44,11 +44,21 @@ export function AppShell() {
   const { shouldOpenSoloMatch, consumeSoloMatchNavigation } = useOnboarding();
   const { syncCompletions } = useSoloMatchCompletion();
   const { showMatchTabBadge, showSoloTabBadge } = useMatchTabIndicators();
+  const { registerHandlers } = useInAppNotification();
   const [activeRoute, setActiveRoute] = useState<AppRoute>('feed');
   const [runReturnRoute, setRunReturnRoute] = useState<AppRoute>('feed');
   const [settingsReturnRoute, setSettingsReturnRoute] = useState<AppRoute>('me');
   const [activeFeedTab, setActiveFeedTab] = useState<FeedTab>('community');
   const [activeMatchTab, setActiveMatchTab] = useState<MatchTab>('team');
+
+  useEffect(() => {
+    registerHandlers({
+      onSoloChallengeAccepted: () => {
+        setActiveRoute('soloMatch');
+        setActiveMatchTab('solo');
+      },
+    });
+  }, [registerHandlers]);
 
   useEffect(() => {
     if (activeRoute === 'match' || activeRoute === 'soloMatch') {
