@@ -916,6 +916,41 @@ export type Database = {
           },
         ]
       }
+      team_rank: {
+        Row: {
+          competitive_rating: number
+          created_at: string
+          season_losses: number
+          season_wins: number
+          team_id: string
+          updated_at: string
+        }
+        Insert: {
+          competitive_rating?: number
+          created_at?: string
+          season_losses?: number
+          season_wins?: number
+          team_id: string
+          updated_at?: string
+        }
+        Update: {
+          competitive_rating?: number
+          created_at?: string
+          season_losses?: number
+          season_wins?: number
+          team_id?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "team_rank_team_id_fkey"
+            columns: ["team_id"]
+            isOneToOne: true
+            referencedRelation: "teams"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       teams: {
         Row: {
           created_at: string
@@ -1060,6 +1095,14 @@ export type Database = {
         }
         Returns: Json
       }
+      apply_team_elo_match_result_system: {
+        Args: {
+          p_k_factor?: number
+          p_loser_team_id: string
+          p_winner_team_id: string
+        }
+        Returns: Json
+      }
       are_friends: {
         Args: { p_user_a: string; p_user_b: string }
         Returns: boolean
@@ -1138,6 +1181,7 @@ export type Database = {
       }
       get_solo_match_challenge_status: { Args: never; Returns: Json }
       get_solo_matchmaking_status: { Args: never; Returns: Json }
+      get_team_overview: { Args: { p_team_id: string }; Returns: Json }
       grant_achievement: {
         Args: { p_achievement_id: string; p_user_id: string }
         Returns: Json
@@ -1152,6 +1196,23 @@ export type Database = {
       }
       kick_member: { Args: { p_user_id: string }; Returns: undefined }
       level_from_total_xp: { Args: { p_total_xp: number }; Returns: number }
+      list_top_teams: {
+        Args: { p_limit?: number }
+        Returns: {
+          competitive_rating: number
+          logo_accent: string
+          logo_icon: string
+          member_count: number
+          member_max: number
+          motto: string
+          name: string
+          season_losses: number
+          season_wins: number
+          tag: string
+          team_id: string
+          total_member_xp: number
+        }[]
+      }
       match_points_for_activity: {
         Args: { p_distance_meters: number; p_duration_seconds?: number }
         Returns: number

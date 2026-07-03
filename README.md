@@ -65,7 +65,7 @@ Mapbox on device often needs a recent Xcode beta; see project notes in your shel
 | 04 Garmin / Strava | Planned |
 | 05 Matchmaking & feed | **Done** — Phase 1–6 shipped ([05](./milestones/05-matchmaking-and-feed.md)) |
 | 06 Account, gating & cosmetics | **In progress** — Phase 1–4 shipped (settings, achievements, rank avatar borders, level gates); Phase 5 paywall next ([06](./milestones/06-account-gating-and-cosmetics.md)) |
-| 07 Team play | **In progress** — Phase 1 creation/management shipped; team rating + matchmaking next ([07](./milestones/07-team-play.md)) |
+| 07 Team play | **In progress** — Phase 1–2 shipped (creation/management, `team_rank` + real team stats); matchmaking next ([07](./milestones/07-team-play.md)) |
 
 ### Still mock / placeholder (honest)
 
@@ -83,7 +83,8 @@ Mapbox on device often needs a recent Xcode beta; see project notes in your shel
 | Account settings | **Shipped** — profile edit, avatar upload, units, sign out, delete account ([06 Phase 1](./milestones/06-account-gating-and-cosmetics.md)) |
 | Feed likes / comments | **Shipped** — toggle like + comments drawer ([05 Phase 1](./milestones/05-matchmaking-and-feed.md)) |
 | Friends feed tab | **Shipped** — mutual friends graph + friends-audience posts ([05 Phase 3](./milestones/05-matchmaking-and-feed.md)) |
-| Team stats / team activity feed | Placeholder sections |
+| Team stats / rank / level | **Real** — `team_rank` position, 7-day miles, season record, combined-XP level ([07 Phase 2](./milestones/07-team-play.md)) |
+| Team activity feed | Placeholder section (07 backlog) |
 | Team match roster names | Mix of seeded `state_json` + real `team_members` overlay |
 
 ## Backend flow

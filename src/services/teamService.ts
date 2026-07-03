@@ -6,6 +6,7 @@ import {
   mapTeamMemberRow,
   mapTeamRow,
   ROAD_WARRIORS_TEAM_ID,
+  type TeamOverview,
 } from './socialMappers';
 
 export { ROAD_WARRIORS_TEAM_ID };
@@ -16,6 +17,46 @@ type TeamMemberQueryRow = Tables<'team_members'> & {
     player_rank: { competitive_rating: number } | null;
   };
 };
+
+type TeamOverviewJson = {
+  competitive_rating: number;
+  season_wins: number;
+  season_losses: number;
+  rank_position: number;
+  team_count: number;
+  week_distance_meters: number;
+  total_distance_meters: number;
+  member_week: { user_id: string; week_distance_meters: number }[];
+};
+
+/** Real aggregates for the Team tab; null when the RPC is unavailable (offline). */
+async function fetchTeamOverview(teamId: string): Promise<TeamOverview | null> {
+  if (!supabase) return null;
+
+  try {
+    const { data, error } = await supabase.rpc('get_team_overview', { p_team_id: teamId });
+    if (error) throw error;
+
+    const raw = data as TeamOverviewJson;
+    const memberWeekMeters: Record<string, number> = {};
+    for (const entry of raw.member_week ?? []) {
+      memberWeekMeters[entry.user_id] = entry.week_distance_meters ?? 0;
+    }
+
+    return {
+      competitiveRating: raw.competitive_rating,
+      seasonWins: raw.season_wins,
+      seasonLosses: raw.season_losses,
+      rankPosition: raw.rank_position,
+      teamCount: raw.team_count,
+      weekDistanceMeters: raw.week_distance_meters ?? 0,
+      totalDistanceMeters: raw.total_distance_meters ?? 0,
+      memberWeekMeters,
+    };
+  } catch {
+    return null;
+  }
+}
 
 export async function fetchMyTeam(userId: string): Promise<Team | null> {
   if (!supabase) return null;
@@ -38,10 +79,11 @@ export async function fetchMyTeam(userId: string): Promise<Team | null> {
   if (teamError) throw teamError;
   if (!team) return null;
 
-  const { data: memberRows, error: membersError } = await supabase
-    .from('team_members')
-    .select(
-      `
+  const [{ data: memberRows, error: membersError }, overview] = await Promise.all([
+    supabase
+      .from('team_members')
+      .select(
+        `
       *,
       profiles:user_id (
         id,
@@ -51,11 +93,15 @@ export async function fetchMyTeam(userId: string): Promise<Team | null> {
         player_rank (competitive_rating)
       )
     `,
-    )
-    .eq('team_id', team.id)
-    .order('joined_at', { ascending: true });
+      )
+      .eq('team_id', team.id)
+      .order('joined_at', { ascending: true }),
+    fetchTeamOverview(team.id),
+  ]);
 
   if (membersError) throw membersError;
+
+  let totalMemberXp = 0;
 
   const members = (memberRows ?? []).map((row, index) => {
     const rawProfile = row.profiles as TeamMemberQueryRow['profiles'];
@@ -65,6 +111,8 @@ export async function fetchMyTeam(userId: string): Promise<Team | null> {
     const rank = Array.isArray(rawProfile.player_rank)
       ? rawProfile.player_rank[0]
       : rawProfile.player_rank;
+
+    totalMemberXp += progress?.total_xp ?? 0;
 
     return mapTeamMemberRow(
       {
@@ -76,10 +124,11 @@ export async function fetchMyTeam(userId: string): Promise<Team | null> {
         },
       } as TeamMemberQueryRow,
       index + 1,
+      overview?.memberWeekMeters[row.user_id] ?? 0,
     );
   });
 
-  return mapTeamRow(team, members, members.length);
+  return mapTeamRow(team, members, members.length, totalMemberXp, overview);
 }
 
 export async function joinTeam(userId: string, teamId: string): Promise<void> {
@@ -203,33 +252,9 @@ export async function disbandTeam(): Promise<void> {
 export async function listTopTeams(limit = 50): Promise<TopTeamListing[]> {
   if (!supabase) return [];
 
-  const { data: teams, error } = await supabase
-    .from('teams')
-    .select('*')
-    .order('created_at', { ascending: true })
-    .limit(limit);
+  const { data, error } = await supabase.rpc('list_top_teams', { p_limit: limit });
 
   if (error) throw error;
-  if (!teams?.length) return [];
 
-  const listings = await Promise.all(
-    teams.map(async (team) => {
-      const client = supabase;
-      if (!client) {
-        return { team, memberCount: 0 };
-      }
-
-      const { count, error: countError } = await client
-        .from('team_members')
-        .select('*', { count: 'exact', head: true })
-        .eq('team_id', team.id);
-
-      if (countError) throw countError;
-      return { team, memberCount: count ?? 0 };
-    }),
-  );
-
-  return listings
-    .sort((a, b) => b.memberCount - a.memberCount || a.team.name.localeCompare(b.team.name))
-    .map(({ team, memberCount }, index) => mapTeamListingRow(team, memberCount, index + 1));
+  return (data ?? []).map((row, index) => mapTeamListingRow(row, index + 1));
 }

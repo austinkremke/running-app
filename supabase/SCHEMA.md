@@ -103,6 +103,7 @@ achievement_definitions         — catalog, criteria_type, criteria_json, xp_re
 user_achievements               — user_id, achievement_id, unlocked_at
 achievement_events              — user_id, event_type (review, notifications, social follow, share)
 feature_gates                   — feature_id, display_name, min_level, is_active (seed; level-gated features)
+team_rank                       — team_id → teams, competitive_rating (default 1000), season W/L (trigger-provisioned)
 ```
 
 **Phase A ships:** `profiles`, `player_progress`, `player_rank`, trigger, RLS, `rank_tiers` seed.  
@@ -130,7 +131,8 @@ feature_gates                   — feature_id, display_name, min_level, is_acti
 **06 Phase 2:** `20250620000001_achievements.sql`.  
 **06 Phase 1:** `20250622000001_account_settings.sql`.  
 **06 Phase 4:** `20250702000001_feature_gates.sql`, `20250702000002_fix_level_fn_overload.sql`.  
-**07 Phase 1:** `20250703000001_team_management.sql` — team management RPCs; leader-succession + empty-team-disband triggers on `team_members`; `create_team` gate activated.
+**07 Phase 1:** `20250703000001_team_management.sql` — team management RPCs; leader-succession + empty-team-disband triggers on `team_members`; `create_team` gate activated.  
+**07 Phase 2:** `20250703000002_team_rank_and_stats.sql` — `team_rank` + provisioning trigger/backfill; `apply_team_elo_match_result_system`; `get_team_overview` / `list_top_teams` RPCs.
 
 Storage buckets: `activities` (private tracks), `avatars` (public profile photos).
 
@@ -166,6 +168,9 @@ Full detail: [02-supabase-backend.md](../milestones/02-supabase-backend.md).
 | `assert_feature_gate` | Raise “Reach level N to unlock X” when below an active `feature_gates` threshold (via `level_from_total_xp`); called by BEFORE triggers on `match_queue`, `solo_match_challenges`, `feed_comments` |
 | `create_team` | Level-gated (L10) team create; leader membership in same transaction |
 | `update_team` / `promote_member` / `demote_member` / `kick_member` / `transfer_leadership` / `disband_team` | Role-checked team management (writes to `teams` / `team_members` roles go through these only) |
+| `get_team_overview` | Real Team tab aggregates: rating, rank position, season W/L, 7-day + lifetime team miles, per-member 7-day miles |
+| `list_top_teams` | Top-teams listing ordered by `team_rank.competitive_rating` with member count + combined member XP |
+| `apply_team_elo_match_result_system` | Team Elo + season W/L on `team_rank` (system-only; team match finalize) |
 
 ---
 

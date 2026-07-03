@@ -20,7 +20,7 @@ export function TeamRankCard({ teamRank, onPress }: TeamRankCardProps) {
       style={({ pressed }) => [styles.card, onPress && pressed && styles.cardPressed]}
     >
       <Text style={styles.label}>Team Rank</Text>
-      <Text style={styles.rank}>#{teamRank.rank}</Text>
+      <Text style={styles.rank}>{teamRank.rank > 0 ? `#${teamRank.rank}` : '—'}</Text>
 
       <View style={styles.footer}>
         <Ionicons color={colors.accentLime} name="ribbon" size={16} />

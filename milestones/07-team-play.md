@@ -1,7 +1,7 @@
 # Team Play — Creation, Management & Team Matchmaking
 
 > **Milestone:** 07  
-> **Status:** In progress — Phase 1 creation/management shipped; Phase 2 team rating next  
+> **Status:** In progress — Phase 1–2 shipped (creation/management, team rating + real team stats); Phase 3 team matchmaking next  
 > **Depends on:** [02 Supabase](./02-supabase-backend.md) (Phase C teams + Phase D match shell), [03 XP & rank](./03-xp-and-ranking.md) (rank separation rules), [05 Matchmaking & feed](./05-matchmaking-and-feed.md) (solo queue/Elo/completion patterns to mirror), [06](./06-account-gating-and-cosmetics.md) Phase 4 (`feature_gates` — `create_team` reserved at L10)  
 > **Unblocks:** team challenges, seasonal team leaderboards
 
@@ -46,11 +46,16 @@ Replace the seeded demo team match and mock lineup with a real team lifecycle: *
 
 **Key files:** `teamService.ts` (create/update/promote/demote/kick/transfer/disband), `TeamFormDrawer.tsx`, `TeamManageSection.tsx`, `TeamScreen.tsx`.
 
-### Phase 2 — Team rating & top teams
+### Phase 2 — Team rating & top teams **shipped**
 
-- `team_rank` table (`team_id` PK, `competitive_rating` default 1000, `season_wins`, `season_losses`); created by `create_team`; backfill migration for existing teams
-- `apply_team_elo_match_result_system` — mirror of the solo system Elo RPC, updates `team_rank`
-- `listTopTeams` orders by real `competitive_rating`; Team tab rank card + Top Teams screen drop synthetic numbers
+**Shipped (migration `20250703000002_team_rank_and_stats.sql`):**
+
+- `team_rank` (`team_id` PK, `competitive_rating` default 1000, season W/L); provisioned by trigger on `teams` insert + backfill; read-all RLS, system-only writes
+- `apply_team_elo_match_result_system` — team mirror of the solo Elo RPC (wired to finalize in Phase 4)
+- `get_team_overview` RPC (security definer — teammates' activities are RLS-protected): rating, season record, rank position + team count, 7-day + lifetime team distance, per-member 7-day distance
+- `list_top_teams` RPC: one round-trip, ordered by real rating, includes member count + combined member XP
+- **Team tab de-mocked:** team level/XP = combined member lifetime XP on the shared curve; rank card = real position (`#N`, `Top X% of N teams`, `—` offline); stats = members / 7-day miles / season record; member rows show real 7-day distance + `Joined <date>` instead of fake presence
+- **Top Teams de-mocked:** ordered by rating; points column = `competitive_rating`; level = combined member XP
 
 ### Phase 3 — Team matchmaking queue
 

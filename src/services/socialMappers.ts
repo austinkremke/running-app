@@ -113,9 +113,19 @@ type TeamMemberSource = TeamMemberRow & {
   };
 };
 
+function formatMemberJoined(joinedAt: string): string {
+  const date = new Date(joinedAt);
+  if (Number.isNaN(date.getTime())) {
+    return 'Member';
+  }
+
+  return `Joined ${date.toLocaleDateString('en-US', { month: 'short', day: 'numeric' })}`;
+}
+
 export function mapTeamMemberRow(
   member: TeamMemberSource,
   rank: number,
+  weekDistanceMeters = 0,
 ): TeamMember {
   const totalXp = member.profiles.player_progress?.total_xp ?? 0;
   const rating = member.profiles.player_rank?.competitive_rating ?? 1000;
@@ -124,10 +134,10 @@ export function mapTeamMemberRow(
     id: member.user_id,
     rank,
     name: member.profiles.display_name,
-    status: 'Offline',
+    status: formatMemberJoined(member.joined_at),
     avatarUrl: member.profiles.avatar_url ?? undefined,
     level: levelFromTotalXp(totalXp),
-    distance: '0 mi',
+    distance: `${metersToMiles(weekDistanceMeters).toFixed(1)} mi`,
     power: `${rating.toLocaleString()} PWR`,
     role:
       member.role === 'leader' || member.role === 'co-leader'
@@ -136,40 +146,75 @@ export function mapTeamMemberRow(
   };
 }
 
+/** Real aggregates from the get_team_overview RPC (see teamService). */
+export type TeamOverview = {
+  competitiveRating: number;
+  seasonWins: number;
+  seasonLosses: number;
+  rankPosition: number;
+  teamCount: number;
+  weekDistanceMeters: number;
+  totalDistanceMeters: number;
+  memberWeekMeters: Record<string, number>;
+};
+
 export function mapTeamRow(
   team: TeamRow,
   members: TeamMember[],
   memberCount: number,
+  totalMemberXp: number,
+  overview: TeamOverview | null,
 ): Team {
-  const totalXp = members.reduce((sum, member) => sum + member.level * 100, 0);
-  const avgRating = members.length
-    ? members.reduce((sum, member) => sum + Number(member.power.replace(/[^\d]/g, '')), 0) /
-      members.length
-    : 1000;
+  const stats: Team['stats'] = [
+    {
+      id: 'team-stat-members',
+      icon: 'people',
+      iconColor: '#D7FF2F',
+      label: 'Members',
+      value: `${memberCount} / ${team.member_max}`,
+    },
+  ];
+
+  if (overview) {
+    stats.push(
+      {
+        id: 'team-stat-week-miles',
+        icon: 'speedometer',
+        iconColor: '#4DEEFF',
+        label: 'Miles (7d)',
+        value: `${metersToMiles(overview.weekDistanceMeters).toFixed(1)} mi`,
+      },
+      {
+        id: 'team-stat-season-record',
+        icon: 'trophy',
+        iconColor: '#FFD166',
+        label: 'Season',
+        value: `${overview.seasonWins}W - ${overview.seasonLosses}L`,
+      },
+    );
+  }
 
   return {
     id: team.id,
     name: team.name,
     tag: team.tag,
     motto: team.motto,
-    level: Math.max(1, Math.floor(totalXp / 500)),
-    experience: experienceFromTotalXp(totalXp),
-    teamRank: {
-      rank: Math.max(1, Math.round(500 - avgRating / 10)),
-      topPercent: '—',
-      subtitle: 'of all teams',
-    },
+    // Team level = combined member lifetime XP on the shared curve.
+    level: levelFromTotalXp(totalMemberXp),
+    experience: experienceFromTotalXp(totalMemberXp),
+    teamRank: overview
+      ? {
+          rank: overview.rankPosition,
+          topPercent: `Top ${Math.max(
+            1,
+            Math.min(100, Math.ceil((overview.rankPosition / Math.max(1, overview.teamCount)) * 100)),
+          )}%`,
+          subtitle: `of ${overview.teamCount} teams`,
+        }
+      : { rank: 0, topPercent: '—', subtitle: 'of all teams' },
     shieldIcon: team.logo_icon,
     shieldAccent: asLogoAccent(team.logo_accent),
-    stats: [
-      {
-        id: 'team-stat-members',
-        icon: 'people',
-        iconColor: '#D7FF2F',
-        label: 'Members',
-        value: `${memberCount} / ${team.member_max}`,
-      },
-    ],
+    stats,
     members,
     memberCount,
     memberMax: team.member_max,
@@ -177,23 +222,34 @@ export function mapTeamRow(
   };
 }
 
-export function mapTeamListingRow(
-  team: TeamRow,
-  memberCount: number,
-  rank: number,
-): TopTeamListing {
+type TopTeamRpcRow = {
+  team_id: string;
+  name: string;
+  tag: string;
+  motto: string;
+  logo_icon: string;
+  logo_accent: string;
+  member_max: number;
+  member_count: number;
+  competitive_rating: number;
+  season_wins: number;
+  season_losses: number;
+  total_member_xp: number;
+};
+
+export function mapTeamListingRow(row: TopTeamRpcRow, rank: number): TopTeamListing {
   return {
-    id: team.id,
+    id: row.team_id,
     rank,
-    name: team.name,
-    tag: team.tag,
-    motto: team.motto,
-    level: Math.max(1, memberCount),
-    memberCount,
-    memberMax: team.member_max,
+    name: row.name,
+    tag: row.tag,
+    motto: row.motto,
+    level: levelFromTotalXp(row.total_member_xp),
+    memberCount: row.member_count,
+    memberMax: row.member_max,
     clanRank: rank,
-    totalPoints: memberCount * 1000,
-    shieldIcon: team.logo_icon,
-    shieldAccent: asLogoAccent(team.logo_accent),
+    totalPoints: row.competitive_rating,
+    shieldIcon: row.logo_icon,
+    shieldAccent: asLogoAccent(row.logo_accent),
   };
 }
