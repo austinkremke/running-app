@@ -12,7 +12,7 @@ import { TeamLogo } from './TeamLogo';
 type TeamTopSectionProps = {
   team: Pick<
     Team,
-    'name' | 'tag' | 'motto' | 'level' | 'teamRank' | 'shieldIcon' | 'shieldAccent'
+    'name' | 'tag' | 'motto' | 'level' | 'competitiveRating' | 'teamRank' | 'shieldIcon' | 'shieldAccent'
   >;
   onRankPress?: () => void;
 };
@@ -51,7 +51,11 @@ export function TeamTopSection({ team, onRankPress }: TeamTopSectionProps) {
           <TeamLevelXpRow level={team.level} />
         </View>
 
-        <TeamRankCard onPress={onRankPress} teamRank={team.teamRank} />
+        <TeamRankCard
+          competitiveRating={team.competitiveRating}
+          onPress={onRankPress}
+          teamRank={team.teamRank}
+        />
       </View>
     </View>
   );

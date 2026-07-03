@@ -1,7 +1,6 @@
 import { StyleSheet, Text, View } from 'react-native';
 
-import { colors, spacing } from '../../theme';
-import { HexBadge } from '../me/HexBadge';
+import { colors } from '../../theme';
 
 type TeamLevelXpRowProps = {
   level: number;
@@ -9,15 +8,13 @@ type TeamLevelXpRowProps = {
 
 // Team level is a snapshot of combined member XP — it can move with roster
 // changes, so no XP progress bar (progression semantics don't hold). A real
-// clan-points bar is on the milestone 07 backlog.
+// clan-points bar is on the milestone 07 backlog. De-emphasized vs. rank/rating,
+// which are what actually matter competitively.
 export function TeamLevelXpRow({ level }: TeamLevelXpRowProps) {
   return (
     <View style={styles.container}>
-      <HexBadge icon="paw" iconSize={12} size={28} variant="purple" />
-      <View style={styles.levelMeta}>
-        <Text style={styles.levelLabel}>LEVEL</Text>
-        <Text style={styles.levelValue}>{level}</Text>
-      </View>
+      <Text style={styles.levelLabel}>LEVEL</Text>
+      <Text style={styles.levelValue}>{level}</Text>
     </View>
   );
 }
@@ -25,23 +22,19 @@ export function TeamLevelXpRow({ level }: TeamLevelXpRowProps) {
 const styles = StyleSheet.create({
   container: {
     flexDirection: 'row',
-    alignItems: 'center',
-    gap: spacing.sm,
-  },
-  levelMeta: {
-    gap: 0,
+    alignItems: 'baseline',
+    gap: 4,
   },
   levelLabel: {
-    color: colors.accentPurple,
-    fontSize: 8,
+    color: colors.textSecondary,
+    fontSize: 9,
     fontWeight: '700',
     letterSpacing: 0.5,
   },
   levelValue: {
-    color: colors.accentPurple,
-    fontSize: 18,
-    fontWeight: '800',
+    color: colors.textSecondary,
+    fontSize: 12,
+    fontWeight: '700',
     fontStyle: 'italic',
-    lineHeight: 20,
   },
 });
