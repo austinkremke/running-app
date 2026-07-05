@@ -2,6 +2,7 @@ export { FeedScreen } from './FeedScreen';
 export { MatchScreen } from './MatchScreen';
 export { MeScreen } from './MeScreen';
 export { PostRunScreen } from './PostRunScreen';
+export { RunDetailScreen } from './RunDetailScreen';
 export { RunScreen } from './RunScreen';
 export { SoloMatchScreen } from './SoloMatchScreen';
 export { TeamMatchScreen } from './TeamMatchScreen';

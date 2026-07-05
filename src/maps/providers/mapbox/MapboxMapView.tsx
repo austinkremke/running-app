@@ -52,13 +52,14 @@ export function MapboxMapView({
   showsUserLocation = true,
   followRoute = false,
   showRouteEndpoints = false,
+  interactive = false,
   recenterSignal = 0,
 }: MapViewProps) {
   const mapbox = getMapboxModule();
   const cameraRef = useRef<{ setCamera: (config: object) => void; fitBounds: (...args: unknown[]) => void } | null>(null);
   const userCoordinateRef = useRef<[number, number] | null>(null);
   const [userCoordinate, setUserCoordinate] = useState<[number, number] | null>(null);
-  const isRoutePreview = showRouteEndpoints;
+  const isRoutePreview = showRouteEndpoints && !interactive;
   const zoomLevel = useMemo(() => regionToZoomLevel(region), [region]);
   const centerCoordinate = useMemo(() => regionToCenter(region), [region]);
   const initialCameraSettings = useRef({

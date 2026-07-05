@@ -25,6 +25,8 @@ export type MapViewProps = {
   followRoute?: boolean;
   /** When true, fits the full route and shows static start/end markers. */
   showRouteEndpoints?: boolean;
+  /** Force-enable pan/zoom gestures even in route-endpoint (preview) mode. */
+  interactive?: boolean;
   /** Increment to fly the camera to the user's current location. */
   recenterSignal?: number;
 };

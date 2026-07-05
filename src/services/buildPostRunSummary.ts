@@ -15,6 +15,7 @@ import {
 import {
   buildElevationChartFromRecords,
   buildPaceChartFromRecords,
+  computeMileSplits,
 } from './activityStreams';
 
 function formatCompletedAtLabel(isoDate: string): string {
@@ -62,5 +63,6 @@ export function buildPostRunSummary(
     chartReferenceLines: {
       pace: avgPaceSeconds > 0 ? avgPaceSeconds : undefined,
     },
+    splits: computeMileSplits(records),
   };
 }

@@ -1,4 +1,3 @@
-import { Ionicons } from '@expo/vector-icons';
 import { Pressable, StyleSheet, Text, View } from 'react-native';
 
 import type { Team } from '../../mock';
@@ -41,9 +40,6 @@ export function TeamTopSection({ team, onRankPress }: TeamTopSectionProps) {
             <Text numberOfLines={1} style={styles.name}>
               {team.name}
             </Text>
-            <Pressable accessibilityLabel="Edit team name" hitSlop={8} style={styles.editButton}>
-              <Ionicons color={colors.textSecondary} name="pencil" size={12} />
-            </Pressable>
             <View style={styles.tag}>
               <Text style={styles.tagText}>{team.tag}</Text>
             </View>
@@ -116,9 +112,6 @@ const styles = StyleSheet.create({
     fontStyle: 'italic',
     letterSpacing: 0.2,
     textTransform: 'uppercase',
-  },
-  editButton: {
-    flexShrink: 0,
   },
   tag: {
     flexShrink: 0,

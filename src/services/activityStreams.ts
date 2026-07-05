@@ -1,4 +1,4 @@
-import type { PostRunChartPoint } from '../mock';
+import type { MileSplit, PostRunChartPoint } from '../mock';
 import type { ActivityRecord } from '../types/activity';
 import {
   buildDistanceGrid,
@@ -83,6 +83,58 @@ function segmentPaceSecondsPerMile(
   if (elapsedDelta <= 0 || distanceMiles <= 0) return null;
 
   return elapsedDelta / distanceMiles;
+}
+
+/**
+ * Per-mile splits from the raw record track. Each full mile plus a trailing
+ * partial mile; pace is normalized to seconds-per-mile so partial miles compare
+ * fairly. Returns [] for runs under the first split boundary or without a track.
+ */
+export function computeMileSplits(records: ActivityRecord[]): MileSplit[] {
+  const totalMiles = metersToMiles(records[records.length - 1]?.distanceMeters ?? 0);
+  if (totalMiles <= 0 || records.length < 2) return [];
+
+  const splits: MileSplit[] = [];
+  const fullMiles = Math.floor(totalMiles);
+
+  for (let mile = 0; mile < fullMiles; mile += 1) {
+    const pace = segmentPaceSecondsPerMile(records, mile, mile + 1);
+    if (pace == null) continue;
+    splits.push({
+      mile: mile + 1,
+      distanceMiles: 1,
+      paceSeconds: Math.round(pace),
+      elevationChangeFt: elevationChangeFeet(records, mile, mile + 1),
+      isPartial: false,
+    });
+  }
+
+  const remainder = totalMiles - fullMiles;
+  if (remainder >= 0.01) {
+    const pace = segmentPaceSecondsPerMile(records, fullMiles, totalMiles);
+    if (pace != null) {
+      splits.push({
+        mile: fullMiles + 1,
+        distanceMiles: Number(remainder.toFixed(2)),
+        paceSeconds: Math.round(pace),
+        elevationChangeFt: elevationChangeFeet(records, fullMiles, totalMiles),
+        isPartial: true,
+      });
+    }
+  }
+
+  return splits;
+}
+
+function elevationChangeFeet(
+  records: ActivityRecord[],
+  startMiles: number,
+  endMiles: number,
+): number {
+  const start = interpolateAtDistance(records, milesToMeters(startMiles));
+  const end = interpolateAtDistance(records, milesToMeters(endMiles));
+  if (start?.altitudeMeters == null || end?.altitudeMeters == null) return 0;
+  return Math.round((end.altitudeMeters - start.altitudeMeters) * METERS_TO_FEET);
 }
 
 export function buildPaceChartFromRecords(records: ActivityRecord[]): PostRunChartPoint[] {

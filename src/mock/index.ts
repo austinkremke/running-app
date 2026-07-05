@@ -33,6 +33,7 @@ export type {
   SoloMatchInfo,
   SoloMatchRunner,
   SoloSeasonRecord,
+  MileSplit,
   OverallStat,
   OverallStatLayout,
   PostRunChartTab,

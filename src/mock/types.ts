@@ -379,6 +379,18 @@ export type PostRunChartPoint = {
   value: number;
 };
 
+export type MileSplit = {
+  /** 1-indexed mile number (1, 2, 3 …). The final split may be partial. */
+  mile: number;
+  /** Distance covered in this split — 1.0 for full miles, < 1 for the last partial mile. */
+  distanceMiles: number;
+  /** Pace in seconds per mile for this split (normalized, so comparable across partial miles). */
+  paceSeconds: number;
+  /** Net elevation change over the split, in feet (positive = climb). */
+  elevationChangeFt: number;
+  isPartial: boolean;
+};
+
 export type PostRunSummary = {
   completedAtLabel: string;
   distanceMiles: number;
@@ -396,4 +408,6 @@ export type PostRunSummary = {
   photos: string[];
   chartData: Record<PostRunChartTab, PostRunChartPoint[]>;
   chartReferenceLines: Partial<Record<PostRunChartTab, number>>;
+  /** Per-mile splits; absent on runs recorded before milestone 08. */
+  splits?: MileSplit[];
 };

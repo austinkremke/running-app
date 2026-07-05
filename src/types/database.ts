@@ -1280,6 +1280,7 @@ export type Database = {
         Args: { p_challenge_id: string }
         Returns: Json
       }
+      delete_activity: { Args: { p_activity_id: string }; Returns: Json }
       delete_own_account: { Args: never; Returns: undefined }
       demote_member: { Args: { p_user_id: string }; Returns: undefined }
       disband_team: { Args: never; Returns: undefined }

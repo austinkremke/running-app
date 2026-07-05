@@ -1,4 +1,4 @@
-import { StyleSheet, View } from 'react-native';
+import { Pressable, StyleSheet, View } from 'react-native';
 
 import type { Run } from '../../mock';
 import { colors, spacing } from '../../theme';
@@ -19,6 +19,8 @@ type RunCardProps = {
   onToggleLike?: () => void;
   onOpenComments?: () => void;
   onShare?: () => void;
+  /** Opens the run detail screen — the card body (not the engagement row) is the tap target. */
+  onOpenDetail?: () => void;
 };
 
 export function RunCard({
@@ -31,6 +33,7 @@ export function RunCard({
   onToggleLike,
   onOpenComments,
   onShare,
+  onOpenDetail,
 }: RunCardProps) {
   const canAddFriend = Boolean(
     viewerUserId && viewerUserId !== run.user.id && !isFriend && onAddFriend,
@@ -38,17 +41,25 @@ export function RunCard({
 
   return (
     <View style={styles.card}>
-      <RunCardHeader
-        addFriendDisabled={addFriendDisabled}
-        location={run.location}
-        onAddFriend={onAddFriend}
-        postedAt={run.postedAt}
-        showAddFriend={canAddFriend}
-        user={run.user}
-      />
-      <RunCardContent description={run.description} title={run.title} />
-      <RunCardMedia photoUrl={run.photoUrl} routePoints={run.routePoints} />
-      {run.paceHighlight ? <RunCardPaceHighlight highlight={run.paceHighlight} /> : null}
+      <Pressable
+        accessibilityHint="Opens run details"
+        accessibilityRole="button"
+        disabled={!onOpenDetail}
+        onPress={onOpenDetail}
+        style={({ pressed }) => [styles.body, pressed && onOpenDetail ? styles.pressed : null]}
+      >
+        <RunCardHeader
+          addFriendDisabled={addFriendDisabled}
+          location={run.location}
+          onAddFriend={onAddFriend}
+          postedAt={run.postedAt}
+          showAddFriend={canAddFriend}
+          user={run.user}
+        />
+        <RunCardContent description={run.description} title={run.title} />
+        <RunCardMedia photoUrl={run.photoUrl} routePoints={run.routePoints} />
+        {run.paceHighlight ? <RunCardPaceHighlight highlight={run.paceHighlight} /> : null}
+      </Pressable>
 
       <View style={styles.footerBox}>
         <RunCardStats stats={run.stats} />
@@ -76,6 +87,12 @@ const styles = StyleSheet.create({
     paddingHorizontal: spacing.md,
     paddingVertical: spacing.md,
     gap: spacing.sm,
+  },
+  body: {
+    gap: spacing.sm,
+  },
+  pressed: {
+    opacity: 0.9,
   },
   footerBox: {
     flexDirection: 'row',

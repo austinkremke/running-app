@@ -12,12 +12,13 @@ import { NotificationCenterDrawer } from '../components/notification';
 import { useAuth, useOnboarding, useSoloMatchCompletion, useUserId, useInAppNotification } from '../context';
 import { useMatchTabIndicators } from '../hooks/useHasActiveMatch';
 import { useTeamNotifications } from '../hooks/useTeamNotifications';
-import type { FeedTab, MatchTab } from '../mock';
+import type { FeedTab, MatchTab, Run } from '../mock';
 import { initialsFromDisplayName } from '../services/profileAvatar';
 import { openSoloMatchMenu } from '../services/soloMatchMenuBus';
 import { fetchActiveSoloMatchId } from '../services/matchService';
 import { getSoloMatchmakingStatus } from '../services/matchmakingService';
 import { FeedScreen } from '../screens/FeedScreen';
+import { RunDetailScreen } from '../screens/RunDetailScreen';
 import { MatchScreen } from '../screens/MatchScreen';
 import { MeScreen } from '../screens/MeScreen';
 import { RunScreen } from '../screens/RunScreen';
@@ -60,6 +61,15 @@ export function AppShell() {
   const [settingsReturnRoute, setSettingsReturnRoute] = useState<AppRoute>('me');
   const [activeFeedTab, setActiveFeedTab] = useState<FeedTab>('community');
   const [activeMatchTab, setActiveMatchTab] = useState<MatchTab>('team');
+  const [detailRun, setDetailRun] = useState<Run | null>(null);
+  const [detailReturnRoute, setDetailReturnRoute] = useState<AppRoute>('feed');
+  const [feedReloadKey, setFeedReloadKey] = useState(0);
+
+  function openRunDetail(run: Run) {
+    setDetailRun(run);
+    setDetailReturnRoute(activeRoute === 'runDetail' ? detailReturnRoute : activeRoute);
+    setActiveRoute('runDetail');
+  }
 
   useEffect(() => {
     registerHandlers({
@@ -170,7 +180,20 @@ export function AppShell() {
 
   function renderScreen() {
     if (activeRoute === 'feed') {
-      return <FeedScreen activeTab={activeFeedTab} />;
+      return <FeedScreen activeTab={activeFeedTab} key={feedReloadKey} onOpenRun={openRunDetail} />;
+    }
+
+    if (activeRoute === 'runDetail' && detailRun) {
+      return (
+        <RunDetailScreen
+          onBack={() => setActiveRoute(detailReturnRoute)}
+          onDeleted={() => {
+            setFeedReloadKey((key) => key + 1);
+            setActiveRoute(detailReturnRoute === 'runDetail' ? 'feed' : detailReturnRoute);
+          }}
+          run={detailRun}
+        />
+      );
     }
 
     if (activeRoute === 'run') {

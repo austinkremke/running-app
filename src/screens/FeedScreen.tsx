@@ -17,9 +17,10 @@ import { colors, spacing } from '../theme';
 
 type FeedScreenProps = {
   activeTab: FeedTab;
+  onOpenRun?: (run: Run) => void;
 };
 
-export function FeedScreen({ activeTab }: FeedScreenProps) {
+export function FeedScreen({ activeTab, onOpenRun }: FeedScreenProps) {
   const { session } = useAuth();
   const viewerUserId = session?.user?.id ?? null;
   const { runs, loading, error, refresh, toggleLike, bumpCommentCount, likingPostId } =
@@ -136,6 +137,7 @@ export function FeedScreen({ activeTab }: FeedScreenProps) {
               void handleAddFriend(item);
             }}
             onOpenComments={() => setCommentsPostId(item.id)}
+            onOpenDetail={onOpenRun ? () => onOpenRun(item) : undefined}
             onShare={() => {
               void handleShare(item);
             }}
