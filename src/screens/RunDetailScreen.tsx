@@ -152,12 +152,6 @@ export function RunDetailScreen({ run, onBack, onDeleted }: RunDetailScreenProps
             {extras?.dateLabel || run.postedAt}
             {run.location ? ` · ${run.location}` : ''}
           </Text>
-          {extras?.matchId ? (
-            <View style={styles.matchBadge}>
-              <Ionicons color={colors.accentLime} name="trophy" size={12} />
-              <Text style={styles.matchBadgeText}>Counted toward a match</Text>
-            </View>
-          ) : null}
         </View>
 
         <PostRunPrimaryStats stats={primaryStats} />
@@ -262,24 +256,6 @@ const styles = StyleSheet.create({
   meta: {
     color: colors.textSecondary,
     fontSize: 12,
-  },
-  matchBadge: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    alignSelf: 'flex-start',
-    gap: 5,
-    marginTop: spacing.xs,
-    paddingHorizontal: spacing.sm,
-    paddingVertical: 4,
-    borderRadius: 8,
-    borderWidth: 1,
-    borderColor: colors.accentLime,
-  },
-  matchBadgeText: {
-    color: colors.accentLime,
-    fontSize: 10,
-    fontWeight: '700',
-    letterSpacing: 0.3,
   },
   engagementCard: {
     marginHorizontal: spacing.lg,
