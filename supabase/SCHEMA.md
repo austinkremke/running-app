@@ -136,7 +136,8 @@ team_membership_requests        — team_id, kind (invite|request), user_id, cre
 **07 Phase 1:** `20250703000001_team_management.sql` — team management RPCs; leader-succession + empty-team-disband triggers on `team_members`; `create_team` gate activated.  
 **07 Phase 2:** `20250703000002_team_rank_and_stats.sql` — `team_rank` + provisioning trigger/backfill; `apply_team_elo_match_result_system`; `get_team_overview` / `list_top_teams` RPCs.  
 **07 Phase 3:** `20250703000003_team_matchmaking.sql` — `team_match_queue`; `enqueue_team_matchmaking` / `cancel_team_matchmaking` / `get_team_matchmaking_status`; `try_pair_team_queue` + `enroll_team_roster` (roster snapshot at pairing).  
-**07 invites/requests:** `20250703000004_team_membership_requests.sql` — `team_membership_requests`; `invite_to_team` / `request_to_join_team` / `respond_to_team_invite` / `respond_to_join_request` / `cancel_team_membership_request` / `get_team_notifications` / `has_team_notifications`.
+**07 invites/requests:** `20250703000004_team_membership_requests.sql` — `team_membership_requests`; `invite_to_team` / `request_to_join_team` / `respond_to_team_invite` / `respond_to_join_request` / `cancel_team_membership_request` / `get_team_notifications` / `has_team_notifications`.  
+**08 run detail:** `20250704000001_delete_activity.sql` — `delete_activity` RPC (own activity; cascades feed post + match credits). Mile splits ride in `activities.summary_json.splits` (no schema change).
 
 Storage buckets: `activities` (private tracks), `avatars` (public profile photos).
 
@@ -178,6 +179,7 @@ Full detail: [02-supabase-backend.md](../milestones/02-supabase-backend.md).
 | `enqueue_team_matchmaking` / `cancel_team_matchmaking` / `get_team_matchmaking_status` | Team matchmaking queue (leader/co-leader only; min roster 2; pairs by rating band) |
 | `invite_to_team` / `request_to_join_team` / `respond_to_team_invite` / `respond_to_join_request` / `cancel_team_membership_request` | Team invites + join requests; accept joins via `team_members` |
 | `get_team_notifications` / `has_team_notifications` | Pending invites/requests relevant to the caller (feed bell + indicators) |
+| `delete_activity` | Delete caller's own activity; `feed_posts` + `match_activity_credits` cascade (run detail screen, milestone 08) |
 
 ---
 

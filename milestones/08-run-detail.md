@@ -1,7 +1,7 @@
 # Run Detail (Activity Overview)
 
 > **Milestone:** 08
-> **Status:** In progress
+> **Status:** **Shipped** (v1) — open follow-ups below
 > **Depends on:** [01 Activity recording](./01-activity-recording.md) (`ActivityRecord`, `PostRunSummary`, charts), [02 Supabase](./02-supabase-backend.md) (`activities` + `feed_posts`), [05 Matchmaking & feed](./05-matchmaking-and-feed.md) (feed cards, likes/comments)
 > **Unblocks:** deep-linking to runs from matches / team feed / profile history
 
@@ -54,14 +54,18 @@ One migration: `delete_activity(p_activity_id)` security-definer RPC — deletes
 - **Likes / comments** — anyone who can see the post (existing `can_view_feed_post`).
 - Others' runs otherwise read-only.
 
-## Rollout
+## Rollout — **all shipped**
 
-1. `delete_activity` migration → push → regen types.
-2. Mile splits: `computeMileSplits` + persistence + `MileSplitsSection` + unit test.
-3. `interactive` map prop + `FullscreenRouteMap`.
-4. `fetchActivityDetail` + `ActivityDetail` + `RunDetailScreen`.
-5. Wire `RunCard` tap + `runDetail` route + delete + engagement.
-6. Tests, docs sync.
+1. ✅ `delete_activity` migration (`20250704000001`) → pushed → types regenerated.
+2. ✅ Mile splits: `computeMileSplits` ([activityStreams.ts](../src/services/activityStreams.ts)) + `summary_json.splits` in `buildPostRunSummary`; `MileSplitsSection`; 4 unit tests.
+3. ✅ `interactive` prop on `MapViewProps` / `MapboxMapView` (decouples gestures from `showRouteEndpoints`); `FullscreenRouteMap` modal.
+4. ✅ `fetchRunExtras` + `RunDetailScreen` (reuses `PostRunPrimaryStats`, `PostRunChartSection`, `MileSplitsSection`, `RunCardEngagement`, `FeedCommentsDrawer`).
+5. ✅ `runDetail` route + `AppShell` wiring; `RunCard` body tappable (engagement row untouched); feed reloads after delete.
+6. ✅ Tests (65 pass) + docs sync.
+
+**Key files:** `screens/RunDetailScreen.tsx`, `services/activityDetailService.ts`, `services/activityStreams.ts` (`computeMileSplits`), `components/post-run/MileSplitsSection.tsx`, `components/map/FullscreenRouteMap.tsx`.
+
+**Note:** detail keys off the **feed post id** (`Run.id`); `fetchRunExtras(postId)` augments the already-loaded `Run` with summary/splits/match/owner/date. Non-feed entry points (match activity lists, future run history) will need an activity-id variant.
 
 ## Open follow-ups (not v1)
 

@@ -66,6 +66,7 @@ Mapbox on device often needs a recent Xcode beta; see project notes in your shel
 | 05 Matchmaking & feed | **Done** — Phase 1–6 shipped ([05](./milestones/05-matchmaking-and-feed.md)) |
 | 06 Account, gating & cosmetics | **In progress** — Phase 1–4 shipped (settings, achievements, rank avatar borders, level gates); Phase 5 paywall next ([06](./milestones/06-account-gating-and-cosmetics.md)) |
 | 07 Team play | **In progress** — Phase 1–3 shipped (creation/management, `team_rank`, matchmaking queue); scoring/finalize next ([07](./milestones/07-team-play.md)) |
+| 08 Run detail | **Shipped** (v1) — tap a feed run → fullscreen map, charts, mile splits, delete ([08](./milestones/08-run-detail.md)) |
 
 ### Still mock / placeholder (honest)
 
