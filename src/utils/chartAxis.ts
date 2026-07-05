@@ -19,6 +19,28 @@ export function formatDistanceMilesLabel(miles: number, decimals?: number): stri
   return `${Number(miles.toFixed(precision))} mi`;
 }
 
+/**
+ * Dense, evenly-spaced sample distances (miles) for chart *data* — independent
+ * of the coarse `buildDistanceGrid` used for x-axis tick labels. Targets ~100
+ * points per mile so lines read like a real GPS trace, clamped to a sane range
+ * so short runs still look detailed and long runs stay bounded in size.
+ */
+export function buildChartSampleGrid(maxMiles: number): number[] {
+  if (maxMiles <= 0) return [0];
+
+  const POINTS_PER_MILE = 100;
+  const MIN_POINTS = 40;
+  const MAX_POINTS = 600;
+  const count = Math.min(MAX_POINTS, Math.max(MIN_POINTS, Math.round(maxMiles * POINTS_PER_MILE)));
+
+  const grid: number[] = [];
+  for (let index = 1; index <= count; index += 1) {
+    grid.push((maxMiles / count) * index);
+  }
+
+  return grid;
+}
+
 /** Shared distance grid for x-axis labels and chart resampling. */
 export function buildDistanceGrid(maxMiles: number, segmentCount = 5): number[] {
   if (maxMiles <= 0) return [0];

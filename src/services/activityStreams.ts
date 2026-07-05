@@ -1,8 +1,7 @@
 import type { MileSplit, PostRunChartPoint } from '../mock';
 import type { ActivityRecord } from '../types/activity';
 import {
-  buildDistanceGrid,
-  getDistanceDecimals,
+  buildChartSampleGrid,
   metersToMiles,
   milesToMeters,
 } from '../utils/chartAxis';
@@ -141,22 +140,19 @@ export function buildPaceChartFromRecords(records: ActivityRecord[]): PostRunCha
   const totalMiles = metersToMiles(records[records.length - 1]?.distanceMeters ?? 0);
   if (totalMiles <= 0 || records.length < 2) return [];
 
-  const grid = buildDistanceGrid(totalMiles);
-  const decimals = getDistanceDecimals(totalMiles);
+  const grid = buildChartSampleGrid(totalMiles);
   const chart: PostRunChartPoint[] = [];
 
   for (let index = 0; index < grid.length; index += 1) {
     const endMiles = grid[index];
     const startMiles = index === 0 ? 0 : grid[index - 1];
-    const segmentEnd = index === 0 ? grid[Math.min(1, grid.length - 1)] : endMiles;
-    const segmentStart = index === 0 ? 0 : startMiles;
 
-    const pace = segmentPaceSecondsPerMile(records, segmentStart, segmentEnd);
+    const pace = segmentPaceSecondsPerMile(records, startMiles, endMiles);
     if (pace == null) continue;
 
     chart.push({
-      distanceMiles: Number(endMiles.toFixed(decimals)),
-      value: pace,
+      distanceMiles: Number(endMiles.toFixed(4)),
+      value: Math.round(pace),
     });
   }
 
@@ -170,8 +166,7 @@ export function buildElevationChartFromRecords(records: ActivityRecord[]): PostR
   const totalMiles = metersToMiles(records[records.length - 1]?.distanceMeters ?? 0);
   if (totalMiles <= 0) return [];
 
-  const grid = buildDistanceGrid(totalMiles);
-  const decimals = getDistanceDecimals(totalMiles);
+  const grid = buildChartSampleGrid(totalMiles);
 
   return grid
     .map((distanceMiles) => {
@@ -179,7 +174,7 @@ export function buildElevationChartFromRecords(records: ActivityRecord[]): PostR
       if (sample?.altitudeMeters == null) return null;
 
       return {
-        distanceMiles: Number(distanceMiles.toFixed(decimals)),
+        distanceMiles: Number(distanceMiles.toFixed(4)),
         value: Math.round(sample.altitudeMeters * METERS_TO_FEET),
       };
     })
