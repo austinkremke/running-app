@@ -2,7 +2,7 @@ import { Pressable, StyleSheet, Text, View } from 'react-native';
 
 import type { Team } from '../../mock';
 import { colors, spacing } from '../../theme';
-import { rankTierColorForTier } from './rankAvatarBorderTheme';
+import { rankTierColorForTier, shortRankTierName } from './rankAvatarBorderTheme';
 import { TeamAvatar } from './TeamAvatar';
 
 type TeamTopSectionProps = {
@@ -13,16 +13,8 @@ type TeamTopSectionProps = {
   onRankPress?: () => void;
 };
 
-function shortTierName(tierId?: string, tierTitle?: string): string {
-  if (tierId) {
-    return tierId.charAt(0).toUpperCase() + tierId.slice(1);
-  }
-
-  return tierTitle ?? 'Unranked';
-}
-
 export function TeamTopSection({ team, onRankPress }: TeamTopSectionProps) {
-  const tierName = shortTierName(team.teamRank.tierId, team.teamRank.tierTitle);
+  const tierName = shortRankTierName(team.teamRank.tierId, team.teamRank.tierTitle);
   const tierColor = rankTierColorForTier(team.teamRank.tierId);
 
   return (

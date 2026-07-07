@@ -53,3 +53,12 @@ export function rankTierColorForTier(tierId: string | null | undefined): string 
 
   return RANK_TIER_COLORS[tierId as RankBorderTierId];
 }
+
+/** Short tier name (e.g. "Bronze") — no "Runner"/"Grinder"/etc. suffix from the catalog display_name. */
+export function shortRankTierName(tierId: string | null | undefined, fallbackTitle?: string): string {
+  if (tierId) {
+    return tierId.charAt(0).toUpperCase() + tierId.slice(1);
+  }
+
+  return fallbackTitle ?? 'Unranked';
+}

@@ -4,6 +4,7 @@ import { Pressable, StyleSheet, Text, View } from 'react-native';
 import type { TeamLogoAccent } from '../../mock';
 import { colors, spacing } from '../../theme';
 import { HexBadge } from '../me/HexBadge';
+import { rankTierColorForTier, shortRankTierName } from '../team/rankAvatarBorderTheme';
 import { TeamLogo } from '../team/TeamLogo';
 
 type IoniconsName = React.ComponentProps<typeof Ionicons>['name'];
@@ -14,6 +15,7 @@ type MatchTeamSummaryCardProps = {
   teamLevel: number;
   shieldIcon: string;
   shieldAccent: TeamLogoAccent;
+  rankTierId?: string | null;
 };
 
 export function MatchTeamSummaryCard({
@@ -22,7 +24,11 @@ export function MatchTeamSummaryCard({
   teamLevel,
   shieldIcon,
   shieldAccent,
+  rankTierId,
 }: MatchTeamSummaryCardProps) {
+  const tierName = shortRankTierName(rankTierId);
+  const tierColor = rankTierColorForTier(rankTierId);
+
   return (
     <View style={styles.card}>
       <TeamLogo accent={shieldAccent} filled icon={shieldIcon as IoniconsName} size={64} />
@@ -36,6 +42,8 @@ export function MatchTeamSummaryCard({
             <Ionicons color={colors.textSecondary} name="pencil" size={12} />
           </Pressable>
         </View>
+
+        <Text style={[styles.rankTitle, { color: tierColor }]}>{tierName}</Text>
 
         <View style={styles.powerRow}>
           <Text style={styles.powerLabel}>Power Rating</Text>
@@ -83,6 +91,14 @@ const styles = StyleSheet.create({
     fontStyle: 'italic',
     textTransform: 'uppercase',
     letterSpacing: 0.2,
+  },
+  rankTitle: {
+    fontSize: 11,
+    fontWeight: '800',
+    fontStyle: 'italic',
+    letterSpacing: 0.3,
+    textTransform: 'uppercase',
+    marginTop: 2,
   },
   powerRow: {
     flexDirection: 'row',

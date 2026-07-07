@@ -94,6 +94,7 @@ export function TeamMatchTab({ onViewActiveMatch }: TeamMatchTabProps) {
       >
         <MatchTeamSummaryCard
           powerRating={team.competitiveRating}
+          rankTierId={team.teamRank.tierId}
           shieldAccent={team.shieldAccent}
           shieldIcon={team.shieldIcon}
           teamLevel={team.level}
