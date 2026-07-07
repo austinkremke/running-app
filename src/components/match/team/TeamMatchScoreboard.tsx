@@ -9,8 +9,6 @@ import { formatMatchCountdownLabel } from '../../../services/matchMappers';
 import { formatMatchPoints, getTeamMatchAccentColor } from './matchTheme';
 import { TeamMatchScoreboardTeam } from './TeamMatchScoreboardTeam';
 
-const SCORE_LINE_HEIGHT = 34;
-
 type TeamMatchScoreboardProps = {
   match: ActiveTeamMatch;
 };
@@ -19,8 +17,11 @@ export function TeamMatchScoreboard({ match }: TeamMatchScoreboardProps) {
   const { homeTeam, awayTeam } = match;
   const countdown = useLiveCountdown(match.endsAt);
   const pointDiff = homeTeam.totalPoints - awayTeam.totalPoints;
-  const leadingTeam = pointDiff >= 0 ? homeTeam : awayTeam;
+  const isTied = pointDiff === 0;
+  const leadingTeam = pointDiff > 0 ? homeTeam : awayTeam;
   const leadColor = getTeamMatchAccentColor(leadingTeam.accent);
+  const tiedLabel =
+    homeTeam.totalPoints === 0 ? 'MATCH TIED' : `TIED AT ${formatMatchPoints(homeTeam.totalPoints)} PTS`;
 
   return (
     <View style={styles.container}>
@@ -32,10 +33,19 @@ export function TeamMatchScoreboard({ match }: TeamMatchScoreboardProps) {
 
       <View style={styles.statusSection}>
         <View style={styles.leadRow}>
-          <Ionicons color={leadColor} name="trending-up" size={12} />
-          <Text style={[styles.leadText, { color: leadColor }]}>
-            {leadingTeam.name.toUpperCase()} LEAD BY {formatMatchPoints(Math.abs(pointDiff))} PTS
-          </Text>
+          {isTied ? (
+            <>
+              <Ionicons color={colors.textSecondary} name="remove-outline" size={12} />
+              <Text style={[styles.leadText, styles.tiedText]}>{tiedLabel}</Text>
+            </>
+          ) : (
+            <>
+              <Ionicons color={leadColor} name="trending-up" size={12} />
+              <Text style={[styles.leadText, { color: leadColor }]}>
+                {leadingTeam.name.toUpperCase()} LEADS BY {formatMatchPoints(Math.abs(pointDiff))} PTS
+              </Text>
+            </>
+          )}
         </View>
 
         <View style={styles.divider} />
@@ -59,13 +69,12 @@ const styles = StyleSheet.create({
   },
   teamsRow: {
     flexDirection: 'row',
-    alignItems: 'flex-end',
-    gap: spacing.md,
+    alignItems: 'flex-start',
+    gap: spacing.sm,
   },
   vsWrap: {
     width: 36,
-    height: SCORE_LINE_HEIGHT,
-    marginBottom: 4,
+    paddingTop: 42,
   },
   leadRow: {
     flexDirection: 'row',
@@ -77,6 +86,9 @@ const styles = StyleSheet.create({
     fontSize: 9,
     fontWeight: '700',
     letterSpacing: 0.4,
+  },
+  tiedText: {
+    color: colors.textSecondary,
   },
   divider: {
     height: 1,

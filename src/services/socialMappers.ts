@@ -27,7 +27,12 @@ function summaryFromActivity(activity: ActivityRow): PostRunSummary | null {
     return null;
   }
 
-  return activity.summary_json as PostRunSummary;
+  const summary = activity.summary_json as PostRunSummary;
+  if (typeof summary.distanceMiles !== 'number') {
+    return null;
+  }
+
+  return summary;
 }
 
 function statsFromActivity(activity: ActivityRow): RunStats {

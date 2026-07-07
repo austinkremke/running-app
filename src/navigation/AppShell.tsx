@@ -16,7 +16,7 @@ import type { FeedTab, MatchTab, Run } from '../mock';
 import { initialsFromDisplayName } from '../services/profileAvatar';
 import { openSoloMatchMenu } from '../services/soloMatchMenuBus';
 import { openTeamMenu } from '../services/teamMenuBus';
-import { fetchActiveSoloMatchId } from '../services/matchService';
+import { fetchActiveSoloMatchId, fetchActiveTeamMatchId } from '../services/matchService';
 import { getSoloMatchmakingStatus } from '../services/matchmakingService';
 import { FeedScreen } from '../screens/FeedScreen';
 import { RunDetailScreen } from '../screens/RunDetailScreen';
@@ -137,9 +137,10 @@ export function AppShell() {
 
     void (async () => {
       try {
-        const [soloMatchId, matchmakingStatus] = await Promise.all([
+        const [soloMatchId, matchmakingStatus, teamMatchId] = await Promise.all([
           fetchActiveSoloMatchId(userId, { skipFinalize: true }),
           getSoloMatchmakingStatus(),
+          fetchActiveTeamMatchId(userId),
         ]);
         const hasSoloMatchInProgress =
           soloMatchId != null ||
@@ -149,6 +150,12 @@ export function AppShell() {
         if (hasSoloMatchInProgress) {
           setActiveRoute('soloMatch');
           setActiveMatchTab('solo');
+          return;
+        }
+
+        if (teamMatchId != null) {
+          setActiveRoute('teamMatch');
+          setActiveMatchTab('team');
         }
       } catch {
         // Stay on the match hub when status cannot be loaded.
@@ -212,7 +219,7 @@ export function AppShell() {
     }
 
     if (activeRoute === 'teamMatch') {
-      return <TeamMatchScreen onRunPress={openRun} />;
+      return <TeamMatchScreen onOpenRunDetail={openRunDetail} onRunPress={openRun} />;
     }
 
     if (activeRoute === 'soloMatch') {

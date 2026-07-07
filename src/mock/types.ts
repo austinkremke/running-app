@@ -230,6 +230,7 @@ export type TeamMatchTeam = {
   totalPoints: number;
   accent: TeamMatchAccent;
   shieldIcon: string;
+  rankTierId?: string;
   members: TeamMatchParticipant[];
 };
 
@@ -250,6 +251,7 @@ export type TeamMatchActivity = {
   pointsEarned: number;
   timeAgo: string;
   accent: TeamMatchAccent;
+  run?: Run;
 };
 
 export type TeamMatchCountdown = {

@@ -5,11 +5,21 @@ import type { TeamMatchActivity } from '../../../mock';
 import { colors, spacing } from '../../../theme';
 import { TeamMatchActivityRow } from './TeamMatchActivityRow';
 
+const PREVIEW_COUNT = 5;
+
 type TeamMatchLiveActivitySectionProps = {
   activities: TeamMatchActivity[];
+  onSelectActivity?: (activity: TeamMatchActivity) => void;
+  onViewAll?: () => void;
 };
 
-export function TeamMatchLiveActivitySection({ activities }: TeamMatchLiveActivitySectionProps) {
+export function TeamMatchLiveActivitySection({
+  activities,
+  onSelectActivity,
+  onViewAll,
+}: TeamMatchLiveActivitySectionProps) {
+  const preview = activities.slice(0, PREVIEW_COUNT);
+
   return (
     <View style={styles.container}>
       <View style={styles.header}>
@@ -17,18 +27,19 @@ export function TeamMatchLiveActivitySection({ activities }: TeamMatchLiveActivi
           <Ionicons color={colors.accentLime} name="pulse" size={14} />
           <Text style={styles.title}>Live Activity</Text>
         </View>
-        <Pressable accessibilityRole="button" hitSlop={8} style={styles.action}>
+        <Pressable accessibilityRole="button" hitSlop={8} onPress={onViewAll} style={styles.action}>
           <Text style={styles.actionLabel}>View All</Text>
           <Ionicons color={colors.accentLime} name="chevron-forward" size={14} />
         </Pressable>
       </View>
 
       <View style={styles.list}>
-        {activities.map((activity, index) => (
+        {preview.map((activity, index) => (
           <TeamMatchActivityRow
             activity={activity}
             key={activity.id}
-            showDivider={index < activities.length - 1}
+            onPress={onSelectActivity ? () => onSelectActivity(activity) : undefined}
+            showDivider={index < preview.length - 1}
           />
         ))}
       </View>

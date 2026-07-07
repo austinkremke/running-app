@@ -114,6 +114,7 @@ function buildTeamSide(
   totalPoints: number,
   accent: TeamMatchAccent,
   idPrefix: string,
+  rankTierId?: string,
 ): TeamMatchTeam {
   return {
     id: team.id,
@@ -121,6 +122,7 @@ function buildTeamSide(
     totalPoints,
     accent,
     shieldIcon: team.logo_icon,
+    rankTierId,
     members: members.map((member, index) => mapStoredMember(member, index, accent, idPrefix)),
   };
 }
@@ -130,9 +132,12 @@ type LiveMember = {
   display_name: string;
   avatar_url: string | null;
   total_xp: number;
+  points?: number;
+  distanceMiles?: number;
+  pacePerMile?: string;
 };
 
-export function overlayLiveHomeMembers(
+export function overlayLiveMembers(
   members: StoredMember[],
   liveMembers: LiveMember[],
 ): StoredMember[] {
@@ -163,6 +168,9 @@ export function overlayLiveHomeMembers(
       name: live.display_name,
       avatarUrl: live.avatar_url ?? member.avatarUrl,
       level: levelFromTotalXp(live.total_xp),
+      points: live.points ?? member.points,
+      distanceMiles: live.distanceMiles ?? member.distanceMiles,
+      pacePerMile: live.pacePerMile ?? member.pacePerMile,
     };
   });
 
@@ -173,9 +181,9 @@ export function overlayLiveHomeMembers(
       name: live.display_name,
       avatarUrl: live.avatar_url ?? undefined,
       level: levelFromTotalXp(live.total_xp),
-      points: 0,
-      distanceMiles: 0,
-      pacePerMile: '--',
+      points: live.points ?? 0,
+      distanceMiles: live.distanceMiles ?? 0,
+      pacePerMile: live.pacePerMile ?? '--',
     });
   }
 
@@ -187,10 +195,14 @@ export function mapTeamMatchRow(
   homeTeam: TeamRow,
   awayTeam: TeamRow,
   liveHomeMembers: LiveMember[] = [],
+  liveAwayMembers: LiveMember[] = [],
+  homeRankTierId?: string,
+  awayRankTierId?: string,
+  liveActivities: TeamMatchActivity[] = [],
 ): ActiveTeamMatch {
   const state = (match.state_json ?? {}) as TeamMatchState;
-  const homeMembers = overlayLiveHomeMembers(state.homeMembers ?? [], liveHomeMembers);
-  const awayMembers = state.awayMembers ?? [];
+  const homeMembers = overlayLiveMembers(state.homeMembers ?? [], liveHomeMembers);
+  const awayMembers = overlayLiveMembers(state.awayMembers ?? [], liveAwayMembers);
 
   const homePoints =
     state.homePoints ??
@@ -208,6 +220,7 @@ export function mapTeamMatchRow(
       homePoints,
       asTeamAccent(homeTeam.logo_accent, 'lime'),
       'home',
+      homeRankTierId,
     ),
     awayTeam: buildTeamSide(
       awayTeam,
@@ -215,9 +228,10 @@ export function mapTeamMatchRow(
       awayPoints,
       asTeamAccent(awayTeam.logo_accent, 'purple'),
       'away',
+      awayRankTierId,
     ),
     countdown: countdownFromEndsAt(match.ends_at),
-    activities: state.activities ?? [],
+    activities: liveActivities.length > 0 ? liveActivities : (state.activities ?? []),
   };
 }
 
@@ -462,8 +476,9 @@ function formatHighlightPace(activity: SoloMatchActivity): string {
   }
 
   const paceSeconds = durationSeconds / activity.distanceMiles;
-  const minutes = Math.floor(paceSeconds / 60);
-  const seconds = Math.round(paceSeconds % 60);
+  const roundedTotalSeconds = Math.round(paceSeconds);
+  const minutes = Math.floor(roundedTotalSeconds / 60);
+  const seconds = roundedTotalSeconds % 60;
   return `${minutes}:${seconds.toString().padStart(2, '0')} /mi`;
 }
 

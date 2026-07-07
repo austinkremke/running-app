@@ -4,20 +4,29 @@ import { ActivityIndicator, ScrollView, StyleSheet, Text, View } from 'react-nat
 import {
   TeamChatDrawer,
   TeamMatchActions,
+  TeamMatchActivityFeedModal,
   TeamMatchLiveActivitySection,
   TeamMatchRosters,
   TeamMatchScoreboard,
 } from '../components/match/team';
 import { useActiveTeamMatch } from '../hooks/useActiveTeamMatch';
+import type { Run } from '../mock';
 import { colors, spacing } from '../theme';
 
 type TeamMatchScreenProps = {
   onRunPress?: () => void;
+  onOpenRunDetail?: (run: Run) => void;
 };
 
-export function TeamMatchScreen({ onRunPress }: TeamMatchScreenProps) {
+export function TeamMatchScreen({ onRunPress, onOpenRunDetail }: TeamMatchScreenProps) {
   const { match, loading, fromServer } = useActiveTeamMatch();
   const [chatVisible, setChatVisible] = useState(false);
+  const [activityFeedVisible, setActivityFeedVisible] = useState(false);
+
+  function handleSelectActivity(run: Run | undefined) {
+    if (!run) return;
+    onOpenRunDetail?.(run);
+  }
 
   if (loading) {
     return (
@@ -49,7 +58,11 @@ export function TeamMatchScreen({ onRunPress }: TeamMatchScreenProps) {
           <TeamMatchScoreboard match={match} />
           <TeamMatchRosters awayTeam={match.awayTeam} homeTeam={match.homeTeam} />
         </View>
-        <TeamMatchLiveActivitySection activities={match.activities} />
+        <TeamMatchLiveActivitySection
+          activities={match.activities}
+          onSelectActivity={(activity) => handleSelectActivity(activity.run)}
+          onViewAll={() => setActivityFeedVisible(true)}
+        />
         <View style={styles.bottomSpacer} />
       </ScrollView>
 
@@ -59,6 +72,12 @@ export function TeamMatchScreen({ onRunPress }: TeamMatchScreenProps) {
         onClose={() => setChatVisible(false)}
         subtitle={`${match.homeTeam.name} match thread`}
         visible={chatVisible}
+      />
+      <TeamMatchActivityFeedModal
+        activities={match.activities}
+        onClose={() => setActivityFeedVisible(false)}
+        onSelectActivity={(activity) => handleSelectActivity(activity.run)}
+        visible={activityFeedVisible}
       />
     </View>
   );

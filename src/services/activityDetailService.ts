@@ -32,15 +32,24 @@ function summaryFromActivity(activity: Tables<'activities'>): PostRunSummary | n
     return null;
   }
 
-  return activity.summary_json as unknown as PostRunSummary;
+  const summary = activity.summary_json as unknown as PostRunSummary;
+  if (typeof summary.distanceMiles !== 'number') {
+    return null;
+  }
+
+  return summary;
 }
 
 /**
  * Detail extras for a feed post's activity — the fields the feed `Run` drops
  * (charts/splits summary, match link, owner + absolute date). The caller
  * already has the `Run` for header/map/engagement, so this only augments it.
+ *
+ * Accepts either a `feed_posts.id` (the normal feed-tap path) or, when no
+ * feed post exists for the run (e.g. a match activity that was never
+ * published to the feed), an `activities.id` directly.
  */
-export async function fetchRunExtras(feedPostId: string): Promise<RunExtras | null> {
+export async function fetchRunExtras(feedPostOrActivityId: string): Promise<RunExtras | null> {
   if (!supabase) {
     return null;
   }
@@ -48,14 +57,29 @@ export async function fetchRunExtras(feedPostId: string): Promise<RunExtras | nu
   const { data, error } = await supabase
     .from('feed_posts')
     .select('activities:activity_id (*)')
-    .eq('id', feedPostId)
+    .eq('id', feedPostOrActivityId)
     .maybeSingle();
 
   if (error) {
     throw error;
   }
 
-  const activity = (data?.activities ?? null) as Tables<'activities'> | null;
+  let activity = (data?.activities ?? null) as Tables<'activities'> | null;
+
+  if (!activity) {
+    const { data: activityRow, error: activityError } = await supabase
+      .from('activities')
+      .select('*')
+      .eq('id', feedPostOrActivityId)
+      .maybeSingle();
+
+    if (activityError) {
+      throw activityError;
+    }
+
+    activity = activityRow;
+  }
+
   if (!activity) {
     return null;
   }

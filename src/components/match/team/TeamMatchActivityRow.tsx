@@ -1,4 +1,4 @@
-import { StyleSheet, Text, View } from 'react-native';
+import { Pressable, StyleSheet, Text, View } from 'react-native';
 
 import { Avatar } from '../../avatar';
 import type { TeamMatchActivity } from '../../../mock';
@@ -11,15 +11,25 @@ import {
 
 type TeamMatchActivityRowProps = {
   activity: TeamMatchActivity;
+  onPress?: () => void;
   showDivider?: boolean;
 };
 
-export function TeamMatchActivityRow({ activity, showDivider = true }: TeamMatchActivityRowProps) {
+export function TeamMatchActivityRow({
+  activity,
+  onPress,
+  showDivider = true,
+}: TeamMatchActivityRowProps) {
   const accentColor = getTeamMatchAccentColor(activity.accent);
 
   return (
     <View>
-      <View style={styles.row}>
+      <Pressable
+        accessibilityRole={onPress ? 'button' : undefined}
+        disabled={!onPress}
+        onPress={onPress}
+        style={styles.row}
+      >
         <Avatar
           avatarUrl={activity.avatarUrl}
           borderColor={accentColor}
@@ -39,7 +49,7 @@ export function TeamMatchActivityRow({ activity, showDivider = true }: TeamMatch
           </Text>
           <Text style={styles.time}>{activity.timeAgo}</Text>
         </View>
-      </View>
+      </Pressable>
 
       {showDivider ? <View style={styles.divider} /> : null}
     </View>

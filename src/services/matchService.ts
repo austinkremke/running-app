@@ -1,11 +1,15 @@
-import type { ActiveSoloMatch, ActiveTeamMatch } from '../mock';
+import type { ActiveSoloMatch, ActiveTeamMatch, Run, TeamMatchActivity } from '../mock';
 import { MOCK_ACTIVE_SOLO_MATCH } from '../mock/soloActiveMatch';
 import type { Tables } from '../types/database';
 import { mapSoloMatchRow, mapTeamMatchRow, isMatchTimerExpired } from './matchMappers';
+import { matchPointsForActivity } from './match/matchScoring';
 import { finalizeDueSoloMatches } from './matchmakingService';
 import { notifySoloMatchCompletionSync } from './soloMatchCompletionBus';
 import { fetchRankTiers } from './rank';
 import { mapRankTierRow, tierFromRating } from './rank/tierFromRating';
+import { formatDurationParts, formatPace, metersToMiles } from './distanceService';
+import { levelFromTotalXp } from './levelCurve';
+import { formatRelativeTime } from '../utils/formatRelativeTime';
 import { supabase } from './supabase';
 
 export const DEMO_TEAM_MATCH_ID = '22222222-2222-4222-8222-222222222222';
@@ -15,7 +19,143 @@ type LiveMember = {
   display_name: string;
   avatar_url: string | null;
   total_xp: number;
+  points?: number;
+  distanceMiles?: number;
+  pacePerMile?: string;
 };
+
+function formatPaceLabel(paceSecPerMile: number): string {
+  if (!Number.isFinite(paceSecPerMile) || paceSecPerMile <= 0) return '--';
+  return formatPace(paceSecPerMile);
+}
+
+function formatTimeAgoLabel(startedAt: string): string {
+  const elapsedMs = Date.now() - new Date(startedAt).getTime();
+  const minutes = Math.floor(elapsedMs / 60_000);
+  if (minutes < 1) return 'Just now';
+  if (minutes < 60) return `${minutes}m ago`;
+  const hours = Math.floor(minutes / 60);
+  if (hours < 24) return `${hours}h ago`;
+  const days = Math.floor(hours / 24);
+  return `${days}d ago`;
+}
+
+async function fetchTeamMatchActivities(
+  userIds: string[],
+  windowStart: string,
+  windowEnd: string,
+): Promise<Tables<'activities'>[]> {
+  if (!supabase || userIds.length === 0) return [];
+
+  const { data, error } = await supabase
+    .from('activities')
+    .select('*')
+    .in('user_id', userIds)
+    .gte('started_at', windowStart)
+    .lte('started_at', windowEnd)
+    .order('started_at', { ascending: false });
+
+  if (error) throw error;
+  return data ?? [];
+}
+
+function aggregateMemberActivityStats(
+  activities: Tables<'activities'>[],
+  userId: string,
+): { points: number; distanceMiles: number; pacePerMile: string } {
+  const userActivities = activities.filter((activity) => activity.user_id === userId);
+  const distanceMeters = userActivities.reduce(
+    (sum, activity) => sum + (activity.distance_meters ?? 0),
+    0,
+  );
+  const durationSeconds = userActivities.reduce(
+    (sum, activity) => sum + (activity.duration_seconds ?? 0),
+    0,
+  );
+  const points = userActivities.reduce(
+    (sum, activity) =>
+      sum + matchPointsForActivity(activity.distance_meters ?? 0, activity.duration_seconds),
+    0,
+  );
+  const distanceMiles = distanceMeters / 1609.34;
+  const pacePerMile = formatPaceLabel(distanceMiles > 0 ? durationSeconds / distanceMiles : 0);
+
+  return { points, distanceMiles, pacePerMile };
+}
+
+function withActivityStats(members: LiveMember[], activities: Tables<'activities'>[]): LiveMember[] {
+  return members.map((member) => ({
+    ...member,
+    ...aggregateMemberActivityStats(activities, member.user_id),
+  }));
+}
+
+function buildRunFromTeamMatchActivity(
+  activity: Tables<'activities'>,
+  member: LiveMember | undefined,
+  teamName: string,
+): Run {
+  const distanceMiles = metersToMiles(activity.distance_meters ?? 0);
+  const paceSecPerMile = distanceMiles > 0 ? (activity.duration_seconds ?? 0) / distanceMiles : 0;
+  const duration = formatDurationParts(activity.duration_seconds ?? 0);
+
+  return {
+    id: activity.id,
+    user: {
+      id: member?.user_id ?? activity.user_id,
+      name: member?.display_name ?? 'Runner',
+      avatarUrl: member?.avatar_url ?? undefined,
+      level: levelFromTotalXp(member?.total_xp ?? 0),
+      teamName,
+    },
+    title: 'Completed a run',
+    description: '',
+    location: '',
+    postedAt: formatRelativeTime(activity.started_at),
+    stats: {
+      distanceMiles: Number(distanceMiles.toFixed(2)),
+      pacePerMile: formatPace(paceSecPerMile),
+      duration: duration.value,
+      durationUnit: duration.unit,
+    },
+    routePoints: [],
+    likes: 0,
+    comments: 0,
+    likedByMe: false,
+    feedTabs: [],
+    matchId: activity.match_id ?? undefined,
+  };
+}
+
+function buildTeamMatchActivityFeed(
+  activities: Tables<'activities'>[],
+  homeMembers: LiveMember[],
+  awayMembers: LiveMember[],
+  homeTeamName: string,
+  awayTeamName: string,
+): TeamMatchActivity[] {
+  const homeIds = new Set(homeMembers.map((member) => member.user_id));
+  const byId = new Map([...homeMembers, ...awayMembers].map((member) => [member.user_id, member]));
+
+  return activities.map((activity) => {
+    const member = byId.get(activity.user_id);
+    const isHome = homeIds.has(activity.user_id);
+    const distanceMiles = (activity.distance_meters ?? 0) / 1609.34;
+    const paceSecPerMile =
+      distanceMiles > 0 ? (activity.duration_seconds ?? 0) / distanceMiles : 0;
+
+    return {
+      id: activity.id,
+      avatarUrl: member?.avatar_url ?? undefined,
+      playerName: member?.display_name ?? 'Runner',
+      description: `ran ${distanceMiles.toFixed(1)} miles at ${formatPaceLabel(paceSecPerMile)} min/mi`,
+      pointsEarned: matchPointsForActivity(activity.distance_meters ?? 0, activity.duration_seconds),
+      timeAgo: formatTimeAgoLabel(activity.started_at),
+      accent: isHome ? 'lime' : 'purple',
+      run: buildRunFromTeamMatchActivity(activity, member, isHome ? homeTeamName : awayTeamName),
+    };
+  });
+}
 
 type ParticipantRow = Tables<'match_participants'> & {
   profiles: Tables<'profiles'> | null;
@@ -130,10 +270,52 @@ export async function fetchActiveTeamMatch(userId: string): Promise<ActiveTeamMa
   if (awayError) throw awayError;
   if (!homeTeam || !awayTeam) return null;
 
-  const liveHomeMembers =
-    teamId === match.home_team_id ? await fetchLiveTeamMembers(match.home_team_id) : [];
+  const [liveHomeMembers, liveAwayMembers, { data: homeRank }, { data: awayRank }, tiers] =
+    await Promise.all([
+      fetchLiveTeamMembers(match.home_team_id),
+      fetchLiveTeamMembers(match.away_team_id),
+      supabase.from('team_rank').select('competitive_rating').eq('team_id', match.home_team_id).maybeSingle(),
+      supabase.from('team_rank').select('competitive_rating').eq('team_id', match.away_team_id).maybeSingle(),
+      fetchRankTiers(),
+    ]);
 
-  return mapTeamMatchRow(match, homeTeam, awayTeam, liveHomeMembers);
+  const resolvedTiers = tiers.map(mapRankTierRow);
+  const homeRankTierId =
+    homeRank?.competitive_rating != null && resolvedTiers.length > 0
+      ? tierFromRating(homeRank.competitive_rating, resolvedTiers).id
+      : undefined;
+  const awayRankTierId =
+    awayRank?.competitive_rating != null && resolvedTiers.length > 0
+      ? tierFromRating(awayRank.competitive_rating, resolvedTiers).id
+      : undefined;
+
+  const allMemberIds = [...liveHomeMembers, ...liveAwayMembers].map((member) => member.user_id);
+  const matchActivities = await fetchTeamMatchActivities(
+    allMemberIds,
+    match.created_at,
+    match.ends_at,
+  );
+
+  const liveHomeMembersWithStats = withActivityStats(liveHomeMembers, matchActivities);
+  const liveAwayMembersWithStats = withActivityStats(liveAwayMembers, matchActivities);
+  const activityFeed = buildTeamMatchActivityFeed(
+    matchActivities,
+    liveHomeMembersWithStats,
+    liveAwayMembersWithStats,
+    homeTeam.name,
+    awayTeam.name,
+  );
+
+  return mapTeamMatchRow(
+    match,
+    homeTeam,
+    awayTeam,
+    liveHomeMembersWithStats,
+    liveAwayMembersWithStats,
+    homeRankTierId,
+    awayRankTierId,
+    activityFeed,
+  );
 }
 
 type SoloMatchEnrollment = {
