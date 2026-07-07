@@ -5,9 +5,7 @@ import type { TeamLogoAccent } from '../../mock';
 import { colors, spacing } from '../../theme';
 import { HexBadge } from '../me/HexBadge';
 import { rankTierColorForTier, shortRankTierName } from '../team/rankAvatarBorderTheme';
-import { TeamLogo } from '../team/TeamLogo';
-
-type IoniconsName = React.ComponentProps<typeof Ionicons>['name'];
+import { TeamAvatar } from '../team/TeamAvatar';
 
 type MatchTeamSummaryCardProps = {
   teamName: string;
@@ -31,7 +29,7 @@ export function MatchTeamSummaryCard({
 
   return (
     <View style={styles.card}>
-      <TeamLogo accent={shieldAccent} filled icon={shieldIcon as IoniconsName} size={64} />
+      <TeamAvatar accent={shieldAccent} icon={shieldIcon} rankTierId={rankTierId} size={64} />
 
       <View style={styles.meta}>
         <View style={styles.nameRow}>

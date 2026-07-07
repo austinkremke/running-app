@@ -1,13 +1,10 @@
-import { Ionicons } from '@expo/vector-icons';
 import { useState } from 'react';
 import { StyleSheet, Text, View } from 'react-native';
 
 import type { TeamMatchTeam } from '../../../mock';
 import { colors, spacing } from '../../../theme';
-import { TeamLogo } from '../../team/TeamLogo';
+import { TeamAvatar } from '../../team/TeamAvatar';
 import { formatMatchPoints, getTeamMatchAccentColor } from './matchTheme';
-
-type IoniconsName = React.ComponentProps<typeof Ionicons>['name'];
 
 const SCORE_LINE_HEIGHT = 34;
 
@@ -40,21 +37,13 @@ export function TeamMatchScoreboardTeam({ team, side }: TeamMatchScoreboardTeamP
         >
           {isHome ? (
             <>
-              <TeamLogo
-                accent={team.accent}
-                height={SCORE_LINE_HEIGHT}
-                icon={team.shieldIcon as IoniconsName}
-              />
+              <TeamAvatar accent={team.accent} icon={team.shieldIcon} size={SCORE_LINE_HEIGHT} />
               <Text style={styles.score}>{formatMatchPoints(team.totalPoints)}</Text>
             </>
           ) : (
             <>
               <Text style={styles.score}>{formatMatchPoints(team.totalPoints)}</Text>
-              <TeamLogo
-                accent={team.accent}
-                height={SCORE_LINE_HEIGHT}
-                icon={team.shieldIcon as IoniconsName}
-              />
+              <TeamAvatar accent={team.accent} icon={team.shieldIcon} size={SCORE_LINE_HEIGHT} />
             </>
           )}
         </View>

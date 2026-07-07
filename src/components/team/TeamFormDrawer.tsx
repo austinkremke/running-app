@@ -13,7 +13,7 @@ import {
 import type { TeamLogoAccent } from '../../mock';
 import { colors, spacing } from '../../theme';
 import { BottomSheetDrawer } from '../drawer';
-import { TeamLogo } from './TeamLogo';
+import { TeamAvatar } from './TeamAvatar';
 import { getTeamLogoAccentColor } from './teamLogoTheme';
 
 type IoniconsName = React.ComponentProps<typeof Ionicons>['name'];
@@ -119,7 +119,7 @@ export function TeamFormDrawer({
           <Text style={styles.title}>{mode === 'create' ? 'Create a Team' : 'Edit Team'}</Text>
 
           <View style={styles.previewRow}>
-            <TeamLogo accent={logoAccent} icon={logoIcon as IoniconsName} size={56} />
+            <TeamAvatar accent={logoAccent} icon={logoIcon} size={56} />
             <View style={styles.previewMeta}>
               <Text numberOfLines={1} style={styles.previewName}>
                 {name.trim() || 'Team name'}

@@ -4,9 +4,7 @@ import { StyleSheet, Text, View } from 'react-native';
 import type { TopTeamListing } from '../../../mock';
 import { colors, spacing } from '../../../theme';
 import { HexBadge } from '../../me/HexBadge';
-import { TeamLogo } from '../TeamLogo';
-
-type IoniconsName = React.ComponentProps<typeof Ionicons>['name'];
+import { TeamAvatar } from '../TeamAvatar';
 
 type TopTeamsTeamCardProps = {
   team: TopTeamListing;
@@ -29,7 +27,12 @@ export function TopTeamsTeamCard({ team }: TopTeamsTeamCardProps) {
           >
             {team.rank}
           </Text>
-          <TeamLogo accent={team.shieldAccent} icon={team.shieldIcon as IoniconsName} />
+          <TeamAvatar
+            accent={team.shieldAccent}
+            icon={team.shieldIcon}
+            rankTierId={team.rankTierId}
+            size={52}
+          />
         </View>
 
         <View style={styles.identity}>

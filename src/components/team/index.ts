@@ -2,7 +2,6 @@ export { TeamActivitySection } from './TeamActivitySection';
 export { TeamAvatar } from './TeamAvatar';
 export { TeamFormDrawer, type TeamFormValues } from './TeamFormDrawer';
 export { TeamJoinPrompt } from './TeamJoinPrompt';
-export { TeamLogo } from './TeamLogo';
 export { InviteToTeamDrawer } from './InviteToTeamDrawer';
 export { TeamMembersSection } from './TeamMembersSection';
 export { TeamStatsSection } from './TeamStatsSection';

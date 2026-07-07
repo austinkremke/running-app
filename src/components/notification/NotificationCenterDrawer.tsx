@@ -3,9 +3,7 @@ import { Image, Pressable, ScrollView, StyleSheet, Text, View } from 'react-nati
 import type { TeamNotification } from '../../services/teamMembershipService';
 import { colors, spacing } from '../../theme';
 import { BottomSheetDrawer } from '../drawer';
-import { TeamLogo } from '../team/TeamLogo';
-
-type IoniconsName = React.ComponentProps<typeof import('@expo/vector-icons').Ionicons>['name'];
+import { TeamAvatar } from '../team/TeamAvatar';
 
 type NotificationCenterDrawerProps = {
   visible: boolean;
@@ -46,9 +44,9 @@ export function NotificationCenterDrawer({
 
                 return (
                   <View key={notification.id} style={styles.row}>
-                    <TeamLogo
+                    <TeamAvatar
                       accent={notification.teamLogoAccent}
-                      icon={notification.teamLogoIcon as IoniconsName}
+                      icon={notification.teamLogoIcon}
                       size={34}
                     />
 

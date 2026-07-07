@@ -359,6 +359,7 @@ export type TopTeamListing = {
   totalPoints: number;
   shieldIcon: string;
   shieldAccent: TeamLogoAccent;
+  rankTierId?: string;
 };
 
 export type PostRunChartTab = 'pace' | 'elevation' | 'heartRate';

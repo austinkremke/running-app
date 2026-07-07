@@ -269,9 +269,14 @@ export async function disbandTeam(): Promise<void> {
 export async function listTopTeams(limit = 50): Promise<TopTeamListing[]> {
   if (!supabase) return [];
 
-  const { data, error } = await supabase.rpc('list_top_teams', { p_limit: limit });
+  const [{ data, error }, tierRows] = await Promise.all([
+    supabase.rpc('list_top_teams', { p_limit: limit }),
+    fetchRankTiers().catch(() => []),
+  ]);
 
   if (error) throw error;
 
-  return (data ?? []).map((row, index) => mapTeamListingRow(row, index + 1));
+  const tiers = tierRows.map(mapRankTierRow);
+
+  return (data ?? []).map((row, index) => mapTeamListingRow(row, index + 1, tiers));
 }

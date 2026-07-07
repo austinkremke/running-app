@@ -238,10 +238,18 @@ type TopTeamRpcRow = {
   total_member_xp: number;
 };
 
-export function mapTeamListingRow(row: TopTeamRpcRow, rank: number): TopTeamListing {
+export function mapTeamListingRow(
+  row: TopTeamRpcRow,
+  rank: number,
+  tiers: ResolvedRankTier[] = [],
+): TopTeamListing {
+  const rankTierId =
+    tiers.length > 0 ? tierFromRating(row.competitive_rating, tiers).id : undefined;
+
   return {
     id: row.team_id,
     rank,
+    rankTierId,
     name: row.name,
     tag: row.tag,
     motto: row.motto,

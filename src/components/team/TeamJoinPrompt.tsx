@@ -3,9 +3,7 @@ import { ActivityIndicator, Pressable, ScrollView, StyleSheet, Text, View } from
 
 import type { TopTeamListing } from '../../mock';
 import { colors, spacing } from '../../theme';
-import { TeamLogo } from './TeamLogo';
-
-type IoniconsName = React.ComponentProps<typeof Ionicons>['name'];
+import { TeamAvatar } from './TeamAvatar';
 
 type TeamJoinPromptProps = {
   teams: TopTeamListing[];
@@ -48,9 +46,10 @@ export function TeamJoinPrompt({
           {teams.map((team, index) => (
             <View key={team.id}>
               <View style={styles.teamRow}>
-                <TeamLogo
+                <TeamAvatar
                   accent={team.shieldAccent}
-                  icon={team.shieldIcon as IoniconsName}
+                  icon={team.shieldIcon}
+                  rankTierId={team.rankTierId}
                   size={34}
                 />
                 <View style={styles.teamMeta}>
