@@ -115,6 +115,22 @@ export function MapboxMapView({
     });
   }, [recenterSignal, region]);
 
+  // `defaultSettings` only applies once at mount, but the real device location
+  // usually resolves a moment after first paint (async permission + GPS fix),
+  // so the very first `region` is often a fallback. Jump the camera whenever
+  // region changes so the map locks onto the real location as soon as it's ready.
+  // Route-preview screens already fit-to-bounds via fitRouteToViewport, so this
+  // is scoped to the plain live-location map (starting/recording a run).
+  useEffect(() => {
+    if (followRoute || showRouteEndpoints) return;
+
+    cameraRef.current?.setCamera({
+      centerCoordinate,
+      zoomLevel,
+      animationDuration: 0,
+    });
+  }, [centerCoordinate, followRoute, showRouteEndpoints, zoomLevel]);
+
   useEffect(() => {
     fitRouteToViewport();
   }, [fitRouteToViewport]);
