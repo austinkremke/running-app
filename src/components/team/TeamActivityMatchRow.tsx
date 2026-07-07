@@ -41,6 +41,7 @@ export function TeamActivityMatchRow({ match, onPress, showDivider = true }: Tea
             rankTierId={match.homeTeam.rankTierId}
             size={LOGO_SIZE}
           />
+          <Text style={styles.vsText}>vs</Text>
           <TeamAvatar
             accent={match.awayTeam.accent}
             icon={match.awayTeam.shieldIcon}
@@ -79,6 +80,14 @@ const styles = StyleSheet.create({
   },
   logos: {
     flexDirection: 'row',
+    alignItems: 'center',
+    gap: 4,
+  },
+  vsText: {
+    color: colors.textSecondary,
+    fontSize: 9,
+    fontWeight: '700',
+    fontStyle: 'italic',
   },
   meta: {
     flex: 1,
@@ -88,7 +97,7 @@ const styles = StyleSheet.create({
   matchup: {
     color: colors.textPrimary,
     fontSize: 13,
-    fontWeight: '700',
+    fontWeight: '500',
   },
   score: {
     color: colors.textPrimary,
