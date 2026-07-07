@@ -17,7 +17,11 @@ type TeamMatchTabProps = {
   onViewActiveMatch?: () => void;
 };
 
-const MIN_ROSTER = 2;
+// TEMP (dev testing only): lowered from 2 to 1 to match the paired temporary
+// server-side override (20250706000001_temp_team_min_roster_1.sql) so a
+// solo-member team can queue for testing on a second device. Revert both
+// together — see milestones/07-team-play.md open decisions for the real rule.
+const MIN_ROSTER = 1;
 
 export function TeamMatchTab({ onViewActiveMatch }: TeamMatchTabProps) {
   const userId = useUserId();
