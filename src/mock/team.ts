@@ -162,29 +162,4 @@ export const MOCK_TEAM: Team = {
       power: '2,321 PWR',
     },
   ],
-  activities: [
-    {
-      id: 'activity-1',
-      icon: 'footsteps',
-      variant: 'purple',
-      message: 'completed 10.25 miles',
-      highlight: 'Tyler',
-      timeAgo: '2 hours ago',
-    },
-    {
-      id: 'activity-2',
-      icon: 'trophy',
-      variant: 'gold',
-      message: 'Team reached level 24!',
-      timeAgo: '6 hours ago',
-    },
-    {
-      id: 'activity-3',
-      icon: 'flame',
-      variant: 'lime',
-      message: 'burned 1,482 calories',
-      highlight: 'Austin',
-      timeAgo: '8 hours ago',
-    },
-  ],
 };

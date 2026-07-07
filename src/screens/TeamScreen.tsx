@@ -15,7 +15,8 @@ import { useAuth, useUserId } from '../context';
 import { useAchievementUnlockPresentation } from '../hooks/useAchievementUnlockPresentation';
 import { useFeatureGate } from '../hooks/useFeatureGate';
 import { useMyTeam } from '../hooks/useMyTeam';
-import type { TeamMember, TopTeamListing } from '../mock';
+import type { Run, TeamMember, TopTeamListing } from '../mock';
+import { fetchFeedPosts } from '../services/feedService';
 import {
   createTeam,
   demoteMember,
@@ -32,11 +33,15 @@ import { notifyTeamNotificationsChanged } from '../services/teamNotificationBus'
 import { registerTeamMenuListener } from '../services/teamMenuBus';
 import { colors, spacing } from '../theme';
 
+const TEAM_ACTIVITY_LIMIT = 5;
+
 type TeamScreenProps = {
   onOpenTopTeams?: () => void;
+  onOpenRun?: (run: Run) => void;
+  onViewAllActivity?: () => void;
 };
 
-export function TeamScreen({ onOpenTopTeams }: TeamScreenProps) {
+export function TeamScreen({ onOpenTopTeams, onOpenRun, onViewAllActivity }: TeamScreenProps) {
   const userId = useUserId();
   const { refreshGameState } = useAuth();
   const { runEvaluation } = useAchievementUnlockPresentation();
@@ -50,6 +55,8 @@ export function TeamScreen({ onOpenTopTeams }: TeamScreenProps) {
   const [submitting, setSubmitting] = useState(false);
   const [inviteVisible, setInviteVisible] = useState(false);
   const [requestedTeamIds, setRequestedTeamIds] = useState<Set<string>>(new Set());
+  const [teamActivity, setTeamActivity] = useState<Run[]>([]);
+  const [teamActivityLoading, setTeamActivityLoading] = useState(false);
 
   const viewerRole = team?.members.find((member) => member.id === userId)?.role;
   const canManageRoster = viewerRole === 'leader' || viewerRole === 'co-leader';
@@ -77,6 +84,31 @@ export function TeamScreen({ onOpenTopTeams }: TeamScreenProps) {
       cancelled = true;
     };
   }, [loading, team]);
+
+  useEffect(() => {
+    if (!team || !userId) {
+      setTeamActivity([]);
+      return;
+    }
+
+    let cancelled = false;
+    setTeamActivityLoading(true);
+
+    fetchFeedPosts('team', userId, TEAM_ACTIVITY_LIMIT)
+      .then((runs) => {
+        if (!cancelled) setTeamActivity(runs);
+      })
+      .catch(() => {
+        if (!cancelled) setTeamActivity([]);
+      })
+      .finally(() => {
+        if (!cancelled) setTeamActivityLoading(false);
+      });
+
+    return () => {
+      cancelled = true;
+    };
+  }, [team, userId]);
 
   async function refreshAll() {
     await refreshGameState();
@@ -324,7 +356,12 @@ export function TeamScreen({ onOpenTopTeams }: TeamScreenProps) {
           onInvitePress={canManageRoster ? () => setInviteVisible(true) : undefined}
           onMemberOptionsPress={canManageRoster ? handleMemberOptions : undefined}
         />
-        <TeamActivitySection activities={team.activities} />
+        <TeamActivitySection
+          loading={teamActivityLoading}
+          onRunPress={onOpenRun}
+          onViewAll={onViewAllActivity}
+          runs={teamActivity}
+        />
         <View style={styles.bottomSpacer} />
       </ScrollView>
 

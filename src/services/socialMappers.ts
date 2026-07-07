@@ -101,6 +101,7 @@ export function mapFeedPostToRun(
       (tab): tab is Run['feedTabs'][number] =>
         tab === 'community' || tab === 'friends' || tab === 'team',
     ),
+    matchId: activity.match_id ?? undefined,
   };
 }
 
@@ -221,7 +222,6 @@ export function mapTeamRow(
     members,
     memberCount,
     memberMax: team.member_max,
-    activities: [],
   };
 }
 

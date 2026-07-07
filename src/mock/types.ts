@@ -39,6 +39,8 @@ export type Run = {
   comments: number;
   likedByMe: boolean;
   feedTabs: FeedTab[];
+  /** Set when this run counted toward an active/completed match. */
+  matchId?: string;
 };
 
 export type FeedComment = {
@@ -148,15 +150,6 @@ export type TeamMember = {
   level: number;
   distance: string;
   power: string;
-};
-
-export type TeamActivity = {
-  id: string;
-  icon: string;
-  variant: AchievementVariant;
-  message: string;
-  highlight?: string;
-  timeAgo: string;
 };
 
 export type MatchTab = 'team' | 'solo';
@@ -356,7 +349,6 @@ export type Team = {
   members: TeamMember[];
   memberCount: number;
   memberMax: number;
-  activities: TeamActivity[];
 };
 
 export type TopTeamsTab = 'rankings' | 'trending' | 'new' | 'nearby';

@@ -54,7 +54,6 @@ export type {
   TeamMatchCountdown,
   TeamMatchParticipant,
   TeamMatchTeam,
-  TeamActivity,
   TeamMember,
   TeamRank,
   TeamRole,

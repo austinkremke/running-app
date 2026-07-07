@@ -220,7 +220,16 @@ export function AppShell() {
     }
 
     if (activeRoute === 'team') {
-      return <TeamScreen onOpenTopTeams={() => setActiveRoute('topTeams')} />;
+      return (
+        <TeamScreen
+          onOpenRun={openRunDetail}
+          onOpenTopTeams={() => setActiveRoute('topTeams')}
+          onViewAllActivity={() => {
+            setActiveFeedTab('team');
+            setActiveRoute('feed');
+          }}
+        />
+      );
     }
 
     if (activeRoute === 'topTeams') {
