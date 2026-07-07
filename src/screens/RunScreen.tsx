@@ -101,7 +101,6 @@ export function RunScreen({ onBack }: RunScreenProps) {
       await publishActivityToFeed({
         userId,
         activityId,
-        title: 'What a great run!',
         audiences,
       });
     } catch (error) {
