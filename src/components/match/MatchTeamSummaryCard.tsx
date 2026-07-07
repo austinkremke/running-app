@@ -1,9 +1,7 @@
-import { Ionicons } from '@expo/vector-icons';
-import { Pressable, StyleSheet, Text, View } from 'react-native';
+import { StyleSheet, Text, View } from 'react-native';
 
 import type { TeamLogoAccent } from '../../mock';
 import { colors, spacing } from '../../theme';
-import { HexBadge } from '../me/HexBadge';
 import { rankTierColorForTier, shortRankTierName } from '../team/rankAvatarBorderTheme';
 import { TeamAvatar } from '../team/TeamAvatar';
 
@@ -31,30 +29,30 @@ export function MatchTeamSummaryCard({
     <View style={styles.card}>
       <TeamAvatar accent={shieldAccent} icon={shieldIcon} rankTierId={rankTierId} size={64} />
 
-      <View style={styles.meta}>
-        <View style={styles.nameRow}>
-          <Text numberOfLines={1} style={styles.name}>
-            {teamName}
-          </Text>
-          <Pressable accessibilityLabel="Edit team name" hitSlop={8}>
-            <Ionicons color={colors.textSecondary} name="pencil" size={12} />
-          </Pressable>
+      <View style={styles.rightColumn}>
+        <Text numberOfLines={1} style={styles.name}>
+          {teamName}
+        </Text>
+
+        <View style={styles.levelRankRow}>
+          <View style={styles.levelBlock}>
+            <Text style={styles.label}>LEVEL</Text>
+            <Text style={styles.levelValue}>{teamLevel}</Text>
+          </View>
+
+          <View style={styles.divider} />
+
+          <View style={styles.rankBlock}>
+            <Text style={styles.rankHeaderLine}>
+              <Text style={styles.label}>RANK: </Text>
+              <Text style={[styles.rankTitleText, { color: tierColor }]}>{tierName}</Text>
+            </Text>
+            <Text style={styles.ratingLine}>
+              <Text style={styles.ratingValue}>{powerRating.toLocaleString('en-US')}</Text>
+              <Text style={styles.ratingSuffix}> Power Rating</Text>
+            </Text>
+          </View>
         </View>
-
-        <Text style={[styles.rankTitle, { color: tierColor }]}>{tierName}</Text>
-
-        <View style={styles.powerRow}>
-          <Text style={styles.powerLabel}>Power Rating</Text>
-          <Ionicons color={colors.textSecondary} name="information-circle-outline" size={11} />
-        </View>
-        <Text style={styles.powerValue}>{powerRating.toLocaleString('en-US')}</Text>
-      </View>
-
-      <View style={styles.divider} />
-
-      <View style={styles.levelBlock}>
-        <Text style={styles.levelLabel}>Team Level</Text>
-        <HexBadge badgeText={String(teamLevel)} size={40} stroked variant="lime" />
       </View>
     </View>
   );
@@ -70,70 +68,75 @@ const styles = StyleSheet.create({
     borderWidth: 1,
     borderColor: colors.border,
     padding: spacing.md,
+    overflow: 'visible',
   },
-  meta: {
+  rightColumn: {
+    flex: 1,
+    minWidth: 0,
+    gap: spacing.sm,
+  },
+  name: {
+    color: colors.textPrimary,
+    fontSize: 20,
+    fontWeight: '700',
+    fontStyle: 'italic',
+  },
+  levelRankRow: {
+    flexDirection: 'row',
+    alignItems: 'stretch',
+    gap: spacing.md,
+  },
+  levelBlock: {
+    minWidth: 44,
+  },
+  label: {
+    color: colors.textSecondary,
+    fontSize: 9,
+    fontWeight: '700',
+    letterSpacing: 0.8,
+    textTransform: 'uppercase',
+  },
+  levelValue: {
+    color: colors.textPrimary,
+    fontSize: 28,
+    fontWeight: '600',
+    fontStyle: 'italic',
+    lineHeight: 30,
+    marginTop: spacing.xs,
+  },
+  divider: {
+    width: 1,
+    backgroundColor: colors.divider,
+    marginVertical: spacing.xs,
+  },
+  rankBlock: {
     flex: 1,
     minWidth: 0,
     gap: 2,
   },
-  nameRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 6,
+  rankHeaderLine: {
+    marginTop: 0,
   },
-  name: {
-    flexShrink: 1,
-    color: colors.textPrimary,
-    fontSize: 16,
-    fontWeight: '800',
-    fontStyle: 'italic',
-    textTransform: 'uppercase',
-    letterSpacing: 0.2,
-  },
-  rankTitle: {
-    fontSize: 11,
+  rankTitleText: {
+    fontSize: 12,
     fontWeight: '800',
     fontStyle: 'italic',
     letterSpacing: 0.3,
-    textTransform: 'uppercase',
-    marginTop: 2,
   },
-  powerRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 4,
+  ratingLine: {
     marginTop: spacing.xs,
   },
-  powerLabel: {
-    color: colors.textSecondary,
-    fontSize: 8,
-    fontWeight: '700',
-    letterSpacing: 0.5,
-    textTransform: 'uppercase',
-  },
-  powerValue: {
+  ratingValue: {
     color: colors.textPrimary,
-    fontSize: 22,
-    fontWeight: '700',
+    fontSize: 24,
+    fontWeight: '600',
     fontStyle: 'italic',
-    lineHeight: 24,
+    lineHeight: 26,
   },
-  divider: {
-    width: 1,
-    alignSelf: 'stretch',
-    backgroundColor: colors.divider,
-    marginVertical: 2,
-  },
-  levelBlock: {
-    alignItems: 'center',
-    gap: spacing.xs,
-    flexShrink: 0,
-  },
-  levelLabel: {
+  ratingSuffix: {
     color: colors.textSecondary,
-    fontSize: 8,
-    fontWeight: '700',
-    letterSpacing: 0.5,
-    textTransform: 'uppercase',
+    fontSize: 13,
+    fontWeight: '600',
+    fontStyle: 'italic',
   },
 });
