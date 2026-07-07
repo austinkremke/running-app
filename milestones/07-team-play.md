@@ -109,8 +109,16 @@ Replace the seeded demo team match and mock lineup with a real team lifecycle: *
 - [ ] Team challenges (directed team-vs-team invites — mirror `solo_match_challenges`)
 - [ ] Seasonal resets + team leaderboard snapshots
 - [ ] Leader-picked lineup as an alternative match type (uses existing lineup UI concepts)
-- [ ] Team stats / team activity stream (Team tab placeholders)
+- [x] ~~Team stats / team activity stream~~ **shipped** — real `team_rank` stats (Phase 2) + Team Activity showing the team's 5 latest runs (`TeamActivitySection` → `fetchFeedPosts('team', …)`), same data the Feed's Team tab shows.
 - [ ] Dynamic pace scoring shared with [05 backlog](./05-matchmaking-and-feed.md#future-follow-ups-milestone-05-backlog)
+
+### Bug fix — Team tab leaked non-teammates' runs
+
+**Found:** after leaving a team and creating a new one, a user could still see the old team's runs in Team Activity / the Feed's Team tab.
+
+**Root cause:** `feed_posts` RLS policies are permissive (OR'd, not AND'd). Every run posts with `audiences` including `'community'` alongside `'team'`/`'friends'` — so `feed_posts_select_community` (no restriction at all) independently grants read access to a row, regardless of what the narrower `feed_posts_select_team` policy would otherwise deny. The Team tab's query relied entirely on RLS to scope by team and had no client-side restriction — unlike the Friends tab, which already restricts client-side via `fetchFriendIds` + `.in('user_id', …)`.
+
+**Fix:** added `teamService.fetchTeammateIds` (mirrors `fetchFriendIds`) and wired it into `feedService.fetchFeedPosts` for `tab === 'team'`, restricting the query to current teammates' ids the same way the Friends tab already does. See [reference.md § Security & privacy](../.cursor/skills/run-off/reference.md) for the general RLS-OR'ing gotcha — this pattern (audience-scoped read + no client-side id restriction) is worth checking before adding any new audience type.
 
 ---
 

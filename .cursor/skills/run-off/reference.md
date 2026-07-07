@@ -78,6 +78,7 @@ Companion to [SKILL.md](SKILL.md). Read when implementing backend, progression, 
 | Location privacy | When-in-use permission; explain in copy |
 | PII in logs | No full GPS tracks in console in production |
 | Feed visibility | RLS + explicit audience (team/friends/public) when built |
+| **RLS policies are OR'd, not AND'd** | Postgres SELECT policies are permissive — if a row is created with multiple audience tags at once (e.g. `['community','team']`, the default on every run), a *broader* policy (`feed_posts_select_community`, no restriction) grants read access even though a *narrower* one (`feed_posts_select_team`) would deny it. **Audience-scoped queries must also restrict client-side by author id** (`.in('user_id', teammateIds/friendIds)`) — don't rely on RLS alone to scope a tab when the row can also match a more permissive policy. Bit us: teammates saw non-teammates' runs on the Team tab (fixed via `fetchTeammateIds` in `feedService.fetchFeedPosts`, mirroring the existing friends-tab pattern). |
 
 ---
 

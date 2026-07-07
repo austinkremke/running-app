@@ -4,6 +4,7 @@ import { syncActivityById } from './activitySync';
 import { fetchFeedEngagementSummaries } from './feedEngagementService';
 import { fetchFriendIds } from './friendService';
 import { supabase } from './supabase';
+import { fetchTeammateIds } from './teamService';
 import { fetchRankTiers } from './rank/rankService';
 import { mapRankTierRow } from './rank/tierFromRating';
 import { mapFeedPostToRun } from './socialMappers';
@@ -57,14 +58,27 @@ export async function fetchFeedPosts(
 ): Promise<Run[]> {
   if (!supabase) return [];
 
-  let friendIds: string[] | null = null;
+  // RLS on feed_posts is permissive (OR'd) across policies: a post tagged both
+  // 'community' and 'team' is also readable via feed_posts_select_community,
+  // which has no team/friend restriction at all. So audience-scoped tabs must
+  // also restrict client-side by author id — RLS alone does not enforce it.
+  let scopedUserIds: string[] | null = null;
   if (tab === 'friends') {
     if (!viewerUserId) {
       return [];
     }
 
-    friendIds = await fetchFriendIds(viewerUserId);
-    if (friendIds.length === 0) {
+    scopedUserIds = await fetchFriendIds(viewerUserId);
+    if (scopedUserIds.length === 0) {
+      return [];
+    }
+  } else if (tab === 'team') {
+    if (!viewerUserId) {
+      return [];
+    }
+
+    scopedUserIds = await fetchTeammateIds(viewerUserId);
+    if (scopedUserIds.length === 0) {
       return [];
     }
   }
@@ -90,8 +104,8 @@ export async function fetchFeedPosts(
     .order('created_at', { ascending: false })
     .limit(limit);
 
-  if (friendIds) {
-    query = query.in('user_id', friendIds);
+  if (scopedUserIds) {
+    query = query.in('user_id', scopedUserIds);
   }
 
   const [{ data, error }, rankTierRows] = await Promise.all([query, fetchRankTiers()]);

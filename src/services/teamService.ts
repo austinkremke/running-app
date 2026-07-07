@@ -148,6 +148,35 @@ export async function fetchTeamNameById(teamId: string): Promise<string | null> 
   return data?.name ?? null;
 }
 
+/**
+ * Current teammates' user ids (including the caller). `feed_posts_select_team`
+ * RLS is not enough on its own to scope the Team feed tab — a post tagged
+ * both 'community' and 'team' is also readable via the permissive
+ * `feed_posts_select_community` policy, so the client must restrict to
+ * teammates explicitly (mirrors how the Friends tab restricts to friend ids).
+ */
+export async function fetchTeammateIds(userId: string): Promise<string[]> {
+  if (!supabase) return [];
+
+  const { data: membership, error: membershipError } = await supabase
+    .from('team_members')
+    .select('team_id')
+    .eq('user_id', userId)
+    .maybeSingle();
+
+  if (membershipError) throw membershipError;
+  if (!membership) return [];
+
+  const { data, error } = await supabase
+    .from('team_members')
+    .select('user_id')
+    .eq('team_id', membership.team_id);
+
+  if (error) throw error;
+
+  return (data ?? []).map((row) => row.user_id);
+}
+
 export async function joinTeam(userId: string, teamId: string): Promise<void> {
   if (!supabase) {
     throw new Error('Supabase is not configured.');
