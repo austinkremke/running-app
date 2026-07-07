@@ -12,14 +12,13 @@ import { NotificationCenterDrawer } from '../components/notification';
 import { useAuth, useOnboarding, useSoloMatchCompletion, useUserId, useInAppNotification } from '../context';
 import { useMatchTabIndicators } from '../hooks/useHasActiveMatch';
 import { useTeamNotifications } from '../hooks/useTeamNotifications';
-import type { FeedTab, MatchTab, OverallStat, Run } from '../mock';
+import type { FeedTab, MatchTab, Run } from '../mock';
 import { initialsFromDisplayName } from '../services/profileAvatar';
 import { openSoloMatchMenu } from '../services/soloMatchMenuBus';
 import { fetchActiveSoloMatchId } from '../services/matchService';
 import { getSoloMatchmakingStatus } from '../services/matchmakingService';
 import { FeedScreen } from '../screens/FeedScreen';
 import { RunDetailScreen } from '../screens/RunDetailScreen';
-import { StatDetailScreen, type StatDetailTarget } from '../screens/StatDetailScreen';
 import { MatchScreen } from '../screens/MatchScreen';
 import { MeScreen } from '../screens/MeScreen';
 import { RunScreen } from '../screens/RunScreen';
@@ -65,22 +64,11 @@ export function AppShell() {
   const [detailRun, setDetailRun] = useState<Run | null>(null);
   const [detailReturnRoute, setDetailReturnRoute] = useState<AppRoute>('feed');
   const [feedReloadKey, setFeedReloadKey] = useState(0);
-  const [statDetailTarget, setStatDetailTarget] = useState<StatDetailTarget | null>(null);
 
   function openRunDetail(run: Run) {
     setDetailRun(run);
     setDetailReturnRoute(activeRoute === 'runDetail' ? detailReturnRoute : activeRoute);
     setActiveRoute('runDetail');
-  }
-
-  function openStatDetail(stat: OverallStat) {
-    if (!stat.metricKey) return;
-    setStatDetailTarget({
-      metricKey: stat.metricKey,
-      label: stat.label,
-      lifetimeValue: stat.unit ? `${stat.value} ${stat.unit}` : stat.value,
-    });
-    setActiveRoute('statDetail');
   }
 
   useEffect(() => {
@@ -208,16 +196,6 @@ export function AppShell() {
       );
     }
 
-    if (activeRoute === 'statDetail' && statDetailTarget && userId) {
-      return (
-        <StatDetailScreen
-          onBack={() => setActiveRoute('me')}
-          target={statDetailTarget}
-          userId={userId}
-        />
-      );
-    }
-
     if (activeRoute === 'run') {
       return <RunScreen onBack={() => setActiveRoute(runReturnRoute)} />;
     }
@@ -249,7 +227,7 @@ export function AppShell() {
     }
 
     if (activeRoute === 'me') {
-      return <MeScreen onOpenSettings={() => openSettings('me')} onOpenStat={openStatDetail} />;
+      return <MeScreen onOpenSettings={() => openSettings('me')} />;
     }
 
     if (activeRoute === 'settings') {

@@ -1,16 +1,15 @@
 import { useEffect, useState } from 'react';
-import { ActivityIndicator, ScrollView, StyleSheet, Text, View } from 'react-native';
-import { SafeAreaView } from 'react-native-safe-area-context';
+import { ActivityIndicator, StyleSheet, Text, View } from 'react-native';
 
-import { WeeklyTrendChart } from '../components/me';
-import { HeaderIconButton } from '../components/header';
-import { formatDurationClock, formatPace } from '../services/distanceService';
+import { formatDurationClock, formatPace } from '../../services/distanceService';
 import {
   fetchWeeklyStatsBundle,
   type StatMetricKey,
   type WeeklyPoint,
-} from '../services/profileHistoryService';
-import { colors, spacing } from '../theme';
+} from '../../services/profileHistoryService';
+import { colors, spacing } from '../../theme';
+import { BottomSheetDrawer } from '../drawer';
+import { WeeklyTrendChart } from './WeeklyTrendChart';
 
 export type StatDetailTarget = {
   metricKey: StatMetricKey;
@@ -18,10 +17,11 @@ export type StatDetailTarget = {
   lifetimeValue?: string;
 };
 
-type StatDetailScreenProps = {
-  target: StatDetailTarget;
-  userId: string;
-  onBack?: () => void;
+type StatDetailDrawerProps = {
+  visible: boolean;
+  target: StatDetailTarget | null;
+  userId: string | null;
+  onClose: () => void;
 };
 
 const AXIS_FORMAT: Record<StatMetricKey, (value: number) => string> = {
@@ -42,10 +42,15 @@ const BIG_FORMAT: Record<StatMetricKey, (value: number) => string> = {
   pace: (value) => (value > 0 ? `${formatPace(value)} /mi` : '--'),
 };
 
-export function StatDetailScreen({ target, userId, onBack }: StatDetailScreenProps) {
+export function StatDetailDrawer({ visible, target, userId, onClose }: StatDetailDrawerProps) {
   const [points, setPoints] = useState<WeeklyPoint[] | null>(null);
 
   useEffect(() => {
+    if (!visible || !target || !userId) {
+      setPoints(null);
+      return;
+    }
+
     let cancelled = false;
 
     fetchWeeklyStatsBundle(userId)
@@ -60,82 +65,63 @@ export function StatDetailScreen({ target, userId, onBack }: StatDetailScreenPro
     return () => {
       cancelled = true;
     };
-  }, [target.metricKey, userId]);
+  }, [target, userId, visible]);
 
   const currentWeek = points?.[points.length - 1]?.value ?? 0;
-  const axisFormat = AXIS_FORMAT[target.metricKey];
-  const bigFormat = BIG_FORMAT[target.metricKey];
+  const axisFormat = target ? AXIS_FORMAT[target.metricKey] : undefined;
+  const bigFormat = target ? BIG_FORMAT[target.metricKey] : undefined;
 
   return (
-    <SafeAreaView edges={['top']} style={styles.container}>
-      <View style={styles.header}>
-        <HeaderIconButton accessibilityLabel="Go back" icon="chevron-back" onPress={onBack} />
-        <Text style={styles.headerTitle}>{target.label.toUpperCase()}</Text>
-        <View style={styles.headerSpacer} />
-      </View>
+    <BottomSheetDrawer heightRatio={0.68} onClose={onClose} visible={visible && target != null}>
+      {target ? (
+        <View style={styles.container}>
+          <Text style={styles.title}>{target.label}</Text>
 
-      <ScrollView contentContainerStyle={styles.content} showsVerticalScrollIndicator={false}>
-        {points == null ? (
-          <View style={styles.loadingBox}>
-            <ActivityIndicator color={colors.accentLime} />
-          </View>
-        ) : (
-          <>
-            <View style={styles.thisWeekBlock}>
-              <Text style={styles.thisWeekLabel}>THIS WEEK</Text>
-              <Text style={styles.thisWeekValue}>{bigFormat(currentWeek)}</Text>
+          {points == null ? (
+            <View style={styles.loadingBox}>
+              <ActivityIndicator color={colors.accentLime} />
             </View>
-
-            <View style={styles.chartCard}>
-              <Text style={styles.chartTitle}>Past {points.length} Weeks</Text>
-              <WeeklyTrendChart formatValue={axisFormat} points={points} />
-            </View>
-
-            {target.lifetimeValue ? (
-              <View style={styles.lifetimeRow}>
-                <Text style={styles.lifetimeLabel}>Lifetime</Text>
-                <Text style={styles.lifetimeValue}>{target.lifetimeValue}</Text>
+          ) : (
+            <>
+              <View style={styles.thisWeekBlock}>
+                <Text style={styles.thisWeekLabel}>THIS WEEK</Text>
+                <Text style={styles.thisWeekValue}>{bigFormat?.(currentWeek)}</Text>
               </View>
-            ) : null}
-          </>
-        )}
-      </ScrollView>
-    </SafeAreaView>
+
+              <View style={styles.chartCard}>
+                <Text style={styles.chartTitle}>Past {points.length} Weeks</Text>
+                {axisFormat ? <WeeklyTrendChart formatValue={axisFormat} points={points} /> : null}
+              </View>
+
+              {target.lifetimeValue ? (
+                <View style={styles.lifetimeRow}>
+                  <Text style={styles.lifetimeLabel}>Lifetime</Text>
+                  <Text style={styles.lifetimeValue}>{target.lifetimeValue}</Text>
+                </View>
+              ) : null}
+            </>
+          )}
+        </View>
+      ) : null}
+    </BottomSheetDrawer>
   );
 }
 
 const styles = StyleSheet.create({
   container: {
-    flex: 1,
-    backgroundColor: colors.background,
+    gap: spacing.lg,
+    paddingBottom: spacing.md,
   },
-  header: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
-    paddingHorizontal: spacing.sm,
-    paddingVertical: spacing.xs,
-    gap: spacing.sm,
-  },
-  headerTitle: {
-    flex: 1,
+  title: {
     color: colors.textPrimary,
-    fontSize: 15,
+    fontSize: 16,
     fontWeight: '800',
     fontStyle: 'italic',
-    textAlign: 'center',
     letterSpacing: 0.4,
-  },
-  headerSpacer: {
-    width: 40,
-  },
-  content: {
-    paddingHorizontal: spacing.lg,
-    paddingBottom: spacing.xl,
-    gap: spacing.lg,
+    textTransform: 'uppercase',
   },
   loadingBox: {
-    paddingTop: spacing.xl * 2,
+    paddingVertical: spacing.xl,
     alignItems: 'center',
   },
   thisWeekBlock: {
@@ -154,7 +140,7 @@ const styles = StyleSheet.create({
     fontStyle: 'italic',
   },
   chartCard: {
-    backgroundColor: colors.surface,
+    backgroundColor: colors.background,
     borderRadius: 14,
     borderWidth: 1,
     borderColor: colors.border,

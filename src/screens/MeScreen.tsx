@@ -9,6 +9,8 @@ import {
   OverallStatsSection,
   ProfileTopSection,
   SectionHeader,
+  StatDetailDrawer,
+  type StatDetailTarget,
 } from '../components/me';
 import { useAuth, usePlayerProgress, useUserId, useXpGain } from '../context';
 import { useAchievements } from '../hooks/useAchievements';
@@ -104,10 +106,9 @@ function buildOverallStats(
 
 type MeScreenProps = {
   onOpenSettings?: () => void;
-  onOpenStat?: (stat: OverallStat) => void;
 };
 
-export function MeScreen({ onOpenSettings, onOpenStat }: MeScreenProps) {
+export function MeScreen({ onOpenSettings }: MeScreenProps) {
   const { gameState } = useAuth();
   const userId = useUserId();
   const { level, experience } = usePlayerProgress();
@@ -121,6 +122,7 @@ export function MeScreen({ onOpenSettings, onOpenStat }: MeScreenProps) {
   const [viewAllVisible, setViewAllVisible] = useState(false);
   const [teamName, setTeamName] = useState('');
   const [overallStats, setOverallStats] = useState<ProfileOverallStats | null>(null);
+  const [statDetailTarget, setStatDetailTarget] = useState<StatDetailTarget | null>(null);
   const carouselAchievements = useMemo(
     () => sortAchievementsForMeCarousel(allAchievements),
     [allAchievements],
@@ -194,6 +196,15 @@ export function MeScreen({ onOpenSettings, onOpenStat }: MeScreenProps) {
     rank: profileRank,
   };
 
+  function handleStatPress(stat: OverallStat) {
+    if (!stat.metricKey) return;
+    setStatDetailTarget({
+      metricKey: stat.metricKey,
+      label: stat.label,
+      lifetimeValue: stat.unit ? `${stat.value} ${stat.unit}` : stat.value,
+    });
+  }
+
   return (
     <>
       <ScrollView
@@ -227,7 +238,7 @@ export function MeScreen({ onOpenSettings, onOpenStat }: MeScreenProps) {
 
         {overallStats ? (
           <OverallStatsSection
-            onStatPress={onOpenStat}
+            onStatPress={handleStatPress}
             stats={buildOverallStats(overallStats, seasonRecord)}
           />
         ) : null}
@@ -239,6 +250,13 @@ export function MeScreen({ onOpenSettings, onOpenStat }: MeScreenProps) {
         onAchievementPress={handleAchievementPress}
         onClose={() => setViewAllVisible(false)}
         visible={viewAllVisible}
+      />
+
+      <StatDetailDrawer
+        onClose={() => setStatDetailTarget(null)}
+        target={statDetailTarget}
+        userId={userId}
+        visible={statDetailTarget != null}
       />
     </>
   );

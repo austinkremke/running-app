@@ -5,7 +5,6 @@ export { PostRunScreen } from './PostRunScreen';
 export { RunDetailScreen } from './RunDetailScreen';
 export { RunScreen } from './RunScreen';
 export { SoloMatchScreen } from './SoloMatchScreen';
-export { StatDetailScreen, type StatDetailTarget } from './StatDetailScreen';
 export { TeamMatchScreen } from './TeamMatchScreen';
 export { TeamScreen } from './TeamScreen';
 export { TopTeamsScreen } from './TopTeamsScreen';

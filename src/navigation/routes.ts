@@ -5,7 +5,6 @@ import { MeScreen, TeamScreen } from '../screens';
 export type AppRoute =
   | 'feed'
   | 'runDetail'
-  | 'statDetail'
   | 'run'
   | 'match'
   | 'teamMatch'
@@ -27,7 +26,6 @@ type RouteConfig = {
 export const ROUTES: Record<AppRoute, RouteConfig> = {
   feed: { title: 'FEED', showFeedTabs: true, showHeaderBorder: false },
   runDetail: { title: 'RUN', showFeedTabs: false, hideChrome: true },
-  statDetail: { title: 'STAT', showFeedTabs: false, hideChrome: true },
   run: { title: 'RUN', showFeedTabs: false, hideChrome: true },
   match: {
     title: 'MATCHMAKING',
