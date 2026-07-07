@@ -6,7 +6,6 @@ import { RunCardContent } from './RunCardContent';
 import { RunCardEngagement } from './RunCardEngagement';
 import { RunCardHeader } from './RunCardHeader';
 import { RunCardMedia } from './RunCardMedia';
-import { RunCardPaceHighlight } from './RunCardPaceHighlight';
 import { RunCardStats } from './RunCardStats';
 
 type RunCardProps = {
@@ -58,7 +57,6 @@ export function RunCard({
         />
         <RunCardContent description={run.description} title={run.title} />
         <RunCardMedia photoUrl={run.photoUrl} routePoints={run.routePoints} />
-        {run.paceHighlight ? <RunCardPaceHighlight highlight={run.paceHighlight} /> : null}
       </Pressable>
 
       <View style={styles.footerBox}>

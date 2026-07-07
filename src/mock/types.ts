@@ -18,12 +18,6 @@ export type RunStats = {
   durationUnit?: string;
 };
 
-export type RunPaceHighlight = {
-  label: string;
-  value: string;
-  detail: string;
-};
-
 export type Run = {
   id: string;
   user: RunUser;
@@ -34,7 +28,6 @@ export type Run = {
   stats: RunStats;
   routePoints: GpsPoint[];
   photoUrl?: string;
-  paceHighlight?: RunPaceHighlight;
   likes: number;
   comments: number;
   likedByMe: boolean;

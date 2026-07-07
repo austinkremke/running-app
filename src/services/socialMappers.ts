@@ -3,7 +3,7 @@ import type { PostRunSummary, Run, RunStats, Team, TeamLogoAccent, TeamMember, T
 import type { Tables } from '../types/database';
 import { polylineToGpsPoints } from './activityAdapters';
 import { metersToMiles, formatDurationParts, formatPace } from './distanceService';
-import { paceHighlightFromSummary, photoUrlFromPost } from './feedCardPresentation';
+import { photoUrlFromPost } from './feedCardPresentation';
 import type { FeedEngagementSummary } from './feedEngagementService';
 import { levelFromTotalXp } from './levelCurve';
 import { tierFromRating } from './rank/tierFromRating';
@@ -74,7 +74,6 @@ export function mapFeedPostToRun(
       : undefined;
   const audiences = post.audiences ?? ['community'];
   const summary = summaryFromActivity(activity);
-  const paceHighlight = paceHighlightFromSummary(summary);
 
   return {
     id: post.id,
@@ -93,7 +92,6 @@ export function mapFeedPostToRun(
     stats: statsFromActivity(activity),
     routePoints: polylineToGpsPoints(activity.polyline, activity.started_at),
     photoUrl: photoUrlFromPost(post.photo_url, summary),
-    paceHighlight: paceHighlight ?? undefined,
     likes: engagement.likeCount,
     comments: engagement.commentCount,
     likedByMe: engagement.likedByMe,

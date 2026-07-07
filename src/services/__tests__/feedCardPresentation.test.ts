@@ -1,5 +1,5 @@
 import type { PostRunSummary } from '../../mock';
-import { paceHighlightFromSummary, photoUrlFromPost } from '../feedCardPresentation';
+import { photoUrlFromPost } from '../feedCardPresentation';
 
 const summary: PostRunSummary = {
   completedAtLabel: 'Jun 1, 2026',
@@ -26,22 +26,6 @@ const summary: PostRunSummary = {
   },
   chartReferenceLines: {},
 };
-
-describe('paceHighlightFromSummary', () => {
-  it('returns the fastest split from pace chart data', () => {
-    const highlight = paceHighlightFromSummary(summary);
-
-    expect(highlight).toEqual({
-      label: 'Fastest split',
-      value: '7:42 /mi',
-      detail: 'at 1.5 mi',
-    });
-  });
-
-  it('returns null when pace data is missing', () => {
-    expect(paceHighlightFromSummary(null)).toBeNull();
-  });
-});
 
 describe('photoUrlFromPost', () => {
   it('prefers the feed post photo url', () => {
