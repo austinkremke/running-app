@@ -36,6 +36,7 @@ export type {
   MileSplit,
   OverallStat,
   OverallStatLayout,
+  StatMetricKey,
   PostRunChartTab,
   PostRunChartPoint,
   PostRunSummary,

@@ -39,6 +39,7 @@ function buildOverallStats(
       unit: 'mi',
       label: 'Total Distance',
       layout: 'grid',
+      metricKey: 'distance',
     },
     {
       id: 'stat-calories',
@@ -48,6 +49,7 @@ function buildOverallStats(
       unit: 'cal',
       label: 'Calories Burned',
       layout: 'grid',
+      metricKey: 'calories',
     },
     {
       id: 'stat-time',
@@ -57,6 +59,7 @@ function buildOverallStats(
       unit: 'hr',
       label: 'Total Time',
       layout: 'grid',
+      metricKey: 'time',
     },
     {
       id: 'stat-pace',
@@ -66,6 +69,7 @@ function buildOverallStats(
       unit: 'min/mi',
       label: 'Avg Pace',
       layout: 'grid',
+      metricKey: 'pace',
     },
     {
       id: 'stat-elevation',
@@ -75,6 +79,7 @@ function buildOverallStats(
       unit: 'ft',
       label: 'Elevation Gain',
       layout: 'grid',
+      metricKey: 'elevation',
     },
     {
       id: 'stat-runs',
@@ -83,6 +88,7 @@ function buildOverallStats(
       value: String(stats.totalRuns),
       label: 'Total Runs',
       layout: 'grid',
+      metricKey: 'runs',
     },
     {
       id: 'stat-record',
@@ -98,9 +104,10 @@ function buildOverallStats(
 
 type MeScreenProps = {
   onOpenSettings?: () => void;
+  onOpenStat?: (stat: OverallStat) => void;
 };
 
-export function MeScreen({ onOpenSettings }: MeScreenProps) {
+export function MeScreen({ onOpenSettings, onOpenStat }: MeScreenProps) {
   const { gameState } = useAuth();
   const userId = useUserId();
   const { level, experience } = usePlayerProgress();
@@ -219,7 +226,10 @@ export function MeScreen({ onOpenSettings }: MeScreenProps) {
         )}
 
         {overallStats ? (
-          <OverallStatsSection stats={buildOverallStats(overallStats, seasonRecord)} />
+          <OverallStatsSection
+            onStatPress={onOpenStat}
+            stats={buildOverallStats(overallStats, seasonRecord)}
+          />
         ) : null}
         <View style={styles.bottomSpacer} />
       </ScrollView>

@@ -100,7 +100,11 @@ export type OverallStat = {
   label: string;
   sublabel?: string;
   layout?: OverallStatLayout;
+  /** When set, the card is tappable and opens a weekly-trend detail view for this metric. */
+  metricKey?: StatMetricKey;
 };
+
+export type StatMetricKey = 'distance' | 'calories' | 'time' | 'pace' | 'elevation' | 'runs';
 
 export type UserProfile = {
   id: string;
