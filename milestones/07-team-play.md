@@ -1,7 +1,7 @@
 # Team Play — Creation, Management & Team Matchmaking
 
 > **Milestone:** 07  
-> **Status:** In progress — Phase 1–3 shipped (creation/management, team rating, matchmaking queue); Phase 4 scoring/finalize next  
+> **Status:** In progress — Phase 1–4 shipped (creation/management, team rating, matchmaking queue, real activity scoring + finalize/completion); Phase 5 (retire the demo match, full UX polish) next  
 > **Depends on:** [02 Supabase](./02-supabase-backend.md) (Phase C teams + Phase D match shell), [03 XP & rank](./03-xp-and-ranking.md) (rank separation rules), [05 Matchmaking & feed](./05-matchmaking-and-feed.md) (solo queue/Elo/completion patterns to mirror), [06](./06-account-gating-and-cosmetics.md) Phase 4 (`feature_gates` — `create_team` reserved at L10)  
 > **Unblocks:** team challenges, seasonal team leaderboards
 
@@ -68,24 +68,30 @@ Replace the seeded demo team match and mock lineup with a real team lifecycle: *
 - `try_pair_team_queue` mirrors `try_pair_solo_queue`: rating band ±400, same match type, different teams; creates `matches` row (`kind = 'team'`, both `*_team_id`) and `enroll_team_roster` enrolls **all current members of both teams** as `match_participants` with `team_id` + side (roster snapshot at pairing)
 - **Team tab de-mocked** (`TeamMatchTab`): real team summary (name, level, `competitive_rating`) from `useMyTeam`; real match format from `match_types`; **Find Match** via `useTeamMatchmaking` (`teamMatchmakingService`) with searching state + poll; leader/co-leader gating with "only leaders" notice; roster-too-small + no-team empty states. `MOCK_MATCHMAKING` and the lineup picker (`LineupSection` / `AvailableRunnersSection`) removed — top-N scoring needs no pre-match lineup.
 
-**Depends on Phase 4 to complete the loop:** paired team matches have no finalize yet, so they stay `active` until [Phase 4](#phase-4--scoring-finalize--completion) scoring + `finalize_team_match` ship. Away-roster overlay on the active screen is still Phase 5.
-
 **Post-ship fix (`20250705000001_team_3day_top_n_copy.sql`):** the `team_3day` match_types row still had pre-decision copy describing a "lineup" ("Your lineup has 3 days...", "the more miles your lineup covers"), left over from before the top-N scoring decision. Updated `overview` / `scoring_details` to describe the actual rule: everyone on the roster can run, no pre-match lineup, only the team's top 5 point-earners count toward the score. No client change needed — `TeamMatchTab` already renders this row's text dynamically via `fetchTeamMatchType`.
 
-### Phase 4 — Scoring, finalize & completion
+**Post-ship fix (`20250706000001_temp_team_min_roster_1.sql` / rollback):** `team_min_roster_to_queue` temporarily lowered 2 → 1 for 2-phone live testing (paired client-side `TeamMatchTab.MIN_ROSTER`); revert together once testing wraps.
 
-- `credit_match_activity` already keys on `match_participants` — verify team path end-to-end (runs during team match credit personal points)
-- `team_match_score(match_id, side)` SQL helper: sum of **top N** participant points per side (N from `match_types.scoring_top_n`, seeded 5 for `team_3day`)
-- Scoreboard ranks contributors per side and marks who currently counts toward the top-N total
-- `finalize_team_match` on `ends_at` → winner via `team_match_score` → team Elo + season W/L; persist completion payloads for **all members** (mirror `persist_solo_match_completions`); completion drawer via generalized `SoloMatchCompletionProvider` pattern
-- Team forfeit (leader/co-leader, mirror `forfeit_solo_match`) — optional in v1, else backlog
+**Post-ship fix (`20250707000001_activities_select_team_match.sql`):** the active team match screen showed only the viewer's own side (or nothing) — `overlayLiveHomeMembers` in `matchMappers.ts` only overlaid live roster data onto the home side, and RLS (`activities_select_own`) blocked reading teammates'/opponents' `activities` rows entirely. Fixed by generalizing the overlay to both sides (`overlayLiveMembers`, fed by `fetchLiveTeamMembers` for both `home_team_id`/`away_team_id`) and adding a permissive `activities_select_team_match_participants` RLS policy so any match participant can read both rosters' synced runs. Also fixed the scoreboard header (tiny unbordered logos, "LEAD BY 0 PTS" instead of tied, team-name wrap) to reuse `TeamAvatar` with a real `rankTierId` and mirror the solo scoreboard's vertical layout.
+
+### Phase 4 — Scoring, finalize & completion **shipped**
+
+**Shipped (migration `20250707000003_team_match_finalize.sql`):**
+
+- `finalize_team_match(match_id)`: for each side, sums `match_points_for_activity` per teammate over synced `activities` in the match window (`matches.created_at` → `ends_at`), keeps the **top 5 point-earners** (hardcoded N=5, matching the `team_3day` copy — no separate `scoring_top_n` column), and totals those into the team score. Decides win/loss/tie, calls the existing (system-only) `apply_team_elo_match_result_system` on a non-tie, marks the match `completed`, and persists a per-team completion payload (outcome, points, opponent name, rating delta/new rating, season record) into `state_json.completions` keyed by `team_id` — so **either** team's client can read its own result even if it wasn't the device that triggered finalize.
+- `finalize_due_team_matches_for_user(user_id)`: finds the caller's team's active-but-past-`ends_at` matches, finalizes each, and returns the caller's team's completion. Client-only entry point (mirrors `finalize_due_solo_matches_for_user`); `finalize_team_match` itself is not granted to `authenticated`.
+- `get_my_team_match_completions(user_id, limit)`: reads persisted completions from `state_json` for the caller's team, so a device that missed the live finalize (e.g. the losing race in a 2-device test) still sees the drawer next time it polls.
+- Client mirrors the solo stack file-for-file: `teamMatchCompletionBus.ts` / `teamMatchCompletionFlow.ts` / `storage/teamMatchResultStorage.ts` (seen-tracking) / `TeamMatchCompletionContext.tsx` (3s poll + AppState-active + route-visit triggers) / `TeamMatchResultDrawer.tsx` (win/loss/tie, rating delta, season record). Provider mounted in `RootNavigator` alongside `SoloMatchCompletionProvider`.
+- Team forfeit (leader/co-leader, mirror `forfeit_solo_match`) — not shipped, backlog.
+
+**Also shipped alongside (`matchService.ts`):** real scoring/pace/activity feed on the active match screen itself (previously always 0) — computed from the same synced `activities` window, with a "View All" full match activity screen and tap-through to the run detail screen.
 
 ### Phase 5 — Team match UX (retire the demo)
 
-- Active team match screen fully server-backed: both rosters real (drop seeded `state_json` overlay + `MOCK_ACTIVE_TEAM_MATCH` fallback), live contributor scoreboard, countdown; chat + Realtime already work
-- Migration: complete/cancel the seeded Road Warriors vs Pacers demo match (teams remain as real teams)
+- Both rosters real, live contributor scoreboard/scoring, and win/loss/tie completion **shipped ahead of schedule** in Phase 4's post-ship fixes (above) — this phase is now just the remaining cleanup items below.
+- Migration: complete/cancel the seeded Road Warriors vs Pacers demo match (teams remain as real teams); confirm `MOCK_ACTIVE_TEAM_MATCH` fallback in `matchService.ts` is dead code and remove it
 - Team season record card from `team_rank`
-- Tab indicators: `useMatchTabIndicators` already covers active team matches — extend for team queue “searching” state
+- Tab indicators: `useMatchTabIndicators` already covers active team matches — extend for team queue "searching" state
 
 ### Invites & join requests **shipped**
 

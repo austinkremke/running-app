@@ -9,7 +9,14 @@ import {
   TabAppHeader,
 } from '../components/header';
 import { NotificationCenterDrawer } from '../components/notification';
-import { useAuth, useOnboarding, useSoloMatchCompletion, useUserId, useInAppNotification } from '../context';
+import {
+  useAuth,
+  useOnboarding,
+  useSoloMatchCompletion,
+  useTeamMatchCompletion,
+  useUserId,
+  useInAppNotification,
+} from '../context';
 import { useMatchTabIndicators } from '../hooks/useHasActiveMatch';
 import { useTeamNotifications } from '../hooks/useTeamNotifications';
 import type { FeedTab, MatchTab, Run } from '../mock';
@@ -47,6 +54,7 @@ export function AppShell() {
   const userId = useUserId();
   const { shouldOpenSoloMatch, consumeSoloMatchNavigation } = useOnboarding();
   const { syncCompletions } = useSoloMatchCompletion();
+  const { syncCompletions: syncTeamCompletions } = useTeamMatchCompletion();
   const { showMatchTabBadge, showSoloTabBadge } = useMatchTabIndicators();
   const { registerHandlers } = useInAppNotification();
   const {
@@ -85,7 +93,11 @@ export function AppShell() {
     if (activeRoute === 'match' || activeRoute === 'soloMatch') {
       void syncCompletions();
     }
-  }, [activeRoute, syncCompletions]);
+
+    if (activeRoute === 'match' || activeRoute === 'teamMatch') {
+      void syncTeamCompletions();
+    }
+  }, [activeRoute, syncCompletions, syncTeamCompletions]);
 
   useEffect(() => {
     if (!shouldOpenSoloMatch) {

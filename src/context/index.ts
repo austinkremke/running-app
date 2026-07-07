@@ -5,5 +5,6 @@ export { PlayerProgressProvider, usePlayerProgress } from './PlayerProgressConte
 export type { XpGainEvent } from './PlayerProgressContext';
 export { RunProvider, useRun } from './RunContext';
 export { SoloMatchCompletionProvider, useSoloMatchCompletion } from './SoloMatchCompletionContext';
+export { TeamMatchCompletionProvider, useTeamMatchCompletion } from './TeamMatchCompletionContext';
 export { InAppNotificationProvider, useInAppNotification, useInAppNotificationOptional } from './InAppNotificationContext';
 export { XpGainProvider, useXpGain } from './XpGainContext';
