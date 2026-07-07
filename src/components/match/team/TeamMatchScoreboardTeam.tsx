@@ -25,8 +25,6 @@ export function TeamMatchScoreboardTeam({ team, side }: TeamMatchScoreboardTeamP
       <Text numberOfLines={1} style={[styles.teamName, { color: accentColor }]}>
         {team.name.toUpperCase()}
       </Text>
-      <Text style={styles.score}>{formatMatchPoints(team.totalPoints)}</Text>
-      <Text style={styles.pointsLabel}>TOTAL POINTS</Text>
 
       <View style={styles.avatarWrap}>
         <TeamAvatar
@@ -36,6 +34,9 @@ export function TeamMatchScoreboardTeam({ team, side }: TeamMatchScoreboardTeamP
           size={avatarSize}
         />
       </View>
+
+      <Text style={styles.score}>{formatMatchPoints(team.totalPoints)}</Text>
+      <Text style={styles.pointsLabel}>TOTAL POINTS</Text>
     </View>
   );
 }
@@ -74,11 +75,11 @@ const styles = StyleSheet.create({
     fontSize: 8,
     fontWeight: '700',
     letterSpacing: 0.6,
-    marginBottom: spacing.sm,
   },
   avatarWrap: {
     position: 'relative',
     alignItems: 'center',
     overflow: 'visible',
+    marginVertical: 2,
   },
 });

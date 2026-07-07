@@ -69,12 +69,11 @@ const styles = StyleSheet.create({
   },
   teamsRow: {
     flexDirection: 'row',
-    alignItems: 'flex-start',
+    alignItems: 'center',
     gap: spacing.sm,
   },
   vsWrap: {
     width: 36,
-    paddingTop: 42,
   },
   leadRow: {
     flexDirection: 'row',
