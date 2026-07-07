@@ -4,21 +4,97 @@ import { ScrollView, StyleSheet, Text, View } from 'react-native';
 import {
   AchievementsAllModal,
   AchievementsSection,
+  AchievementsSkeleton,
   ExperienceCard,
   OverallStatsSection,
   ProfileTopSection,
   SectionHeader,
 } from '../components/me';
-import { useAuth, usePlayerProgress, useXpGain } from '../context';
+import { useAuth, usePlayerProgress, useUserId, useXpGain } from '../context';
 import { useAchievements } from '../hooks/useAchievements';
 import { useAchievementUnlockPresentation } from '../hooks/useAchievementUnlockPresentation';
 import { useRankDisplay } from '../hooks/useRankDisplay';
-import { MOCK_PROFILE } from '../mock';
+import type { OverallStat } from '../mock';
 import { performAchievementCardAction } from '../services/achievementCardActions';
 import type { AchievementListItem } from '../services/achievementService';
 import { sortAchievementsForMeCarousel } from '../services/achievementService';
+import { formatDurationClock, formatPace } from '../services/distanceService';
+import {
+  fetchProfileOverallStats,
+  type ProfileOverallStats,
+} from '../services/profileStatsService';
 import { fetchTeamNameById } from '../services/teamService';
 import { colors, spacing } from '../theme';
+
+function buildOverallStats(
+  stats: ProfileOverallStats,
+  seasonRecord: { wins: number; losses: number },
+): OverallStat[] {
+  return [
+    {
+      id: 'stat-distance',
+      icon: 'footsteps-outline',
+      iconColor: colors.accentLime,
+      value: stats.totalDistanceMiles.toFixed(1),
+      unit: 'mi',
+      label: 'Total Distance',
+      layout: 'grid',
+    },
+    {
+      id: 'stat-calories',
+      icon: 'flame',
+      iconColor: '#FF8A3D',
+      value: stats.totalCalories.toLocaleString(),
+      unit: 'cal',
+      label: 'Calories Burned',
+      layout: 'grid',
+    },
+    {
+      id: 'stat-time',
+      icon: 'stopwatch-outline',
+      iconColor: colors.accentLime,
+      value: formatDurationClock(stats.totalDurationSeconds),
+      unit: 'hr',
+      label: 'Total Time',
+      layout: 'grid',
+    },
+    {
+      id: 'stat-pace',
+      icon: 'speedometer-outline',
+      iconColor: colors.accentLime,
+      value: stats.avgPaceSecondsPerMile > 0 ? formatPace(stats.avgPaceSecondsPerMile) : '--',
+      unit: 'min/mi',
+      label: 'Avg Pace',
+      layout: 'grid',
+    },
+    {
+      id: 'stat-elevation',
+      icon: 'trending-up',
+      iconColor: colors.accentLime,
+      value: stats.totalElevationGainFt.toLocaleString(),
+      unit: 'ft',
+      label: 'Elevation Gain',
+      layout: 'grid',
+    },
+    {
+      id: 'stat-runs',
+      icon: 'footsteps',
+      iconColor: colors.accentLime,
+      value: String(stats.totalRuns),
+      label: 'Total Runs',
+      layout: 'grid',
+    },
+    {
+      id: 'stat-record',
+      icon: 'trophy',
+      iconColor: colors.accentLime,
+      value: String(seasonRecord.wins),
+      label: 'Match Wins',
+      sublabel: `${seasonRecord.wins} - ${seasonRecord.losses} Record`,
+      layout: 'wide',
+    },
+  ];
+}
 
 type MeScreenProps = {
   onOpenSettings?: () => void;
@@ -26,22 +102,46 @@ type MeScreenProps = {
 
 export function MeScreen({ onOpenSettings }: MeScreenProps) {
   const { gameState } = useAuth();
+  const userId = useUserId();
   const { level, experience } = usePlayerProgress();
   const { showAchievementUnlocks } = useXpGain();
   const { recordEvent } = useAchievementUnlockPresentation();
-  const { profileRank } = useRankDisplay();
+  const { profileRank, seasonRecord } = useRankDisplay();
   const { allAchievements, loading, reload } = useAchievements({
     evaluateOnMount: true,
     onUnlock: showAchievementUnlocks,
   });
   const [viewAllVisible, setViewAllVisible] = useState(false);
   const [teamName, setTeamName] = useState('');
+  const [overallStats, setOverallStats] = useState<ProfileOverallStats | null>(null);
   const carouselAchievements = useMemo(
     () => sortAchievementsForMeCarousel(allAchievements),
     [allAchievements],
   );
 
   const teamId = gameState?.profile.team_id ?? null;
+
+  useEffect(() => {
+    if (!userId) {
+      setOverallStats(null);
+      return;
+    }
+
+    let cancelled = false;
+
+    fetchProfileOverallStats(userId)
+      .then((stats) => {
+        if (!cancelled) setOverallStats(stats);
+      })
+      .catch((error) => {
+        console.warn('Failed to load overall stats', error);
+        if (!cancelled) setOverallStats(null);
+      });
+
+    return () => {
+      cancelled = true;
+    };
+  }, [userId]);
 
   useEffect(() => {
     if (!teamId) {
@@ -79,8 +179,7 @@ export function MeScreen({ onOpenSettings }: MeScreenProps) {
   );
 
   const profile = {
-    ...MOCK_PROFILE,
-    name: gameState?.profile.display_name ?? MOCK_PROFILE.name,
+    name: gameState?.profile.display_name ?? 'Runner',
     avatarUrl: gameState?.profile.avatar_url ?? undefined,
     clanName: teamName,
     level,
@@ -101,7 +200,7 @@ export function MeScreen({ onOpenSettings }: MeScreenProps) {
         </View>
 
         {loading ? (
-          <Text style={styles.loading}>Loading achievements…</Text>
+          <AchievementsSkeleton />
         ) : carouselAchievements.length > 0 ? (
           <AchievementsSection
             achievements={carouselAchievements}
@@ -119,7 +218,9 @@ export function MeScreen({ onOpenSettings }: MeScreenProps) {
           </View>
         )}
 
-        <OverallStatsSection stats={profile.overallStats} />
+        {overallStats ? (
+          <OverallStatsSection stats={buildOverallStats(overallStats, seasonRecord)} />
+        ) : null}
         <View style={styles.bottomSpacer} />
       </ScrollView>
 
@@ -145,11 +246,6 @@ const styles = StyleSheet.create({
   },
   profileGroup: {
     gap: spacing.md,
-  },
-  loading: {
-    color: colors.textSecondary,
-    fontSize: 13,
-    textAlign: 'center',
   },
   emptyAchievements: {
     gap: spacing.xs,
