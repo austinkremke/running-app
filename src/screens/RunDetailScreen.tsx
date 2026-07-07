@@ -114,7 +114,9 @@ export function RunDetailScreen({ run, onBack, onDeleted }: RunDetailScreenProps
     <SafeAreaView edges={['top']} style={styles.container}>
       <View style={styles.header}>
         <HeaderIconButton accessibilityLabel="Go back" icon="chevron-back" onPress={onBack} />
-        <Text style={styles.headerTitle}>RUN</Text>
+        <Text numberOfLines={1} style={styles.headerTitle}>
+          Run by {run.user.name}
+        </Text>
         {isOwner ? (
           <HeaderIconButton
             accessibilityLabel="Delete run"
