@@ -264,37 +264,40 @@ export type Database = {
       }
       feed_posts: {
         Row: {
-          activity_id: string
+          activity_id: string | null
           audiences: string[]
           created_at: string
           description: string
           id: string
           location: string
+          match_id: string | null
           photo_url: string | null
           title: string
-          user_id: string
+          user_id: string | null
         }
         Insert: {
-          activity_id: string
+          activity_id?: string | null
           audiences?: string[]
           created_at?: string
           description?: string
           id?: string
           location?: string
+          match_id?: string | null
           photo_url?: string | null
           title?: string
-          user_id: string
+          user_id?: string | null
         }
         Update: {
-          activity_id?: string
+          activity_id?: string | null
           audiences?: string[]
           created_at?: string
           description?: string
           id?: string
           location?: string
+          match_id?: string | null
           photo_url?: string | null
           title?: string
-          user_id?: string
+          user_id?: string | null
         }
         Relationships: [
           {
@@ -302,6 +305,13 @@ export type Database = {
             columns: ["activity_id"]
             isOneToOne: true
             referencedRelation: "activities"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "feed_posts_match_id_fkey"
+            columns: ["match_id"]
+            isOneToOne: false
+            referencedRelation: "matches"
             referencedColumns: ["id"]
           },
           {

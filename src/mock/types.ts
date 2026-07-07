@@ -34,6 +34,8 @@ export type Run = {
   feedTabs: FeedTab[];
   /** Set when this run counted toward an active/completed match. */
   matchId?: string;
+  /** Raw ISO timestamp — used only to sort mixed feed item types together. */
+  postedAtIso?: string;
 };
 
 export type FeedComment = {
@@ -286,6 +288,24 @@ export type TeamMatchHistoryEntry = {
   homePoints: number;
   awayPoints: number;
   outcome: 'win' | 'loss' | 'tie';
+};
+
+/** A completed team match's feed post — reuses feed_posts likes/comments. */
+export type TeamMatchFeedPost = {
+  /** feed_posts.id — used for likes/comments, same as a run's post id. */
+  id: string;
+  matchId: string;
+  endsAt: string;
+  postedAtIso: string;
+  homeTeam: TeamMatchHistorySide;
+  awayTeam: TeamMatchHistorySide;
+  homePoints: number;
+  awayPoints: number;
+  /** Absolute result (not viewer-relative) — who actually won. */
+  result: 'home' | 'away' | 'tie';
+  likes: number;
+  comments: number;
+  likedByMe: boolean;
 };
 
 export type SoloMatchRunner = {

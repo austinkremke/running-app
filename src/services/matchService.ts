@@ -4,6 +4,7 @@ import type {
   Run,
   TeamLogoAccent,
   TeamMatchActivity,
+  TeamMatchFeedPost,
   TeamMatchHistoryEntry,
   TeamMatchHistorySide,
 } from '../mock';
@@ -13,6 +14,7 @@ import { mapSoloMatchRow, mapTeamMatchRow, isMatchTimerExpired } from './matchMa
 import { matchPointsForActivity } from './match/matchScoring';
 import { finalizeDueSoloMatches } from './matchmakingService';
 import { notifySoloMatchCompletionSync } from './soloMatchCompletionBus';
+import { fetchFeedEngagementSummaries } from './feedEngagementService';
 import { fetchRankTiers } from './rank';
 import { mapRankTierRow, tierFromRating } from './rank/tierFromRating';
 import { formatDurationParts, formatPace, metersToMiles } from './distanceService';
@@ -408,6 +410,85 @@ export async function fetchTeamMatchHistory(
       };
     })
     .filter((entry): entry is TeamMatchHistoryEntry => entry !== null);
+}
+
+export async function fetchTeamMatchFeedPosts(
+  viewerUserId: string | null,
+  limit = 20,
+): Promise<TeamMatchFeedPost[]> {
+  if (!supabase) return [];
+
+  // RLS (feed_posts_select_team_match) already restricts these rows to
+  // matches the viewer's own team was in, or where a friend was a
+  // participant — no client-side scoping needed (unlike run posts, there's
+  // no broader "community" style policy that could also match match_id rows).
+  const { data: posts, error } = await supabase
+    .from('feed_posts')
+    .select('*, matches:match_id (*)')
+    .not('match_id', 'is', null)
+    .order('created_at', { ascending: false })
+    .limit(limit);
+
+  if (error) throw error;
+  if (!posts || posts.length === 0) return [];
+
+  const teamIds = [
+    ...new Set(
+      posts.flatMap((post) => {
+        const match = post.matches as Tables<'matches'> | null;
+        return match ? [match.home_team_id, match.away_team_id] : [];
+      }),
+    ),
+  ].filter((id): id is string => id != null);
+
+  const [{ data: teams, error: teamsError }, engagementByPostId] = await Promise.all([
+    supabase.from('teams').select('*').in('id', teamIds),
+    fetchFeedEngagementSummaries(
+      posts.map((post) => post.id),
+      viewerUserId,
+    ),
+  ]);
+
+  if (teamsError) throw teamsError;
+
+  const teamsById = new Map((teams ?? []).map((team) => [team.id, team]));
+
+  return posts
+    .map((post): TeamMatchFeedPost | null => {
+      const match = post.matches as Tables<'matches'> | null;
+      if (!match || !match.home_team_id || !match.away_team_id) return null;
+
+      const homeTeam = teamsById.get(match.home_team_id);
+      const awayTeam = teamsById.get(match.away_team_id);
+      if (!homeTeam || !awayTeam) return null;
+
+      const state = (match.state_json ?? {}) as {
+        home_points?: number;
+        away_points?: number;
+        result?: 'home' | 'away' | 'tie';
+      };
+      const engagement = engagementByPostId[post.id] ?? {
+        likeCount: 0,
+        commentCount: 0,
+        likedByMe: false,
+      };
+
+      return {
+        id: post.id,
+        matchId: match.id,
+        endsAt: match.ends_at,
+        postedAtIso: post.created_at,
+        homeTeam: toHistorySide(homeTeam),
+        awayTeam: toHistorySide(awayTeam),
+        homePoints: state.home_points ?? 0,
+        awayPoints: state.away_points ?? 0,
+        result: state.result ?? 'tie',
+        likes: engagement.likeCount,
+        comments: engagement.commentCount,
+        likedByMe: engagement.likedByMe,
+      };
+    })
+    .filter((entry): entry is TeamMatchFeedPost => entry !== null);
 }
 
 type SoloMatchEnrollment = {

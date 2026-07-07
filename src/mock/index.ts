@@ -52,6 +52,7 @@ export type {
   TeamMatchActivity,
   TeamMatchChallengeStats,
   TeamMatchCountdown,
+  TeamMatchFeedPost,
   TeamMatchHistoryEntry,
   TeamMatchHistorySide,
   TeamMatchParticipant,

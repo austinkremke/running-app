@@ -89,7 +89,7 @@ activities                    — id, user_id, started_at, ended_at, distance_me
                               — Storage: activities/{user_id}/{activity_id}/track.json
 
 teams / team_members            — logo, tag, motto; one team per user (v1)
-feed_posts                      — activity_id FK, audiences[], caption fields
+feed_posts                      — activity_id FK (nullable) or match_id FK (nullable), exactly one set; audiences[], caption fields
 
 matches / match_participants / match_results
 match_messages                  — match_id, user_id, body, created_at (Realtime chat)
@@ -195,7 +195,7 @@ Full detail: [02-supabase-backend.md](../milestones/02-supabase-backend.md).
 | `activities` | Summary + `polyline` jsonb; RLS includes feed-shared read |
 | `teams` | Seeded `Road Warriors` (`11111111-1111-4111-8111-111111111111`) |
 | `team_members` | Unique `user_id` — one team per user (v1) |
-| `feed_posts` | `audiences text[]`: `community`, `friends`, `team`; unique `activity_id` |
+| `feed_posts` | `audiences text[]`: `community`, `friends`, `team`; unique `activity_id`; OR unique `match_id` for team-match result posts (visibility governed by a dedicated policy, not `audiences`) |
 | `matches` | `kind` team/solo, `state_json` UI shell, `ends_at` for countdown |
 | `match_participants` | `user_id`, `side`, `points`; solo enroll on first view |
 | `solo_match_challenges` | Pending friend 1v1 invites; `status` pending/accepted/declined/cancelled/expired |

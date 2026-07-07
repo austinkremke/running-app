@@ -6,14 +6,16 @@ import {
   FindFriendsDrawer,
   FriendsFindBar,
   RunCard,
+  TeamMatchFeedCard,
 } from '../components/feed';
 import { useAuth } from '../context';
-import type { FeedTab, Run } from '../mock';
+import type { FeedTab, Run, TeamMatchFeedPost } from '../mock';
 import { useAchievementUnlockPresentation } from '../hooks/useAchievementUnlockPresentation';
 import { useFeed } from '../hooks/useFeed';
 import { useFriends } from '../hooks/useFriends';
 import type { FriendSearchResult } from '../services/friendService';
 import { colors, spacing } from '../theme';
+import { formatRelativeTime } from '../utils/formatRelativeTime';
 
 type FeedScreenProps = {
   activeTab: FeedTab;
@@ -23,7 +25,7 @@ type FeedScreenProps = {
 export function FeedScreen({ activeTab, onOpenRun }: FeedScreenProps) {
   const { session } = useAuth();
   const viewerUserId = session?.user?.id ?? null;
-  const { runs, loading, error, refresh, toggleLike, bumpCommentCount, likingPostId } =
+  const { items, loading, error, refresh, toggleLike, bumpCommentCount, likingPostId } =
     useFeed(activeTab);
   const { isFriend, addFriendById } = useFriends();
   const { runEvaluation, recordEvent } = useAchievementUnlockPresentation();
@@ -52,6 +54,24 @@ export function FeedScreen({ activeTab, onOpenRun }: FeedScreenProps) {
     try {
       await Share.share({
         message: `${run.user.name} ran ${run.stats.distanceMiles.toFixed(1)} mi — ${run.title}`,
+      });
+      await recordEvent('share_feed_post');
+    } catch (shareError) {
+      if (shareError instanceof Error && shareError.message.includes('User did not share')) {
+        return;
+      }
+      console.warn('Share failed', shareError);
+    }
+  }
+
+  async function handleShareMatch(post: TeamMatchFeedPost) {
+    try {
+      const headline =
+        post.result === 'tie'
+          ? `${post.homeTeam.name} Tied ${post.awayTeam.name}`
+          : `${post.result === 'home' ? post.homeTeam.name : post.awayTeam.name} Defeated ${post.result === 'home' ? post.awayTeam.name : post.homeTeam.name}`;
+      await Share.share({
+        message: `${headline} (${post.homePoints} - ${post.awayPoints})`,
       });
       await recordEvent('share_feed_post');
     } catch (shareError) {
@@ -111,8 +131,8 @@ export function FeedScreen({ activeTab, onOpenRun }: FeedScreenProps) {
   return (
     <>
       <FlatList
-        contentContainerStyle={[styles.content, runs.length === 0 && styles.emptyContent]}
-        data={runs}
+        contentContainerStyle={[styles.content, items.length === 0 && styles.emptyContent]}
+        data={items}
         keyExtractor={(item) => item.id}
         ListEmptyComponent={
           <View style={styles.emptyState}>
@@ -128,26 +148,41 @@ export function FeedScreen({ activeTab, onOpenRun }: FeedScreenProps) {
             />
           ) : null
         }
-        renderItem={({ item }) => (
-          <RunCard
-            addFriendDisabled={addingFriendId === item.user.id}
-            engagementDisabled={likingPostId === item.id}
-            isFriend={isFriend(item.user.id)}
-            onAddFriend={() => {
-              void handleAddFriend(item);
-            }}
-            onOpenComments={() => setCommentsPostId(item.id)}
-            onOpenDetail={onOpenRun ? () => onOpenRun(item) : undefined}
-            onShare={() => {
-              void handleShare(item);
-            }}
-            onToggleLike={() => {
-              void handleToggleLike(item.id);
-            }}
-            run={item}
-            viewerUserId={viewerUserId}
-          />
-        )}
+        renderItem={({ item }) =>
+          item.kind === 'match' ? (
+            <TeamMatchFeedCard
+              engagementDisabled={likingPostId === item.id}
+              onOpenComments={() => setCommentsPostId(item.id)}
+              onShare={() => {
+                void handleShareMatch(item.post);
+              }}
+              onToggleLike={() => {
+                void handleToggleLike(item.id);
+              }}
+              post={item.post}
+              postedAt={formatRelativeTime(item.post.postedAtIso)}
+            />
+          ) : (
+            <RunCard
+              addFriendDisabled={addingFriendId === item.run.user.id}
+              engagementDisabled={likingPostId === item.id}
+              isFriend={isFriend(item.run.user.id)}
+              onAddFriend={() => {
+                void handleAddFriend(item.run);
+              }}
+              onOpenComments={() => setCommentsPostId(item.id)}
+              onOpenDetail={onOpenRun ? () => onOpenRun(item.run) : undefined}
+              onShare={() => {
+                void handleShare(item.run);
+              }}
+              onToggleLike={() => {
+                void handleToggleLike(item.id);
+              }}
+              run={item.run}
+              viewerUserId={viewerUserId}
+            />
+          )
+        }
         showsVerticalScrollIndicator={false}
         style={styles.list}
       />

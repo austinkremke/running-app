@@ -94,6 +94,7 @@ export function mapFeedPostToRun(
     description: post.description,
     location: post.location,
     postedAt: formatRelativeTime(post.created_at),
+    postedAtIso: post.created_at,
     stats: statsFromActivity(activity),
     routePoints: polylineToGpsPoints(activity.polyline, activity.started_at),
     photoUrl: photoUrlFromPost(post.photo_url, summary),
