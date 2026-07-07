@@ -1,23 +1,30 @@
 import { Ionicons } from '@expo/vector-icons';
 import { ActivityIndicator, Pressable, StyleSheet, Text, View } from 'react-native';
 
-import type { Run } from '../../mock';
+import type { Run, TeamMatchHistoryEntry } from '../../mock';
 import { colors, spacing } from '../../theme';
+import { TeamActivityMatchRow } from './TeamActivityMatchRow';
 import { TeamActivityRunRow } from './TeamActivityRunRow';
 
 type TeamActivitySectionProps = {
   runs: Run[];
+  matchHistory?: TeamMatchHistoryEntry[];
   loading?: boolean;
   onRunPress?: (run: Run) => void;
+  onMatchPress?: (match: TeamMatchHistoryEntry) => void;
   onViewAll?: () => void;
 };
 
 export function TeamActivitySection({
   runs,
+  matchHistory = [],
   loading = false,
   onRunPress,
+  onMatchPress,
   onViewAll,
 }: TeamActivitySectionProps) {
+  const isEmpty = runs.length === 0 && matchHistory.length === 0;
+
   return (
     <View style={styles.container}>
       <View style={styles.header}>
@@ -32,12 +39,20 @@ export function TeamActivitySection({
         <View style={styles.loadingBox}>
           <ActivityIndicator color={colors.accentLime} />
         </View>
-      ) : runs.length === 0 ? (
+      ) : isEmpty ? (
         <View style={styles.emptyBox}>
           <Text style={styles.emptyText}>No team runs yet. Be the first to post one.</Text>
         </View>
       ) : (
         <View style={styles.list}>
+          {matchHistory.map((match, index) => (
+            <TeamActivityMatchRow
+              key={match.id}
+              match={match}
+              onPress={onMatchPress ? () => onMatchPress(match) : undefined}
+              showDivider={index < matchHistory.length - 1 || runs.length > 0}
+            />
+          ))}
           {runs.map((run, index) => (
             <TeamActivityRunRow
               key={run.id}

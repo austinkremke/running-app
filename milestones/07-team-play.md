@@ -86,6 +86,10 @@ Replace the seeded demo team match and mock lineup with a real team lifecycle: *
 
 **Also shipped alongside (`matchService.ts`):** real scoring/pace/activity feed on the active match screen itself (previously always 0) — computed from the same synced `activities` window, with a "View All" full match activity screen and tap-through to the run detail screen.
 
+**Post-ship fix (`20250707000006_fix_finalize_team_match_cast.sql`):** `finalize_team_match` never actually finalized any match — `match_points_for_activity(numeric, numeric)` was called with `activities.distance_meters` (`double precision`) and `duration_seconds` (`integer`) with no cast; Postgres only allows an *assignment* cast float8→numeric, not an *implicit* one, so the call threw `function does not exist` every time, silently rolling back the whole transaction (status, Elo, completion) and leaving the match `active` forever with no drawer and no rating change. Looked like a permissions bug (mirroring an old solo-match issue) but wasn't — fixed with explicit `::numeric` casts, verified read-only against a live stuck match before shipping.
+
+**Also shipped:** completed team matches now show up as rows in the Team Activity section on the Team screen (`fetchTeamMatchHistory` in `matchService.ts` + `TeamActivityMatchRow.tsx`) — both teams' logos, names, final score, and a win/loss/tie badge relative to the viewer's team, read directly from `matches` (RLS already allowed team members to read any match, completed or not, via `can_view_match`) rather than the per-team `state_json.completions` payload.
+
 ### Phase 5 — Team match UX (retire the demo)
 
 - Both rosters real, live contributor scoreboard/scoring, and win/loss/tie completion **shipped ahead of schedule** in Phase 4's post-ship fixes (above) — this phase is now just the remaining cleanup items below.

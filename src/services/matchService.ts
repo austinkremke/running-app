@@ -1,4 +1,12 @@
-import type { ActiveSoloMatch, ActiveTeamMatch, Run, TeamMatchActivity } from '../mock';
+import type {
+  ActiveSoloMatch,
+  ActiveTeamMatch,
+  Run,
+  TeamLogoAccent,
+  TeamMatchActivity,
+  TeamMatchHistoryEntry,
+  TeamMatchHistorySide,
+} from '../mock';
 import { MOCK_ACTIVE_SOLO_MATCH } from '../mock/soloActiveMatch';
 import type { Tables } from '../types/database';
 import { mapSoloMatchRow, mapTeamMatchRow, isMatchTimerExpired } from './matchMappers';
@@ -316,6 +324,90 @@ export async function fetchActiveTeamMatch(userId: string): Promise<ActiveTeamMa
     awayRankTierId,
     activityFeed,
   );
+}
+
+const HISTORY_LOGO_ACCENTS = new Set<TeamLogoAccent>([
+  'lime',
+  'purple',
+  'gold',
+  'silver',
+  'cyan',
+  'blue',
+]);
+
+function asHistoryLogoAccent(value: string | null | undefined): TeamLogoAccent {
+  return HISTORY_LOGO_ACCENTS.has(value as TeamLogoAccent) ? (value as TeamLogoAccent) : 'lime';
+}
+
+function toHistorySide(team: Tables<'teams'>): TeamMatchHistorySide {
+  return {
+    id: team.id,
+    name: team.name,
+    accent: asHistoryLogoAccent(team.logo_accent),
+    shieldIcon: team.logo_icon,
+  };
+}
+
+export async function fetchTeamMatchHistory(
+  teamId: string,
+  limit = 10,
+): Promise<TeamMatchHistoryEntry[]> {
+  if (!supabase) return [];
+
+  const { data: matches, error } = await supabase
+    .from('matches')
+    .select('*')
+    .eq('kind', 'team')
+    .eq('status', 'completed')
+    .or(`home_team_id.eq.${teamId},away_team_id.eq.${teamId}`)
+    .order('ends_at', { ascending: false })
+    .limit(limit);
+
+  if (error) throw error;
+  if (!matches || matches.length === 0) return [];
+
+  const teamIds = [
+    ...new Set(matches.flatMap((match) => [match.home_team_id, match.away_team_id])),
+  ].filter((id): id is string => id != null);
+
+  const { data: teams, error: teamsError } = await supabase
+    .from('teams')
+    .select('*')
+    .in('id', teamIds);
+
+  if (teamsError) throw teamsError;
+
+  const teamsById = new Map((teams ?? []).map((team) => [team.id, team]));
+
+  return matches
+    .map((match): TeamMatchHistoryEntry | null => {
+      const homeTeam = match.home_team_id ? teamsById.get(match.home_team_id) : null;
+      const awayTeam = match.away_team_id ? teamsById.get(match.away_team_id) : null;
+      if (!homeTeam || !awayTeam) return null;
+
+      const state = (match.state_json ?? {}) as {
+        home_points?: number;
+        away_points?: number;
+        result?: 'home' | 'away' | 'tie';
+      };
+      const homePoints = state.home_points ?? 0;
+      const awayPoints = state.away_points ?? 0;
+      const isHomeViewer = homeTeam.id === teamId;
+      const viewerWon = isHomeViewer ? state.result === 'home' : state.result === 'away';
+      const outcome: TeamMatchHistoryEntry['outcome'] =
+        state.result === 'tie' ? 'tie' : viewerWon ? 'win' : 'loss';
+
+      return {
+        id: match.id,
+        endsAt: match.ends_at,
+        homeTeam: toHistorySide(homeTeam),
+        awayTeam: toHistorySide(awayTeam),
+        homePoints,
+        awayPoints,
+        outcome,
+      };
+    })
+    .filter((entry): entry is TeamMatchHistoryEntry => entry !== null);
 }
 
 type SoloMatchEnrollment = {

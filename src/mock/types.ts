@@ -270,6 +270,24 @@ export type ActiveTeamMatch = {
   activities: TeamMatchActivity[];
 };
 
+export type TeamMatchHistorySide = {
+  id: string;
+  name: string;
+  accent: TeamLogoAccent;
+  shieldIcon: string;
+  rankTierId?: string;
+};
+
+export type TeamMatchHistoryEntry = {
+  id: string;
+  endsAt: string;
+  homeTeam: TeamMatchHistorySide;
+  awayTeam: TeamMatchHistorySide;
+  homePoints: number;
+  awayPoints: number;
+  outcome: 'win' | 'loss' | 'tie';
+};
+
 export type SoloMatchRunner = {
   id: string;
   name: string;

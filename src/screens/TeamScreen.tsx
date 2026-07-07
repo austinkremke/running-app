@@ -15,8 +15,9 @@ import { useAuth, useUserId } from '../context';
 import { useAchievementUnlockPresentation } from '../hooks/useAchievementUnlockPresentation';
 import { useFeatureGate } from '../hooks/useFeatureGate';
 import { useMyTeam } from '../hooks/useMyTeam';
-import type { Run, TeamMember, TopTeamListing } from '../mock';
+import type { Run, TeamMatchHistoryEntry, TeamMember, TopTeamListing } from '../mock';
 import { fetchFeedPosts } from '../services/feedService';
+import { fetchTeamMatchHistory } from '../services/matchService';
 import {
   createTeam,
   demoteMember,
@@ -57,6 +58,7 @@ export function TeamScreen({ onOpenTopTeams, onOpenRun, onViewAllActivity }: Tea
   const [requestedTeamIds, setRequestedTeamIds] = useState<Set<string>>(new Set());
   const [teamActivity, setTeamActivity] = useState<Run[]>([]);
   const [teamActivityLoading, setTeamActivityLoading] = useState(false);
+  const [teamMatchHistory, setTeamMatchHistory] = useState<TeamMatchHistoryEntry[]>([]);
 
   const viewerRole = team?.members.find((member) => member.id === userId)?.role;
   const canManageRoster = viewerRole === 'leader' || viewerRole === 'co-leader';
@@ -109,6 +111,27 @@ export function TeamScreen({ onOpenTopTeams, onOpenRun, onViewAllActivity }: Tea
       cancelled = true;
     };
   }, [team, userId]);
+
+  useEffect(() => {
+    if (!team) {
+      setTeamMatchHistory([]);
+      return;
+    }
+
+    let cancelled = false;
+
+    fetchTeamMatchHistory(team.id, TEAM_ACTIVITY_LIMIT)
+      .then((history) => {
+        if (!cancelled) setTeamMatchHistory(history);
+      })
+      .catch(() => {
+        if (!cancelled) setTeamMatchHistory([]);
+      });
+
+    return () => {
+      cancelled = true;
+    };
+  }, [team]);
 
   async function refreshAll() {
     await refreshGameState();
@@ -358,6 +381,7 @@ export function TeamScreen({ onOpenTopTeams, onOpenRun, onViewAllActivity }: Tea
         />
         <TeamActivitySection
           loading={teamActivityLoading}
+          matchHistory={teamMatchHistory}
           onRunPress={onOpenRun}
           onViewAll={onViewAllActivity}
           runs={teamActivity}
