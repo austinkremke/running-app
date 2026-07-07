@@ -3,6 +3,7 @@ import { ActivityIndicator, ScrollView, StyleSheet, Text, View } from 'react-nat
 
 import type { TeamMatchFormat } from '../../mock';
 import { useUserId } from '../../context';
+import { useActiveTeamMatch } from '../../hooks/useActiveTeamMatch';
 import { useMyTeam } from '../../hooks/useMyTeam';
 import { useTeamMatchmaking } from '../../hooks/useTeamMatchmaking';
 import { fetchTeamMatchType } from '../../services/matchService';
@@ -11,7 +12,7 @@ import { FindMatchButton } from './FindMatchButton';
 import { MatchFormatCard } from './MatchFormatCard';
 import { MatchTeamSummaryCard } from './MatchTeamSummaryCard';
 import { SearchingForTeamCard } from './SearchingForTeamCard';
-import { TeamMatchPreviewButton } from './team/TeamMatchPreviewButton';
+import { TeamMatchPreviewCard } from './team/TeamMatchPreviewCard';
 
 type TeamMatchTabProps = {
   onViewActiveMatch?: () => void;
@@ -36,6 +37,7 @@ export function TeamMatchTab({ onViewActiveMatch }: TeamMatchTabProps) {
     refresh,
     error,
   } = useTeamMatchmaking();
+  const { match: activeMatch } = useActiveTeamMatch();
   const [matchFormat, setMatchFormat] = useState<TeamMatchFormat | null>(null);
 
   useEffect(() => {
@@ -105,7 +107,9 @@ export function TeamMatchTab({ onViewActiveMatch }: TeamMatchTabProps) {
           teamName={team.name}
         />
 
-        {showActiveMatchButton ? <TeamMatchPreviewButton onPress={onViewActiveMatch} /> : null}
+        {showActiveMatchButton && activeMatch ? (
+          <TeamMatchPreviewCard match={activeMatch} onPress={onViewActiveMatch} />
+        ) : null}
 
         {isSearching ? (
           <SearchingForTeamCard onCancel={() => void cancelSearch()} />
