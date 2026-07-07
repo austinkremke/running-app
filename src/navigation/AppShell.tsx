@@ -15,6 +15,7 @@ import { useTeamNotifications } from '../hooks/useTeamNotifications';
 import type { FeedTab, MatchTab, Run } from '../mock';
 import { initialsFromDisplayName } from '../services/profileAvatar';
 import { openSoloMatchMenu } from '../services/soloMatchMenuBus';
+import { openTeamMenu } from '../services/teamMenuBus';
 import { fetchActiveSoloMatchId } from '../services/matchService';
 import { getSoloMatchmakingStatus } from '../services/matchmakingService';
 import { FeedScreen } from '../screens/FeedScreen';
@@ -337,7 +338,17 @@ export function AppShell() {
       );
     }
 
-    if (activeRoute === 'me' || activeRoute === 'team') {
+    if (activeRoute === 'team') {
+      return (
+        <HeaderIconButton
+          accessibilityLabel="Team options"
+          icon="ellipsis-vertical"
+          onPress={openTeamMenu}
+        />
+      );
+    }
+
+    if (activeRoute === 'me') {
       return (
         <HeaderIconButton
           accessibilityLabel="Settings"

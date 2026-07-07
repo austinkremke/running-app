@@ -4,7 +4,6 @@ export { TeamFormDrawer, type TeamFormValues } from './TeamFormDrawer';
 export { TeamJoinPrompt } from './TeamJoinPrompt';
 export { TeamLogo } from './TeamLogo';
 export { InviteToTeamDrawer } from './InviteToTeamDrawer';
-export { TeamManageSection } from './TeamManageSection';
 export { TeamMembersSection } from './TeamMembersSection';
 export { TeamStatsSection } from './TeamStatsSection';
 export { TeamTopSection } from './TeamTopSection';

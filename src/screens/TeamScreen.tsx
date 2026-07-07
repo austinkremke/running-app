@@ -6,7 +6,6 @@ import {
   TeamActivitySection,
   TeamFormDrawer,
   TeamJoinPrompt,
-  TeamManageSection,
   TeamMembersSection,
   TeamStatsSection,
   TeamTopSection,
@@ -30,6 +29,7 @@ import {
 } from '../services/teamService';
 import { requestToJoinTeam } from '../services/teamMembershipService';
 import { notifyTeamNotificationsChanged } from '../services/teamNotificationBus';
+import { registerTeamMenuListener } from '../services/teamMenuBus';
 import { colors, spacing } from '../theme';
 
 type TeamScreenProps = {
@@ -221,6 +221,46 @@ export function TeamScreen({ onOpenTopTeams }: TeamScreenProps) {
     );
   }
 
+  function handleOpenTeamMenu() {
+    if (!team) return;
+
+    const canEdit = viewerRole === 'leader' || viewerRole === 'co-leader';
+    const isLeader = viewerRole === 'leader';
+    const options: { text: string; style?: 'destructive' | 'cancel'; onPress?: () => void }[] = [];
+
+    if (canEdit) {
+      options.push({
+        text: 'Edit Team',
+        onPress: () => {
+          setFormMode('edit');
+          setFormVisible(true);
+        },
+      });
+    }
+
+    if (isLeader) {
+      options.push({
+        text: 'Disband Team',
+        style: 'destructive',
+        onPress: handleDisbandTeam,
+      });
+    }
+
+    options.push({
+      text: 'Leave Team',
+      style: 'destructive',
+      onPress: handleLeaveTeam,
+    });
+    options.push({ text: 'Cancel', style: 'cancel' });
+
+    Alert.alert(team.name, undefined, options);
+  }
+
+  useEffect(() => {
+    registerTeamMenuListener(team ? handleOpenTeamMenu : null);
+    return () => registerTeamMenuListener(null);
+  });
+
   if (loading) {
     return (
       <View style={styles.centered}>
@@ -283,15 +323,6 @@ export function TeamScreen({ onOpenTopTeams }: TeamScreenProps) {
           members={team.members}
           onInvitePress={canManageRoster ? () => setInviteVisible(true) : undefined}
           onMemberOptionsPress={canManageRoster ? handleMemberOptions : undefined}
-        />
-        <TeamManageSection
-          onDisbandTeam={handleDisbandTeam}
-          onEditTeam={() => {
-            setFormMode('edit');
-            setFormVisible(true);
-          }}
-          onLeaveTeam={handleLeaveTeam}
-          role={viewerRole}
         />
         <TeamActivitySection activities={team.activities} />
         <View style={styles.bottomSpacer} />
