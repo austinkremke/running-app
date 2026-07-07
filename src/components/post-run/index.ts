@@ -6,3 +6,4 @@ export { MileSplitsSection } from './MileSplitsSection';
 export { PostRunMediaCarousel } from './PostRunMediaCarousel';
 export { PostRunPrimaryStats } from './PostRunPrimaryStats';
 export { PostRunTestButton } from './PostRunTestButton';
+export { PostRunTitleInput, RUN_TITLE_MAX_LENGTH } from './PostRunTitleInput';

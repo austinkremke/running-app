@@ -77,7 +77,7 @@ export function RunScreen({ onBack }: RunScreenProps) {
     }
   }
 
-  async function handleAddToFeed() {
+  async function handleAddToFeed(title: string) {
     const finishedRun = lastFinishedRun;
     const activityId = finishedRun?.session.id;
     const userId = session?.user?.id ?? gameState?.profile.id;
@@ -101,6 +101,7 @@ export function RunScreen({ onBack }: RunScreenProps) {
       await publishActivityToFeed({
         userId,
         activityId,
+        title,
         audiences,
       });
     } catch (error) {

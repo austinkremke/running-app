@@ -1,3 +1,4 @@
+import { useState } from 'react';
 import { ScrollView, StyleSheet } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
@@ -9,6 +10,7 @@ import {
   PostRunHeader,
   PostRunMediaCarousel,
   PostRunPrimaryStats,
+  PostRunTitleInput,
 } from '../components/post-run';
 import { colors, spacing } from '../theme';
 
@@ -16,10 +18,11 @@ type PostRunScreenProps = {
   summary: PostRunSummary;
   routePoints: GpsPoint[];
   onBack?: () => void;
-  onAddToFeed?: () => void;
+  onAddToFeed?: (title: string) => void;
 };
 
 export function PostRunScreen({ summary, routePoints, onBack, onAddToFeed }: PostRunScreenProps) {
+  const [title, setTitle] = useState('');
   const primaryStats = [
     {
       label: 'DISTANCE',
@@ -67,9 +70,10 @@ export function PostRunScreen({ summary, routePoints, onBack, onAddToFeed }: Pos
           routePoints={routePoints}
           weatherTempF={summary.weatherTempF}
         />
+        <PostRunTitleInput onChangeText={setTitle} value={title} />
         <PostRunPrimaryStats stats={primaryStats} />
         <PostRunChartSection summary={summary} />
-        <PostRunFooter onAddToFeed={onAddToFeed} />
+        <PostRunFooter onAddToFeed={onAddToFeed ? () => onAddToFeed(title.trim()) : undefined} />
       </ScrollView>
     </SafeAreaView>
   );
