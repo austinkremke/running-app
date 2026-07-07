@@ -70,6 +70,8 @@ Replace the seeded demo team match and mock lineup with a real team lifecycle: *
 
 **Depends on Phase 4 to complete the loop:** paired team matches have no finalize yet, so they stay `active` until [Phase 4](#phase-4--scoring-finalize--completion) scoring + `finalize_team_match` ship. Away-roster overlay on the active screen is still Phase 5.
 
+**Post-ship fix (`20250705000001_team_3day_top_n_copy.sql`):** the `team_3day` match_types row still had pre-decision copy describing a "lineup" ("Your lineup has 3 days...", "the more miles your lineup covers"), left over from before the top-N scoring decision. Updated `overview` / `scoring_details` to describe the actual rule: everyone on the roster can run, no pre-match lineup, only the team's top 5 point-earners count toward the score. No client change needed — `TeamMatchTab` already renders this row's text dynamically via `fetchTeamMatchType`.
+
 ### Phase 4 — Scoring, finalize & completion
 
 - `credit_match_activity` already keys on `match_participants` — verify team path end-to-end (runs during team match credit personal points)

@@ -137,7 +137,8 @@ team_membership_requests        — team_id, kind (invite|request), user_id, cre
 **07 Phase 2:** `20250703000002_team_rank_and_stats.sql` — `team_rank` + provisioning trigger/backfill; `apply_team_elo_match_result_system`; `get_team_overview` / `list_top_teams` RPCs.  
 **07 Phase 3:** `20250703000003_team_matchmaking.sql` — `team_match_queue`; `enqueue_team_matchmaking` / `cancel_team_matchmaking` / `get_team_matchmaking_status`; `try_pair_team_queue` + `enroll_team_roster` (roster snapshot at pairing).  
 **07 invites/requests:** `20250703000004_team_membership_requests.sql` — `team_membership_requests`; `invite_to_team` / `request_to_join_team` / `respond_to_team_invite` / `respond_to_join_request` / `cancel_team_membership_request` / `get_team_notifications` / `has_team_notifications`.  
-**08 run detail:** `20250704000001_delete_activity.sql` — `delete_activity` RPC (own activity; cascades feed post + match credits). Mile splits ride in `activities.summary_json.splits` (no schema change).
+**08 run detail:** `20250704000001_delete_activity.sql` — `delete_activity` RPC (own activity; cascades feed post + match credits). Mile splits ride in `activities.summary_json.splits` (no schema change).  
+**07 copy fix:** `20250705000001_team_3day_top_n_copy.sql` — updates `match_types` (`team_3day`) `overview`/`scoring_details` to describe top-N contributor scoring instead of the pre-decision "lineup" copy.
 
 Storage buckets: `activities` (private tracks), `avatars` (public profile photos).
 
