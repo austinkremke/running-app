@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState, type ComponentType } from 'react';
+import { useState, type ComponentType } from 'react';
 import { Pressable, StyleSheet, Text, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
@@ -12,13 +12,13 @@ import {
   RankProgressDemo,
   TeamLeaderboardDemo,
 } from '../../components/onboarding/tutorial';
+import { OnboardingPrimaryButton } from '../../components/onboarding';
 import { colors, spacing } from '../../theme';
 
 type TutorialStep = {
   key: string;
   headline: string;
   supportingCopy: string;
-  autoAdvanceMs: number | null;
   Visual: ComponentType;
 };
 
@@ -27,35 +27,30 @@ const STEPS: TutorialStep[] = [
     key: 'hook',
     headline: 'Welcome to Run Off',
     supportingCopy: 'Every run is a matchup.',
-    autoAdvanceMs: 4200,
     Visual: MatchupHookVisual,
   },
   {
     key: 'matchmaking',
     headline: 'Get matched by skill',
     supportingCopy: 'Enter a Run Off and face a runner near your power ranking.',
-    autoAdvanceMs: 3600,
     Visual: MatchmakingDemoCard,
   },
   {
     key: 'scoring',
     headline: 'Outscore your opponent',
     supportingCopy: 'Run farther, keep your pace up, and build your score before time expires.',
-    autoAdvanceMs: 4200,
     Visual: HeadToHeadScoreDemo,
   },
   {
     key: 'ranking',
     headline: 'Climb the ranks',
     supportingCopy: 'Wins increase your power ranking and move you toward the next tier.',
-    autoAdvanceMs: 3600,
     Visual: RankProgressDemo,
   },
   {
     key: 'teams',
     headline: 'Run with a squad',
     supportingCopy: 'Join a team, contribute points, and compete on the leaderboard.',
-    autoAdvanceMs: 3400,
     Visual: TeamLeaderboardDemo,
   },
 ];
@@ -75,28 +70,7 @@ export function OnboardingTutorialScreen({
   onSkip,
 }: OnboardingTutorialScreenProps) {
   const [stepIndex, setStepIndex] = useState(0);
-  const timerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const isFinalStep = stepIndex >= STEPS.length;
-
-  useEffect(() => {
-    if (timerRef.current) {
-      clearTimeout(timerRef.current);
-      timerRef.current = null;
-    }
-
-    if (isFinalStep) return;
-
-    const current = STEPS[stepIndex];
-    if (current.autoAdvanceMs == null) return;
-
-    timerRef.current = setTimeout(() => {
-      setStepIndex((previous) => Math.min(previous + 1, STEPS.length));
-    }, current.autoAdvanceMs);
-
-    return () => {
-      if (timerRef.current) clearTimeout(timerRef.current);
-    };
-  }, [stepIndex, isFinalStep]);
 
   function advance() {
     setStepIndex((previous) => Math.min(previous + 1, STEPS.length));
@@ -138,15 +112,16 @@ export function OnboardingTutorialScreen({
         </Pressable>
       </View>
 
-      <Pressable onPress={advance} style={styles.tapArea}>
-        <OnboardingStepContainer
-          headline={step.headline}
-          stepKey={step.key}
-          supportingCopy={step.supportingCopy}
-        >
-          <Visual />
-        </OnboardingStepContainer>
-      </Pressable>
+      <OnboardingStepContainer
+        footer={
+          <OnboardingPrimaryButton label="Next" onPress={advance} />
+        }
+        headline={step.headline}
+        stepKey={step.key}
+        supportingCopy={step.supportingCopy}
+      >
+        <Visual />
+      </OnboardingStepContainer>
 
       {previewMode ? (
         <View style={styles.previewBadge}>
@@ -177,9 +152,6 @@ const styles = StyleSheet.create({
     color: colors.textSecondary,
     fontSize: 13,
     fontWeight: '700',
-  },
-  tapArea: {
-    flex: 1,
   },
   ctaVisual: {
     flex: 1,
