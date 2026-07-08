@@ -3,12 +3,12 @@ import { Animated, Pressable, StyleSheet, Text, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import {
+  ClimbRanksVisual,
   FindMatchVisual,
   OnboardingCTA,
   OnboardingProgressIndicator,
   OnboardingStepContainer,
   OutscoreOpponentVisual,
-  RankProgressDemo,
   TeamLeaderboardDemo,
 } from '../../components/onboarding/tutorial';
 import { OnboardingPrimaryButton } from '../../components/onboarding';
@@ -41,9 +41,10 @@ const STEPS: TutorialStep[] = [
   },
   {
     key: 'ranking',
-    headline: 'Climb the ranks',
-    supportingCopy: 'Wins increase your power ranking and move you toward the next tier.',
-    Visual: RankProgressDemo,
+    headline: 'Climb the Ranks',
+    supportingCopy: 'Wins increase your power rankings and move you towards the next tier.',
+    Visual: ClimbRanksVisual,
+    requiresReady: true,
   },
   {
     key: 'teams',
