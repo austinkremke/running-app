@@ -39,9 +39,9 @@ export const TUTORIAL_SCORING = {
 export const TUTORIAL_RESULT = {
   userScore: 428,
   opponentScore: 391,
-  powerGain: 32,
-  previousPower: 1842,
-  newPower: 1874,
+  powerGain: 50,
+  previousPower: 1350,
+  newPower: 1400,
   rankProgress: 0.62,
 };
 

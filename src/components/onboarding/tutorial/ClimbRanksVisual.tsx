@@ -1,23 +1,21 @@
 import { useEffect, useRef, useState } from 'react';
 import { Animated, StyleSheet, Text, View } from 'react-native';
 
-import { TUTORIAL_USER } from '../../../config/onboardingTutorialData';
+import { TUTORIAL_RESULT, TUTORIAL_USER } from '../../../config/onboardingTutorialData';
 import { colors, spacing } from '../../../theme';
 import { RankBorderAvatar } from '../../team/RankBorderAvatar';
-import { AnimatedXpProgressBar } from '../../xp/AnimatedXpProgressBar';
 import { ConfettiBurst } from '../../xp/ConfettiBurst';
 import { XpLevelUpBanner } from '../../xp/XpLevelUpBanner';
 
 const VICTORY_DELAY_MS = 2000;
 const VICTORY_FADE_MS = 300;
 const CELEBRATION_DELAY_MS = 400;
-const BAR_FILL_MS = 900;
+const POWER_TICK_MS = 900;
 const BORDER_CROSSFADE_MS = 600;
-const RANK_PROGRESS = 0.68;
 const AVATAR_SIZE = 96;
 // Reserves the banner's rendered footprint up front so it doesn't shift
 // layout when it mounts (XpLevelUpBanner returns null while !visible).
-const BANNER_SLOT_HEIGHT = 74;
+const BANNER_SLOT_HEIGHT = 56;
 
 function delay(ms: number): Promise<void> {
   return new Promise((resolve) => setTimeout(resolve, ms));
@@ -29,16 +27,28 @@ function animateTo(value: Animated.Value, toValue: number, duration: number, use
   });
 }
 
+function tweenValue(from: number, to: number, duration: number, onUpdate: (value: number) => void): Promise<void> {
+  return new Promise((resolve) => {
+    const value = new Animated.Value(from);
+    const listenerId = value.addListener(({ value: current }) => onUpdate(current));
+
+    Animated.timing(value, { toValue: to, duration, useNativeDriver: false }).start(() => {
+      value.removeListener(listenerId);
+      resolve();
+    });
+  });
+}
+
 type ClimbRanksVisualProps = {
   onReady?: () => void;
 };
 
 export function ClimbRanksVisual({ onReady }: ClimbRanksVisualProps) {
-  const [celebrationStarted, setCelebrationStarted] = useState(false);
+  const [powerRating, setPowerRating] = useState(TUTORIAL_RESULT.previousPower);
+  const [confettiActive, setConfettiActive] = useState(false);
   const [bannerVisible, setBannerVisible] = useState(false);
   const victoryOpacity = useRef(new Animated.Value(0)).current;
   const celebrationOpacity = useRef(new Animated.Value(0)).current;
-  const progress = useRef(new Animated.Value(0)).current;
   const borderCrossfade = useRef(new Animated.Value(0)).current; // 0 = silver, 1 = gold
 
   useEffect(() => {
@@ -52,13 +62,20 @@ export function ClimbRanksVisual({ onReady }: ClimbRanksVisualProps) {
 
       await delay(CELEBRATION_DELAY_MS);
       if (cancelled) return;
-      setCelebrationStarted(true);
       await animateTo(celebrationOpacity, 1, 260);
       if (cancelled) return;
 
-      await animateTo(progress, RANK_PROGRESS, BAR_FILL_MS, false);
+      // Power rating ticks up first...
+      await tweenValue(TUTORIAL_RESULT.previousPower, TUTORIAL_RESULT.newPower, POWER_TICK_MS, (value) =>
+        setPowerRating(Math.round(value)),
+      );
       if (cancelled) return;
 
+      await delay(150);
+      if (cancelled) return;
+
+      // ...then confetti falls and the rank-up reveal plays.
+      setConfettiActive(true);
       setBannerVisible(true);
       await animateTo(borderCrossfade, 1, BORDER_CROSSFADE_MS, false);
       if (cancelled) return;
@@ -83,7 +100,7 @@ export function ClimbRanksVisual({ onReady }: ClimbRanksVisualProps) {
       </Animated.View>
 
       <Animated.View style={[styles.celebration, { opacity: celebrationOpacity }]}>
-        <ConfettiBurst active={celebrationStarted} />
+        <ConfettiBurst active={confettiActive} />
 
         <View style={styles.avatarWrap}>
           <Animated.View style={[styles.avatarLayer, { opacity: silverOpacity }]}>
@@ -94,9 +111,9 @@ export function ClimbRanksVisual({ onReady }: ClimbRanksVisualProps) {
           </Animated.View>
         </View>
 
-        <View style={styles.progressSection}>
+        <View style={styles.powerSection}>
           <Text style={styles.sectionLabel}>Power Rating</Text>
-          <AnimatedXpProgressBar height={14} progress={progress} />
+          <Text style={styles.powerValue}>{powerRating.toLocaleString('en-US')}</Text>
         </View>
 
         <View style={styles.bannerSlot}>
@@ -142,10 +159,9 @@ const styles = StyleSheet.create({
     top: 0,
     left: 0,
   },
-  progressSection: {
-    width: '100%',
-    gap: spacing.sm,
+  powerSection: {
     alignItems: 'center',
+    gap: 2,
   },
   sectionLabel: {
     color: colors.textSecondary,
@@ -153,6 +169,12 @@ const styles = StyleSheet.create({
     fontWeight: '700',
     letterSpacing: 0.8,
     textTransform: 'uppercase',
+  },
+  powerValue: {
+    color: colors.textPrimary,
+    fontSize: 28,
+    fontWeight: '800',
+    fontStyle: 'italic',
   },
   bannerSlot: {
     width: '100%',

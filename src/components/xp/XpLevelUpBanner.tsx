@@ -42,10 +42,12 @@ export function XpLevelUpBanner({ visible, level, title, subtitle }: XpLevelUpBa
     return null;
   }
 
+  const subtitleText = subtitle ?? `You've reached level ${level}`;
+
   return (
     <Animated.View style={[styles.banner, { opacity, transform: [{ scale }] }]}>
       <Text style={styles.label}>{title ?? 'Level Up!'}</Text>
-      <Text style={styles.level}>{subtitle ?? `You've reached level ${level}`}</Text>
+      {subtitleText ? <Text style={styles.level}>{subtitleText}</Text> : null}
     </Animated.View>
   );
 }
