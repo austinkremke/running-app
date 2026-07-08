@@ -1,14 +1,13 @@
-import { useRef, useState, type ComponentType } from 'react';
+import { useEffect, useRef, useState, type ComponentType } from 'react';
 import { Animated, Pressable, StyleSheet, Text, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import {
   FindMatchVisual,
-  HeadToHeadScoreDemo,
-  MatchmakingDemoCard,
   OnboardingCTA,
   OnboardingProgressIndicator,
   OnboardingStepContainer,
+  OutscoreOpponentVisual,
   RankProgressDemo,
   TeamLeaderboardDemo,
 } from '../../components/onboarding/tutorial';
@@ -19,7 +18,11 @@ type TutorialStep = {
   key: string;
   headline: string;
   supportingCopy: string;
-  Visual: ComponentType;
+  // Step visuals have differing prop shapes (most take none, one takes onReady) —
+  // typed loosely here since each usage below passes only the props that component accepts.
+  Visual: ComponentType<{ onReady?: () => void }>;
+  /** True when the step animates its own readiness (Next stays disabled until it calls onReady). */
+  requiresReady?: boolean;
 };
 
 const STEPS: TutorialStep[] = [
@@ -30,16 +33,11 @@ const STEPS: TutorialStep[] = [
     Visual: FindMatchVisual,
   },
   {
-    key: 'matchmaking',
-    headline: 'Get matched by skill',
-    supportingCopy: 'Enter a Run Off and face a runner near your power ranking.',
-    Visual: MatchmakingDemoCard,
-  },
-  {
     key: 'scoring',
-    headline: 'Outscore your opponent',
-    supportingCopy: 'Run farther, keep your pace up, and build your score before time expires.',
-    Visual: HeadToHeadScoreDemo,
+    headline: 'Outscore Your Opponent',
+    supportingCopy: 'Run farther, keep your pace up, and build your score before the time expires.',
+    Visual: OutscoreOpponentVisual,
+    requiresReady: true,
   },
   {
     key: 'ranking',
@@ -73,8 +71,15 @@ export function OnboardingTutorialScreen({
 }: OnboardingTutorialScreenProps) {
   const insets = useSafeAreaInsets();
   const [stepIndex, setStepIndex] = useState(0);
+  const [stepReady, setStepReady] = useState(false);
   const screenOpacity = useRef(new Animated.Value(1)).current;
   const isFinalStep = stepIndex >= STEPS.length;
+
+  useEffect(() => {
+    if (!isFinalStep) {
+      setStepReady(!STEPS[stepIndex].requiresReady);
+    }
+  }, [stepIndex, isFinalStep]);
 
   function advance() {
     Animated.timing(screenOpacity, {
@@ -134,12 +139,17 @@ export function OnboardingTutorialScreen({
 
       <Animated.View style={[styles.fadeWrap, { opacity: screenOpacity }]}>
         <OnboardingStepContainer
-          footer={<OnboardingPrimaryButton label="Next" onPress={advance} />}
+          footer={
+            <OnboardingPrimaryButton
+              label="Next"
+              onPress={stepReady ? advance : undefined}
+            />
+          }
           headline={step.headline}
           stepKey={step.key}
           supportingCopy={step.supportingCopy}
         >
-          <Visual />
+          <Visual key={step.key} onReady={() => setStepReady(true)} />
         </OnboardingStepContainer>
       </Animated.View>
 

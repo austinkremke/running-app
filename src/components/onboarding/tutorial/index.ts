@@ -1,10 +1,9 @@
 export { AnimatedCounter } from './AnimatedCounter';
-export { AnimatedRoutePreview } from './AnimatedRoutePreview';
+export { AnimatedStreetRouteMap, BLOCK_DIRECTIONS, buildBlockRoute } from './AnimatedStreetRouteMap';
 export { FindMatchVisual } from './FindMatchVisual';
-export { HeadToHeadScoreDemo } from './HeadToHeadScoreDemo';
-export { MatchmakingDemoCard } from './MatchmakingDemoCard';
 export { OnboardingCTA } from './OnboardingCTA';
 export { OnboardingProgressIndicator } from './OnboardingProgressIndicator';
 export { OnboardingStepContainer } from './OnboardingStepContainer';
+export { OutscoreOpponentVisual } from './OutscoreOpponentVisual';
 export { RankProgressDemo } from './RankProgressDemo';
 export { TeamLeaderboardDemo } from './TeamLeaderboardDemo';
