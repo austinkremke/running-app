@@ -1,11 +1,11 @@
-import { useState, type ComponentType } from 'react';
-import { Pressable, StyleSheet, Text, View } from 'react-native';
+import { useRef, useState, type ComponentType } from 'react';
+import { Animated, Pressable, StyleSheet, Text, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
 import {
+  FindMatchVisual,
   HeadToHeadScoreDemo,
   MatchmakingDemoCard,
-  MatchupHookVisual,
   OnboardingCTA,
   OnboardingProgressIndicator,
   OnboardingStepContainer,
@@ -25,9 +25,9 @@ type TutorialStep = {
 const STEPS: TutorialStep[] = [
   {
     key: 'hook',
-    headline: 'Welcome to Run Off',
-    supportingCopy: 'Every run is a matchup.',
-    Visual: MatchupHookVisual,
+    headline: 'Find a Match',
+    supportingCopy: 'We’ll find another runner of a similar skill level.',
+    Visual: FindMatchVisual,
   },
   {
     key: 'matchmaking',
@@ -55,6 +55,8 @@ const STEPS: TutorialStep[] = [
   },
 ];
 
+const FADE_DURATION_MS = 220;
+
 type OnboardingTutorialScreenProps = {
   /** Preview mode (opened from the Me page) never marks onboarding complete. */
   previewMode?: boolean;
@@ -70,32 +72,46 @@ export function OnboardingTutorialScreen({
   onSkip,
 }: OnboardingTutorialScreenProps) {
   const [stepIndex, setStepIndex] = useState(0);
+  const screenOpacity = useRef(new Animated.Value(1)).current;
   const isFinalStep = stepIndex >= STEPS.length;
 
   function advance() {
-    setStepIndex((previous) => Math.min(previous + 1, STEPS.length));
+    Animated.timing(screenOpacity, {
+      toValue: 0,
+      duration: FADE_DURATION_MS,
+      useNativeDriver: true,
+    }).start(() => {
+      setStepIndex((previous) => Math.min(previous + 1, STEPS.length));
+      Animated.timing(screenOpacity, {
+        toValue: 1,
+        duration: FADE_DURATION_MS,
+        useNativeDriver: true,
+      }).start();
+    });
   }
 
   if (isFinalStep) {
     return (
       <SafeAreaView style={styles.safe}>
-        <OnboardingStepContainer
-          footer={
-            <OnboardingCTA
-              onPrimaryPress={onFindFirstMatch}
-              onSecondaryPress={onMaybeLater}
-              primaryLabel="Find My First Match"
-              secondaryLabel="Maybe Later"
-            />
-          }
-          headline="Ready to run?"
-          stepKey="cta"
-          supportingCopy="Find your first match and start climbing."
-        >
-          <View style={styles.ctaVisual}>
-            <View style={styles.ctaGlow} />
-          </View>
-        </OnboardingStepContainer>
+        <Animated.View style={[styles.fadeWrap, { opacity: screenOpacity }]}>
+          <OnboardingStepContainer
+            footer={
+              <OnboardingCTA
+                onPrimaryPress={onFindFirstMatch}
+                onSecondaryPress={onMaybeLater}
+                primaryLabel="Find My First Match"
+                secondaryLabel="Maybe Later"
+              />
+            }
+            headline="Ready to run?"
+            stepKey="cta"
+            supportingCopy="Find your first match and start climbing."
+          >
+            <View style={styles.ctaVisual}>
+              <View style={styles.ctaGlow} />
+            </View>
+          </OnboardingStepContainer>
+        </Animated.View>
       </SafeAreaView>
     );
   }
@@ -106,22 +122,25 @@ export function OnboardingTutorialScreen({
   return (
     <SafeAreaView style={styles.safe}>
       <View style={styles.topBar}>
+        <View style={styles.topBarHeader}>
+          <Text style={styles.topBarTitle}>How It Works</Text>
+          <Pressable accessibilityRole="button" hitSlop={8} onPress={onSkip} style={styles.skipButton}>
+            <Text style={styles.skipLabel}>Skip</Text>
+          </Pressable>
+        </View>
         <OnboardingProgressIndicator activeIndex={stepIndex} stepCount={STEPS.length + 1} />
-        <Pressable accessibilityRole="button" hitSlop={8} onPress={onSkip} style={styles.skipButton}>
-          <Text style={styles.skipLabel}>Skip</Text>
-        </Pressable>
       </View>
 
-      <OnboardingStepContainer
-        footer={
-          <OnboardingPrimaryButton label="Next" onPress={advance} />
-        }
-        headline={step.headline}
-        stepKey={step.key}
-        supportingCopy={step.supportingCopy}
-      >
-        <Visual />
-      </OnboardingStepContainer>
+      <Animated.View style={[styles.fadeWrap, { opacity: screenOpacity }]}>
+        <OnboardingStepContainer
+          footer={<OnboardingPrimaryButton label="Next" onPress={advance} />}
+          headline={step.headline}
+          stepKey={step.key}
+          supportingCopy={step.supportingCopy}
+        >
+          <Visual />
+        </OnboardingStepContainer>
+      </Animated.View>
 
       {previewMode ? (
         <View style={styles.previewBadge}>
@@ -138,11 +157,22 @@ const styles = StyleSheet.create({
     backgroundColor: colors.background,
   },
   topBar: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: spacing.md,
+    gap: spacing.sm,
     paddingHorizontal: spacing.lg,
     paddingTop: spacing.sm,
+  },
+  topBarHeader: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+  },
+  topBarTitle: {
+    color: colors.textPrimary,
+    fontSize: 13,
+    fontWeight: '800',
+    fontStyle: 'italic',
+    letterSpacing: 1.2,
+    textTransform: 'uppercase',
   },
   skipButton: {
     paddingVertical: spacing.xs,
@@ -152,6 +182,9 @@ const styles = StyleSheet.create({
     color: colors.textSecondary,
     fontSize: 13,
     fontWeight: '700',
+  },
+  fadeWrap: {
+    flex: 1,
   },
   ctaVisual: {
     flex: 1,

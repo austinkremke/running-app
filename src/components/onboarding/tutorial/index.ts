@@ -1,9 +1,8 @@
 export { AnimatedCounter } from './AnimatedCounter';
-export { AnimatedDualRouteMap } from './AnimatedDualRouteMap';
 export { AnimatedRoutePreview } from './AnimatedRoutePreview';
+export { FindMatchVisual } from './FindMatchVisual';
 export { HeadToHeadScoreDemo } from './HeadToHeadScoreDemo';
 export { MatchmakingDemoCard } from './MatchmakingDemoCard';
-export { MatchupHookVisual } from './MatchupHookVisual';
 export { OnboardingCTA } from './OnboardingCTA';
 export { OnboardingProgressIndicator } from './OnboardingProgressIndicator';
 export { OnboardingStepContainer } from './OnboardingStepContainer';
