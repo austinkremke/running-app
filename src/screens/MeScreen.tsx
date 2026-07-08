@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useMemo, useState } from 'react';
-import { ScrollView, StyleSheet, Text, View } from 'react-native';
+import { Modal, Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
 
 import {
   AchievementsAllModal,
@@ -26,6 +26,7 @@ import {
   type ProfileOverallStats,
 } from '../services/profileStatsService';
 import { fetchTeamNameById } from '../services/teamService';
+import { OnboardingTutorialScreen } from './onboarding';
 import { colors, spacing } from '../theme';
 
 function buildOverallStats(
@@ -123,6 +124,7 @@ export function MeScreen({ onOpenSettings }: MeScreenProps) {
   const [teamName, setTeamName] = useState('');
   const [overallStats, setOverallStats] = useState<ProfileOverallStats | null>(null);
   const [statDetailTarget, setStatDetailTarget] = useState<StatDetailTarget | null>(null);
+  const [tutorialPreviewVisible, setTutorialPreviewVisible] = useState(false);
   const carouselAchievements = useMemo(
     () => sortAchievementsForMeCarousel(allAchievements),
     [allAchievements],
@@ -242,6 +244,16 @@ export function MeScreen({ onOpenSettings }: MeScreenProps) {
             stats={buildOverallStats(overallStats, seasonRecord)}
           />
         ) : null}
+
+        <Pressable
+          accessibilityLabel="Preview the onboarding tutorial"
+          accessibilityRole="button"
+          onPress={() => setTutorialPreviewVisible(true)}
+          style={({ pressed }) => [styles.previewButton, pressed && styles.previewButtonPressed]}
+        >
+          <Text style={styles.previewButtonLabel}>Preview Onboarding Tutorial</Text>
+        </Pressable>
+
         <View style={styles.bottomSpacer} />
       </ScrollView>
 
@@ -258,6 +270,19 @@ export function MeScreen({ onOpenSettings }: MeScreenProps) {
         userId={userId}
         visible={statDetailTarget != null}
       />
+
+      <Modal
+        animationType="slide"
+        onRequestClose={() => setTutorialPreviewVisible(false)}
+        visible={tutorialPreviewVisible}
+      >
+        <OnboardingTutorialScreen
+          onFindFirstMatch={() => setTutorialPreviewVisible(false)}
+          onMaybeLater={() => setTutorialPreviewVisible(false)}
+          onSkip={() => setTutorialPreviewVisible(false)}
+          previewMode
+        />
+      </Modal>
     </>
   );
 }
@@ -282,6 +307,24 @@ const styles = StyleSheet.create({
     color: colors.textSecondary,
     fontSize: 13,
     lineHeight: 18,
+  },
+  previewButton: {
+    alignItems: 'center',
+    justifyContent: 'center',
+    backgroundColor: colors.surface,
+    borderRadius: 12,
+    borderWidth: 1,
+    borderColor: colors.border,
+    paddingVertical: spacing.md,
+  },
+  previewButtonPressed: {
+    opacity: 0.75,
+  },
+  previewButtonLabel: {
+    color: colors.textSecondary,
+    fontSize: 12,
+    fontWeight: '700',
+    letterSpacing: 0.4,
   },
   bottomSpacer: {
     height: spacing.md,

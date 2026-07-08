@@ -1,8 +1,9 @@
 import type { OnboardingStep } from '../context';
+import { useOnboarding } from '../context';
 import {
   OnboardingEmailScreen,
-  OnboardingHowItWorksScreen,
   OnboardingLoginScreen,
+  OnboardingTutorialScreen,
 } from '../screens/onboarding';
 
 type OnboardingShellProps = {
@@ -10,11 +11,25 @@ type OnboardingShellProps = {
 };
 
 export function OnboardingShell({ step }: OnboardingShellProps) {
+  const { completeOnboarding } = useOnboarding();
+
   switch (step) {
     case 'email':
       return <OnboardingEmailScreen />;
     case 'howItWorks':
-      return <OnboardingHowItWorksScreen />;
+      return (
+        <OnboardingTutorialScreen
+          onFindFirstMatch={() => {
+            void completeOnboarding({ showChallengeDrawer: true });
+          }}
+          onMaybeLater={() => {
+            void completeOnboarding();
+          }}
+          onSkip={() => {
+            void completeOnboarding();
+          }}
+        />
+      );
     case 'login':
     default:
       return <OnboardingLoginScreen />;
