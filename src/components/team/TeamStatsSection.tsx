@@ -1,15 +1,13 @@
 import { Ionicons } from '@expo/vector-icons';
-import { Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
+import { Pressable, StyleSheet, Text, View } from 'react-native';
 
 import type { TeamStat } from '../../mock';
 import { colors, spacing } from '../../theme';
-import { TEAM_STAT_CARD_WIDTH, TeamStatItem } from './TeamStatItem';
+import { TeamStatItem } from './TeamStatItem';
 
 type TeamStatsSectionProps = {
   stats: TeamStat[];
 };
-
-const CARD_GAP = spacing.md;
 
 export function TeamStatsSection({ stats }: TeamStatsSectionProps) {
   return (
@@ -22,18 +20,11 @@ export function TeamStatsSection({ stats }: TeamStatsSectionProps) {
         </Pressable>
       </View>
 
-      <ScrollView
-        contentContainerStyle={styles.carousel}
-        decelerationRate="fast"
-        horizontal
-        showsHorizontalScrollIndicator={false}
-        snapToAlignment="start"
-        snapToInterval={TEAM_STAT_CARD_WIDTH + CARD_GAP}
-      >
+      <View style={styles.row}>
         {stats.map((stat) => (
           <TeamStatItem key={stat.id} stat={stat} />
         ))}
-      </ScrollView>
+      </View>
     </View>
   );
 }
@@ -70,7 +61,8 @@ const styles = StyleSheet.create({
     fontSize: 10,
     fontWeight: '600',
   },
-  carousel: {
-    gap: CARD_GAP,
+  row: {
+    flexDirection: 'row',
+    gap: spacing.sm,
   },
 });

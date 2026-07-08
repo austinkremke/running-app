@@ -29,11 +29,9 @@ export function TeamStatItem({ stat }: TeamStatItemProps) {
   );
 }
 
-export const TEAM_STAT_CARD_WIDTH = 100;
-
 const styles = StyleSheet.create({
   card: {
-    width: TEAM_STAT_CARD_WIDTH,
+    flex: 1,
     alignItems: 'center',
     backgroundColor: colors.surface,
     borderRadius: 14,
