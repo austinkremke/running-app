@@ -222,6 +222,7 @@ export function mapTeamRow(
       : { rank: 0, topPercent: '—', subtitle: 'of all teams', tierId: tier?.id, tierTitle: tier?.displayName },
     shieldIcon: team.logo_icon,
     shieldAccent: asLogoAccent(team.logo_accent),
+    logoUrl: team.logo_url ?? undefined,
     stats,
     members,
     memberCount,
@@ -236,6 +237,7 @@ type TopTeamRpcRow = {
   motto: string;
   logo_icon: string;
   logo_accent: string;
+  logo_url?: string | null;
   member_max: number;
   member_count: number;
   competitive_rating: number;
@@ -266,5 +268,6 @@ export function mapTeamListingRow(
     totalPoints: row.competitive_rating,
     shieldIcon: row.logo_icon,
     shieldAccent: asLogoAccent(row.logo_accent),
+    logoUrl: row.logo_url ?? undefined,
   };
 }

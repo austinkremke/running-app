@@ -232,6 +232,7 @@ export type TeamMatchTeam = {
   totalPoints: number;
   accent: TeamMatchAccent;
   shieldIcon: string;
+  logoUrl?: string;
   rankTierId?: string;
   members: TeamMatchParticipant[];
 };
@@ -277,6 +278,7 @@ export type TeamMatchHistorySide = {
   name: string;
   accent: TeamLogoAccent;
   shieldIcon: string;
+  logoUrl?: string;
   rankTierId?: string;
 };
 
@@ -378,6 +380,7 @@ export type Team = {
   teamRank: TeamRank;
   shieldIcon: string;
   shieldAccent: TeamLogoAccent;
+  logoUrl?: string;
   stats: TeamStat[];
   members: TeamMember[];
   memberCount: number;
@@ -399,6 +402,7 @@ export type TopTeamListing = {
   totalPoints: number;
   shieldIcon: string;
   shieldAccent: TeamLogoAccent;
+  logoUrl?: string;
   rankTierId?: string;
 };
 

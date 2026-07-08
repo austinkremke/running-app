@@ -232,6 +232,8 @@ export type UpdateTeamInput = {
   motto?: string;
   logoIcon?: string;
   logoAccent?: string;
+  /** '' clears a custom logo back to the icon/accent avatar; undefined leaves it unchanged. */
+  logoUrl?: string;
 };
 
 export async function updateTeam(teamId: string, input: UpdateTeamInput): Promise<void> {
@@ -245,6 +247,7 @@ export async function updateTeam(teamId: string, input: UpdateTeamInput): Promis
     p_motto: input.motto ?? undefined,
     p_logo_icon: input.logoIcon ?? undefined,
     p_logo_accent: input.logoAccent ?? undefined,
+    p_logo_url: input.logoUrl ?? undefined,
   });
 
   if (error) throw error;

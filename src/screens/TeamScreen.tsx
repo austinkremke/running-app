@@ -184,6 +184,7 @@ export function TeamScreen({ onOpenTopTeams, onOpenRun, onViewAllActivity }: Tea
           motto: values.motto,
           logoIcon: values.logoIcon,
           logoAccent: values.logoAccent,
+          logoUrl: values.logoUrl,
         });
       }
       setFormVisible(false);
@@ -396,11 +397,14 @@ export function TeamScreen({ onOpenTopTeams, onOpenRun, onViewAllActivity }: Tea
           motto: team.motto,
           logoIcon: team.shieldIcon,
           logoAccent: team.shieldAccent,
+          logoUrl: team.logoUrl,
         }}
         mode="edit"
         onClose={() => setFormVisible(false)}
         onSubmit={(values) => void handleSubmitTeamForm(values)}
         submitting={submitting}
+        teamId={team.id}
+        userId={userId ?? undefined}
         visible={formVisible && formMode === 'edit'}
       />
 

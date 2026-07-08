@@ -30,6 +30,7 @@ export function TopTeamsTeamCard({ team }: TopTeamsTeamCardProps) {
           <TeamAvatar
             accent={team.shieldAccent}
             icon={team.shieldIcon}
+            imageUrl={team.logoUrl}
             rankTierId={team.rankTierId}
             size={52}
           />

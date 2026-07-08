@@ -122,6 +122,7 @@ function buildTeamSide(
     totalPoints,
     accent,
     shieldIcon: team.logo_icon,
+    logoUrl: team.logo_url ?? undefined,
     rankTierId,
     members: members.map((member, index) => mapStoredMember(member, index, accent, idPrefix)),
   };

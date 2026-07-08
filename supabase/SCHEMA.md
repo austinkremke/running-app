@@ -88,7 +88,7 @@ activities                    — id, user_id, started_at, ended_at, distance_me
                               — source, summary_json, polyline (jsonb), track_storage_path
                               — Storage: activities/{user_id}/{activity_id}/track.json
 
-teams / team_members            — logo, tag, motto; one team per user (v1)
+teams / team_members            — logo (icon/accent, or optional custom logo_url), tag, motto; one team per user (v1)
 feed_posts                      — activity_id FK (nullable) or match_id FK (nullable), exactly one set; audiences[], caption fields
 
 matches / match_participants / match_results

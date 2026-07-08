@@ -38,6 +38,7 @@ export function TeamActivityMatchRow({ match, onPress, showDivider = true }: Tea
           <TeamAvatar
             accent={match.homeTeam.accent}
             icon={match.homeTeam.shieldIcon}
+            imageUrl={match.homeTeam.logoUrl}
             rankTierId={match.homeTeam.rankTierId}
             size={LOGO_SIZE}
           />
@@ -45,6 +46,7 @@ export function TeamActivityMatchRow({ match, onPress, showDivider = true }: Tea
           <TeamAvatar
             accent={match.awayTeam.accent}
             icon={match.awayTeam.shieldIcon}
+            imageUrl={match.awayTeam.logoUrl}
             rankTierId={match.awayTeam.rankTierId}
             size={LOGO_SIZE}
           />

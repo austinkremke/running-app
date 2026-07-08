@@ -11,6 +11,7 @@ type MatchTeamSummaryCardProps = {
   teamLevel: number;
   shieldIcon: string;
   shieldAccent: TeamLogoAccent;
+  logoUrl?: string;
   rankTierId?: string | null;
 };
 
@@ -20,6 +21,7 @@ export function MatchTeamSummaryCard({
   teamLevel,
   shieldIcon,
   shieldAccent,
+  logoUrl,
   rankTierId,
 }: MatchTeamSummaryCardProps) {
   const tierName = shortRankTierName(rankTierId);
@@ -27,7 +29,7 @@ export function MatchTeamSummaryCard({
 
   return (
     <View style={styles.card}>
-      <TeamAvatar accent={shieldAccent} icon={shieldIcon} rankTierId={rankTierId} size={64} />
+      <TeamAvatar accent={shieldAccent} icon={shieldIcon} imageUrl={logoUrl} rankTierId={rankTierId} size={64} />
 
       <View style={styles.rightColumn}>
         <Text numberOfLines={1} style={styles.name}>

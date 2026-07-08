@@ -51,6 +51,7 @@ export function TeamMatchFeedCard({
               <TeamAvatar
                 accent={post.homeTeam.accent}
                 icon={post.homeTeam.shieldIcon}
+                imageUrl={post.homeTeam.logoUrl}
                 rankTierId={post.homeTeam.rankTierId}
                 size={LOGO_SIZE}
               />
@@ -69,6 +70,7 @@ export function TeamMatchFeedCard({
               <TeamAvatar
                 accent={post.awayTeam.accent}
                 icon={post.awayTeam.shieldIcon}
+                imageUrl={post.awayTeam.logoUrl}
                 rankTierId={post.awayTeam.rankTierId}
                 size={LOGO_SIZE}
               />

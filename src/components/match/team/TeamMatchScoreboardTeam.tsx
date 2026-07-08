@@ -30,6 +30,7 @@ export function TeamMatchScoreboardTeam({ team, side }: TeamMatchScoreboardTeamP
         <TeamAvatar
           accent={team.accent}
           icon={team.shieldIcon}
+          imageUrl={team.logoUrl}
           rankTierId={team.rankTierId}
           size={avatarSize}
         />

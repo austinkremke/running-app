@@ -99,6 +99,7 @@ export function TeamMatchTab({ onViewActiveMatch }: TeamMatchTabProps) {
         style={styles.scroll}
       >
         <MatchTeamSummaryCard
+          logoUrl={team.logoUrl}
           powerRating={team.competitiveRating}
           rankTierId={team.teamRank.tierId}
           shieldAccent={team.shieldAccent}

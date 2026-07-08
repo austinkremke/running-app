@@ -8,7 +8,15 @@ import { TeamAvatar } from './TeamAvatar';
 type TeamTopSectionProps = {
   team: Pick<
     Team,
-    'name' | 'tag' | 'motto' | 'level' | 'competitiveRating' | 'teamRank' | 'shieldIcon' | 'shieldAccent'
+    | 'name'
+    | 'tag'
+    | 'motto'
+    | 'level'
+    | 'competitiveRating'
+    | 'teamRank'
+    | 'shieldIcon'
+    | 'shieldAccent'
+    | 'logoUrl'
   >;
   onRankPress?: () => void;
 };
@@ -22,6 +30,7 @@ export function TeamTopSection({ team, onRankPress }: TeamTopSectionProps) {
       <TeamAvatar
         accent={team.shieldAccent}
         icon={team.shieldIcon}
+        imageUrl={team.logoUrl}
         rankTierId={team.teamRank.tierId}
         size={72}
       />

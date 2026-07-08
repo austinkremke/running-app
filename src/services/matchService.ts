@@ -347,6 +347,7 @@ function toHistorySide(team: Tables<'teams'>): TeamMatchHistorySide {
     name: team.name,
     accent: asHistoryLogoAccent(team.logo_accent),
     shieldIcon: team.logo_icon,
+    logoUrl: team.logo_url ?? undefined,
   };
 }
 

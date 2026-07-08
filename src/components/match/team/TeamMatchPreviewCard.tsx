@@ -28,6 +28,7 @@ export function TeamMatchPreviewCard({ match, onPress }: TeamMatchPreviewCardPro
           <TeamAvatar
             accent={homeTeam.accent}
             icon={homeTeam.shieldIcon}
+            imageUrl={homeTeam.logoUrl}
             rankTierId={homeTeam.rankTierId}
             size={LOGO_SIZE}
           />
@@ -43,6 +44,7 @@ export function TeamMatchPreviewCard({ match, onPress }: TeamMatchPreviewCardPro
           <TeamAvatar
             accent={awayTeam.accent}
             icon={awayTeam.shieldIcon}
+            imageUrl={awayTeam.logoUrl}
             rankTierId={awayTeam.rankTierId}
             size={LOGO_SIZE}
           />

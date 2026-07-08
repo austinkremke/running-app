@@ -11,6 +11,7 @@ import {
 } from 'react-native';
 
 import type { TeamLogoAccent } from '../../mock';
+import { pickTeamLogoUri, uploadTeamLogo } from '../../services/teamLogoUpload';
 import { colors, spacing } from '../../theme';
 import { BottomSheetDrawer } from '../drawer';
 import { TeamAvatar } from './TeamAvatar';
@@ -37,6 +38,8 @@ export type TeamFormValues = {
   motto: string;
   logoIcon: string;
   logoAccent: TeamLogoAccent;
+  /** Undefined = unchanged, '' = remove the custom photo, otherwise the new photo URL. */
+  logoUrl?: string;
 };
 
 type TeamFormDrawerProps = {
@@ -45,6 +48,9 @@ type TeamFormDrawerProps = {
   mode: 'create' | 'edit';
   initialValues?: Partial<TeamFormValues>;
   submitting?: boolean;
+  /** Needed to scope the logo upload's storage path — photo upload is edit-only. */
+  teamId?: string;
+  userId?: string;
   onClose: () => void;
   onSubmit: (values: TeamFormValues) => void;
 };
@@ -54,6 +60,8 @@ export function TeamFormDrawer({
   mode,
   initialValues,
   submitting = false,
+  teamId,
+  userId,
   onClose,
   onSubmit,
 }: TeamFormDrawerProps) {
@@ -62,6 +70,9 @@ export function TeamFormDrawer({
   const [motto, setMotto] = useState('');
   const [logoIcon, setLogoIcon] = useState<string>('paw');
   const [logoAccent, setLogoAccent] = useState<TeamLogoAccent>('lime');
+  const [logoUrl, setLogoUrl] = useState<string | undefined>(undefined);
+  const [uploadingLogo, setUploadingLogo] = useState(false);
+  const [logoError, setLogoError] = useState<string | null>(null);
 
   useEffect(() => {
     if (visible) {
@@ -70,6 +81,8 @@ export function TeamFormDrawer({
       setMotto(initialValues?.motto ?? '');
       setLogoIcon(initialValues?.logoIcon ?? 'paw');
       setLogoAccent(initialValues?.logoAccent ?? 'lime');
+      setLogoUrl(initialValues?.logoUrl);
+      setLogoError(null);
     }
     // Reset only when the drawer opens; initialValues identity may change per render.
     // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -77,6 +90,29 @@ export function TeamFormDrawer({
 
   const canSubmit =
     name.trim().length >= 3 && (mode === 'edit' || /^[A-Za-z0-9]{2,5}$/.test(tag.trim()));
+  const canUploadPhoto = mode === 'edit' && Boolean(teamId) && Boolean(userId);
+
+  async function handlePickPhoto() {
+    if (!teamId || !userId) {
+      return;
+    }
+
+    setLogoError(null);
+    try {
+      const picked = await pickTeamLogoUri();
+      if (picked.canceled) {
+        return;
+      }
+
+      setUploadingLogo(true);
+      const uploadedUrl = await uploadTeamLogo(userId, teamId, picked.uri);
+      setLogoUrl(uploadedUrl);
+    } catch (error) {
+      setLogoError(error instanceof Error ? error.message : 'Could not update the team photo.');
+    } finally {
+      setUploadingLogo(false);
+    }
+  }
 
   return (
     <BottomSheetDrawer
@@ -92,6 +128,7 @@ export function TeamFormDrawer({
               motto: motto.trim(),
               logoIcon,
               logoAccent,
+              logoUrl: logoUrl !== initialValues?.logoUrl ? (logoUrl ?? '') : undefined,
             });
           }}
           style={({ pressed }) => [
@@ -119,7 +156,26 @@ export function TeamFormDrawer({
           <Text style={styles.title}>{mode === 'create' ? 'Create a Team' : 'Edit Team'}</Text>
 
           <View style={styles.previewRow}>
-            <TeamAvatar accent={logoAccent} icon={logoIcon} size={56} />
+            <Pressable
+              accessibilityLabel="Change team photo"
+              accessibilityRole="button"
+              disabled={!canUploadPhoto || uploadingLogo}
+              onPress={() => {
+                void handlePickPhoto();
+              }}
+              style={styles.avatarButton}
+            >
+              <TeamAvatar accent={logoAccent} icon={logoIcon} imageUrl={logoUrl} size={56} />
+              {canUploadPhoto ? (
+                <View style={styles.avatarBadge}>
+                  {uploadingLogo ? (
+                    <ActivityIndicator color={colors.textPrimary} size="small" />
+                  ) : (
+                    <Ionicons color={colors.textPrimary} name="camera" size={12} />
+                  )}
+                </View>
+              ) : null}
+            </Pressable>
             <View style={styles.previewMeta}>
               <Text numberOfLines={1} style={styles.previewName}>
                 {name.trim() || 'Team name'}
@@ -127,8 +183,20 @@ export function TeamFormDrawer({
               <Text style={styles.previewTag}>
                 {(mode === 'edit' ? initialValues?.tag : tag.trim().toUpperCase()) || 'TAG'}
               </Text>
+              {logoUrl && canUploadPhoto ? (
+                <Pressable
+                  accessibilityLabel="Remove team photo"
+                  accessibilityRole="button"
+                  disabled={uploadingLogo}
+                  onPress={() => setLogoUrl(undefined)}
+                >
+                  <Text style={styles.removePhoto}>Remove photo</Text>
+                </Pressable>
+              ) : null}
             </View>
           </View>
+
+          {logoError ? <Text style={styles.errorText}>{logoError}</Text> : null}
 
           <View style={styles.field}>
             <Text style={styles.label}>Name</Text>
@@ -174,7 +242,9 @@ export function TeamFormDrawer({
           </View>
 
           <View style={styles.field}>
-            <Text style={styles.label}>Logo</Text>
+            <Text style={styles.label}>
+              {logoUrl ? 'Logo (fallback icon)' : 'Logo'}
+            </Text>
             <View style={styles.optionRow}>
               {LOGO_ICONS.map((icon) => (
                 <Pressable
@@ -236,6 +306,23 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     gap: spacing.md,
   },
+  avatarButton: {
+    width: 56,
+    height: 56,
+  },
+  avatarBadge: {
+    position: 'absolute',
+    right: -2,
+    bottom: -2,
+    width: 22,
+    height: 22,
+    borderRadius: 11,
+    alignItems: 'center',
+    justifyContent: 'center',
+    backgroundColor: colors.surfaceElevated,
+    borderWidth: 1,
+    borderColor: colors.border,
+  },
   previewMeta: {
     flex: 1,
     gap: 2,
@@ -251,6 +338,16 @@ const styles = StyleSheet.create({
     fontSize: 11,
     fontWeight: '700',
     letterSpacing: 1,
+  },
+  removePhoto: {
+    color: colors.accentLime,
+    fontSize: 11,
+    fontWeight: '700',
+    marginTop: 2,
+  },
+  errorText: {
+    color: '#FF6B6B',
+    fontSize: 12,
   },
   field: {
     gap: spacing.xs,
