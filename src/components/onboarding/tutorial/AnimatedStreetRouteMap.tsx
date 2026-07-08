@@ -1,3 +1,4 @@
+import { useCallback, useMemo, useRef } from 'react';
 import { Platform, StyleSheet, Text, View } from 'react-native';
 
 import { getMapboxModule } from '../../../maps/providers/mapbox/mapboxNative';
@@ -47,7 +48,16 @@ export const BLOCK_DIRECTIONS = {
   se: { lat: -BLOCK_NW.lat, lng: -BLOCK_NW.lng },
 };
 
-const MAP_REGION = { latitude: 32.786, longitude: -96.799 };
+// Hide business/POI/place/road labels — just the streets and the two routes.
+const TUTORIAL_STYLE_CONFIG = {
+  ...MAPBOX_STYLE_IMPORT_CONFIG,
+  showPointOfInterestLabels: false,
+  showPlaceLabels: false,
+  showTransitLabels: false,
+  showRoadLabels: false,
+};
+
+const BOUNDS_PADDING = 32;
 
 function toLineString(points: LatLng[]): GeoJSON.FeatureCollection<GeoJSON.LineString> {
   if (points.length < 2) {
@@ -124,6 +134,29 @@ export function AnimatedStreetRouteMap({
   purpleRevealCount,
 }: AnimatedStreetRouteMapProps) {
   const mapbox = getMapboxModule();
+  // Cast loosely — @rnmapbox/maps' Camera ref type doesn't line up cleanly with its
+  // own imperative methods (same workaround already used in MapboxMapView.tsx).
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const cameraRef = useRef<any>(null);
+
+  const bounds = useMemo(() => {
+    const all = [...greenRoute, ...purpleRoute];
+    const lats = all.map((point) => point.lat);
+    const lngs = all.map((point) => point.lng);
+    return {
+      ne: [Math.max(...lngs), Math.max(...lats)] as [number, number],
+      sw: [Math.min(...lngs), Math.min(...lats)] as [number, number],
+    };
+  }, [greenRoute, purpleRoute]);
+
+  const fitToRoutes = useCallback(() => {
+    cameraRef.current?.fitBounds(
+      bounds.ne,
+      bounds.sw,
+      [BOUNDS_PADDING, BOUNDS_PADDING, BOUNDS_PADDING, BOUNDS_PADDING],
+      0,
+    );
+  }, [bounds]);
 
   if (Platform.OS === 'web' || !isMapboxConfigured || !mapbox) {
     return (
@@ -142,6 +175,7 @@ export function AnimatedStreetRouteMap({
       <MapView
         attributionEnabled={false}
         logoEnabled={false}
+        onDidFinishLoadingMap={fitToRoutes}
         pitchEnabled={false}
         projection="globe"
         rotateEnabled={false}
@@ -150,14 +184,13 @@ export function AnimatedStreetRouteMap({
         styleURL={MAPBOX_STYLE_URL}
         zoomEnabled={false}
       >
-        <StyleImport config={MAPBOX_STYLE_IMPORT_CONFIG} existing id="basemap" />
-
-        <Camera
-          defaultSettings={{
-            centerCoordinate: [MAP_REGION.longitude, MAP_REGION.latitude],
-            zoomLevel: 15,
-          }}
+        <StyleImport
+          config={TUTORIAL_STYLE_CONFIG as unknown as Record<string, string>}
+          existing
+          id="basemap"
         />
+
+        <Camera ref={cameraRef} defaultSettings={{ centerCoordinate: bounds.ne, zoomLevel: 15 }} />
 
         {routeLayer('tutorial-green-route', colors.accentLime, greenGeoJson, mapbox)}
         {routeLayer('tutorial-purple-route', colors.accentPurple, purpleGeoJson, mapbox)}
@@ -172,7 +205,7 @@ export function AnimatedStreetRouteMap({
 
 const styles = StyleSheet.create({
   container: {
-    height: 240,
+    height: 300,
     borderRadius: 16,
     borderWidth: 1,
     borderColor: colors.border,
