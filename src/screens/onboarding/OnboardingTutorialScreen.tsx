@@ -1,6 +1,6 @@
 import { useRef, useState, type ComponentType } from 'react';
 import { Animated, Pressable, StyleSheet, Text, View } from 'react-native';
-import { SafeAreaView } from 'react-native-safe-area-context';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import {
   FindMatchVisual,
@@ -71,6 +71,7 @@ export function OnboardingTutorialScreen({
   onMaybeLater,
   onSkip,
 }: OnboardingTutorialScreenProps) {
+  const insets = useSafeAreaInsets();
   const [stepIndex, setStepIndex] = useState(0);
   const screenOpacity = useRef(new Animated.Value(1)).current;
   const isFinalStep = stepIndex >= STEPS.length;
@@ -92,7 +93,7 @@ export function OnboardingTutorialScreen({
 
   if (isFinalStep) {
     return (
-      <SafeAreaView style={styles.safe}>
+      <View style={[styles.safe, { paddingTop: insets.top, paddingBottom: insets.bottom }]}>
         <Animated.View style={[styles.fadeWrap, { opacity: screenOpacity }]}>
           <OnboardingStepContainer
             footer={
@@ -112,7 +113,7 @@ export function OnboardingTutorialScreen({
             </View>
           </OnboardingStepContainer>
         </Animated.View>
-      </SafeAreaView>
+      </View>
     );
   }
 
@@ -120,7 +121,7 @@ export function OnboardingTutorialScreen({
   const Visual = step.Visual;
 
   return (
-    <SafeAreaView style={styles.safe}>
+    <View style={[styles.safe, { paddingTop: insets.top, paddingBottom: insets.bottom }]}>
       <View style={styles.topBar}>
         <View style={styles.topBarHeader}>
           <Text style={styles.topBarTitle}>How It Works</Text>
@@ -147,7 +148,7 @@ export function OnboardingTutorialScreen({
           <Text style={styles.previewBadgeLabel}>PREVIEW</Text>
         </View>
       ) : null}
-    </SafeAreaView>
+    </View>
   );
 }
 
