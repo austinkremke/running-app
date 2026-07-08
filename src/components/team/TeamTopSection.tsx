@@ -82,6 +82,12 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     gap: spacing.md,
     overflow: 'visible',
+    backgroundColor: colors.surface,
+    borderRadius: 14,
+    borderWidth: 1,
+    borderColor: colors.border,
+    paddingHorizontal: spacing.md,
+    paddingVertical: spacing.md,
   },
   rightColumn: {
     flex: 1,
