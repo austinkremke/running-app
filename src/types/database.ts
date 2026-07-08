@@ -1370,6 +1370,7 @@ export type Database = {
           competitive_rating: number
           logo_accent: string
           logo_icon: string
+          logo_url: string
           member_count: number
           member_max: number
           motto: string
@@ -1426,28 +1427,17 @@ export type Database = {
       transfer_leadership: { Args: { p_user_id: string }; Returns: undefined }
       try_pair_solo_queue: { Args: never; Returns: string }
       try_pair_team_queue: { Args: never; Returns: string }
-      update_team:
-        | {
-            Args: {
-              p_logo_accent?: string
-              p_logo_icon?: string
-              p_motto?: string
-              p_name?: string
-              p_team_id: string
-            }
-            Returns: undefined
-          }
-        | {
-            Args: {
-              p_logo_accent?: string
-              p_logo_icon?: string
-              p_logo_url?: string
-              p_motto?: string
-              p_name?: string
-              p_team_id: string
-            }
-            Returns: undefined
-          }
+      update_team: {
+        Args: {
+          p_logo_accent?: string
+          p_logo_icon?: string
+          p_logo_url?: string
+          p_motto?: string
+          p_name?: string
+          p_team_id: string
+        }
+        Returns: undefined
+      }
       user_has_live_active_solo_match: {
         Args: { p_user_id: string }
         Returns: boolean
