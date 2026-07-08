@@ -7,39 +7,72 @@ import { colors, spacing } from '../../../theme';
 
 type LatLng = { lat: number; lng: number };
 
-// A pair of loops through downtown Dallas (Klyde Warren Park / Main St
-// financial district) — close enough to be "the same run" but distinct
-// blocks, so the two routes read clearly on the map.
-const USER_ROUTE: LatLng[] = [
-  { lat: 32.7891, lng: -96.8005 },
-  { lat: 32.7885, lng: -96.7985 },
-  { lat: 32.7865, lng: -96.7975 },
-  { lat: 32.7845, lng: -96.7965 },
-  { lat: 32.783, lng: -96.799 },
-  { lat: 32.7845, lng: -96.8015 },
-  { lat: 32.787, lng: -96.802 },
-  { lat: 32.7891, lng: -96.8005 },
-];
+// Downtown Dallas' street grid runs roughly NE/SW and NW/SE (Main, Elm,
+// Commerce vs. Akard, Field, Griffin) — build routes as block-by-block
+// turns along that same ~45°-rotated grid instead of arbitrary curves.
+const BLOCK_NE: LatLng = { lat: 0.00075, lng: 0.00075 };
+const BLOCK_NW: LatLng = { lat: 0.00075, lng: -0.00075 };
+const POINTS_PER_BLOCK = 6;
 
-const OPPONENT_ROUTE: LatLng[] = [
-  { lat: 32.7895, lng: -96.796 },
-  { lat: 32.7875, lng: -96.794 },
-  { lat: 32.7855, lng: -96.793 },
-  { lat: 32.7835, lng: -96.7945 },
-  { lat: 32.782, lng: -96.7965 },
-  { lat: 32.7835, lng: -96.7985 },
-  { lat: 32.786, lng: -96.7995 },
-  { lat: 32.7895, lng: -96.796 },
-];
+function addVec(point: LatLng, vec: LatLng, count = 1): LatLng {
+  return { lat: point.lat + vec.lat * count, lng: point.lng + vec.lng * count };
+}
+
+/** Walks a sequence of (direction, block-count) legs, subdividing each leg into evenly-spaced points. */
+function buildBlockRoute(start: LatLng, legs: Array<[LatLng, number]>): LatLng[] {
+  const points: LatLng[] = [start];
+  let cursor = start;
+
+  for (const [direction, blocks] of legs) {
+    const legEnd = addVec(cursor, direction, blocks);
+    const steps = POINTS_PER_BLOCK * blocks;
+
+    for (let step = 1; step <= steps; step += 1) {
+      const t = step / steps;
+      points.push({
+        lat: cursor.lat + (legEnd.lat - cursor.lat) * t,
+        lng: cursor.lng + (legEnd.lng - cursor.lng) * t,
+      });
+    }
+
+    cursor = legEnd;
+  }
+
+  return points;
+}
+
+// Two nearby rectangular block loops around Main St / Klyde Warren Park —
+// distinct blocks, same grid, so the routes read as two real runners
+// covering different streets at the same time.
+const USER_ROUTE: LatLng[] = buildBlockRoute(
+  { lat: 32.7845, lng: -96.802 },
+  [
+    [BLOCK_NE, 3],
+    [BLOCK_NW, 2],
+    [{ lat: -BLOCK_NE.lat, lng: -BLOCK_NE.lng }, 3],
+    [{ lat: -BLOCK_NW.lat, lng: -BLOCK_NW.lng }, 2],
+  ],
+);
+
+const OPPONENT_ROUTE: LatLng[] = buildBlockRoute(
+  { lat: 32.783, lng: -96.7955 },
+  [
+    [BLOCK_NW, 3],
+    [{ lat: -BLOCK_NE.lat, lng: -BLOCK_NE.lng }, 2],
+    [{ lat: -BLOCK_NW.lat, lng: -BLOCK_NW.lng }, 3],
+    [BLOCK_NE, 2],
+  ],
+);
 
 const MAP_REGION = {
   latitude: 32.786,
-  longitude: -96.7975,
-  latitudeDelta: 0.019,
-  longitudeDelta: 0.019,
+  longitude: -96.799,
+  latitudeDelta: 0.021,
+  longitudeDelta: 0.021,
 };
 
-const REVEAL_STEP_MS = 130;
+const TOTAL_STEPS = Math.max(USER_ROUTE.length, OPPONENT_ROUTE.length);
+const REVEAL_INTERVAL_MS = 900 / TOTAL_STEPS;
 
 function toLineString(points: LatLng[]): GeoJSON.FeatureCollection<GeoJSON.LineString> {
   if (points.length < 2) {
@@ -80,17 +113,16 @@ export function AnimatedDualRouteMap({ onDone }: AnimatedDualRouteMapProps) {
   const doneRef = useRef(false);
 
   useEffect(() => {
-    const totalSteps = Math.max(USER_ROUTE.length, OPPONENT_ROUTE.length);
     const interval = setInterval(() => {
       setRevealCount((previous) => {
         const next = previous + 1;
-        if (next >= totalSteps && !doneRef.current) {
+        if (next >= TOTAL_STEPS && !doneRef.current) {
           doneRef.current = true;
           onDone?.();
         }
         return next;
       });
-    }, REVEAL_STEP_MS);
+    }, REVEAL_INTERVAL_MS);
 
     return () => clearInterval(interval);
     // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -133,7 +165,7 @@ export function AnimatedDualRouteMap({ onDone }: AnimatedDualRouteMapProps) {
         <Camera
           defaultSettings={{
             centerCoordinate: [MAP_REGION.longitude, MAP_REGION.latitude],
-            zoomLevel: 14.3,
+            zoomLevel: 15,
           }}
         />
 
@@ -143,19 +175,22 @@ export function AnimatedDualRouteMap({ onDone }: AnimatedDualRouteMapProps) {
               id="tutorial-user-route-glow"
               style={{
                 lineColor: colors.accentLime,
-                lineWidth: 8,
-                lineOpacity: 0.3,
+                lineWidth: 11,
+                lineOpacity: 0.45,
+                lineBlur: 2,
                 lineCap: 'round',
                 lineJoin: 'round',
+                lineEmissiveStrength: 1,
               }}
             />
             <LineLayer
               id="tutorial-user-route-line"
               style={{
                 lineColor: colors.accentLime,
-                lineWidth: 4,
+                lineWidth: 5,
                 lineCap: 'round',
                 lineJoin: 'round',
+                lineEmissiveStrength: 1,
               }}
             />
           </ShapeSource>
@@ -167,19 +202,22 @@ export function AnimatedDualRouteMap({ onDone }: AnimatedDualRouteMapProps) {
               id="tutorial-opponent-route-glow"
               style={{
                 lineColor: colors.accentPurple,
-                lineWidth: 8,
-                lineOpacity: 0.3,
+                lineWidth: 11,
+                lineOpacity: 0.45,
+                lineBlur: 2,
                 lineCap: 'round',
                 lineJoin: 'round',
+                lineEmissiveStrength: 1,
               }}
             />
             <LineLayer
               id="tutorial-opponent-route-line"
               style={{
                 lineColor: colors.accentPurple,
-                lineWidth: 4,
+                lineWidth: 5,
                 lineCap: 'round',
                 lineJoin: 'round',
+                lineEmissiveStrength: 1,
               }}
             />
           </ShapeSource>
