@@ -1,12 +1,11 @@
 import { useEffect, useRef, useState } from 'react';
 import { Animated, StyleSheet, Text, View } from 'react-native';
 
+import { TUTORIAL_OPPONENT, TUTORIAL_USER } from '../../../config/onboardingTutorialData';
 import { Avatar } from '../../avatar';
 import { colors, spacing } from '../../../theme';
 import { MatchVsIndicator } from '../../match/MatchVsIndicator';
-import { AnimatedRoutePreview } from './AnimatedRoutePreview';
-
-const ROUTE_PATH = 'M20,100 C 80,20 140,120 200,40 S 280,90 300,20';
+import { AnimatedDualRouteMap } from './AnimatedDualRouteMap';
 
 export function MatchupHookVisual() {
   const [routeDone, setRouteDone] = useState(false);
@@ -26,12 +25,7 @@ export function MatchupHookVisual() {
 
   return (
     <View style={styles.container}>
-      <AnimatedRoutePreview
-        color={colors.accentLime}
-        endpoint={{ x: 300, y: 20 }}
-        onDone={() => setRouteDone(true)}
-        path={ROUTE_PATH}
-      />
+      <AnimatedDualRouteMap onDone={() => setRouteDone(true)} />
 
       <View style={styles.matchupRow}>
         <Animated.View
@@ -40,8 +34,15 @@ export function MatchupHookVisual() {
             { opacity: avatarsOpacity, transform: [{ translateX: homeSlide }] },
           ]}
         >
-          <Avatar showLevel level={15} size={72} />
-          <Text style={styles.name}>You</Text>
+          <Avatar
+            avatarUrl={TUTORIAL_USER.avatarUrl}
+            borderColor={colors.accentLime}
+            borderWidth={2}
+            showLevel
+            level={15}
+            size={72}
+          />
+          <Text style={[styles.name, { color: colors.accentLime }]}>{TUTORIAL_USER.name}</Text>
         </Animated.View>
 
         <MatchVsIndicator variant="diamond" />
@@ -52,8 +53,15 @@ export function MatchupHookVisual() {
             { opacity: avatarsOpacity, transform: [{ translateX: awaySlide }] },
           ]}
         >
-          <Avatar showLevel level={14} size={72} />
-          <Text style={styles.name}>Opponent</Text>
+          <Avatar
+            avatarUrl={TUTORIAL_OPPONENT.avatarUrl}
+            borderColor={colors.accentPurple}
+            borderWidth={2}
+            showLevel
+            level={14}
+            size={72}
+          />
+          <Text style={[styles.name, { color: colors.accentPurple }]}>{TUTORIAL_OPPONENT.name}</Text>
         </Animated.View>
       </View>
     </View>
@@ -62,7 +70,7 @@ export function MatchupHookVisual() {
 
 const styles = StyleSheet.create({
   container: {
-    gap: spacing.xxl,
+    gap: spacing.xl,
   },
   matchupRow: {
     flexDirection: 'row',
@@ -75,7 +83,6 @@ const styles = StyleSheet.create({
     gap: spacing.sm,
   },
   name: {
-    color: colors.textPrimary,
     fontSize: 13,
     fontWeight: '700',
     fontStyle: 'italic',

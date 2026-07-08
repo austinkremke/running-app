@@ -1,4 +1,5 @@
 export { AnimatedCounter } from './AnimatedCounter';
+export { AnimatedDualRouteMap } from './AnimatedDualRouteMap';
 export { AnimatedRoutePreview } from './AnimatedRoutePreview';
 export { HeadToHeadScoreDemo } from './HeadToHeadScoreDemo';
 export { MatchmakingDemoCard } from './MatchmakingDemoCard';

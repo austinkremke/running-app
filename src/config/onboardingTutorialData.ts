@@ -5,6 +5,8 @@ export const TUTORIAL_USER = {
   rank: 'Gold III',
   rankTierId: 'gold',
   power: 1842,
+  avatarUrl: 'https://images.unsplash.com/photo-1494790108377-be9c29b29330?w=200&h=200&fit=crop',
+  accent: 'lime' as const,
 };
 
 export const TUTORIAL_OPPONENT_CANDIDATES = ['Casey', 'Morgan', 'Riley', 'Taylor', 'Sam'];
@@ -14,6 +16,8 @@ export const TUTORIAL_OPPONENT = {
   rank: 'Gold III',
   rankTierId: 'gold',
   power: 1821,
+  avatarUrl: 'https://images.unsplash.com/photo-1500648767791-00dcc994a43e?w=200&h=200&fit=crop',
+  accent: 'purple' as const,
 };
 
 export const TUTORIAL_MATCH_TIMER = '18:00';
