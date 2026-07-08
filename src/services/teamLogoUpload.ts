@@ -50,15 +50,20 @@ export async function uploadTeamLogo(
     throw new Error('Could not read the selected photo.');
   }
 
-  const blob = await response.blob();
-  const mimeType = blob.type || 'image/jpeg';
+  // React Native's fetch/Blob polyfill can't construct a Blob from a local
+  // file response ("Creating blobs from Array buffer and arraybufferview
+  // are not supported") — upload raw bytes instead, same as activitySync.ts.
+  const arrayBuffer = await response.arrayBuffer();
+  const mimeType = response.headers.get('content-type') || 'image/jpeg';
   const extension = extensionForMimeType(mimeType);
   const storagePath = `${userId}/team-${teamId}-logo-${Date.now()}.${extension}`;
 
-  const { error: uploadError } = await supabase.storage.from('avatars').upload(storagePath, blob, {
-    upsert: true,
-    contentType: mimeType,
-  });
+  const { error: uploadError } = await supabase.storage
+    .from('avatars')
+    .upload(storagePath, arrayBuffer, {
+      upsert: true,
+      contentType: mimeType,
+    });
 
   if (uploadError) {
     throw uploadError;
