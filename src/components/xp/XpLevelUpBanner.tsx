@@ -6,9 +6,13 @@ import { colors, spacing } from '../../theme';
 type XpLevelUpBannerProps = {
   visible: boolean;
   level: number;
+  /** Overrides the default "Level Up!" label — e.g. for a rank-up moment reusing this same animation. */
+  title?: string;
+  /** Overrides the default "You've reached level {level}" line. */
+  subtitle?: string;
 };
 
-export function XpLevelUpBanner({ visible, level }: XpLevelUpBannerProps) {
+export function XpLevelUpBanner({ visible, level, title, subtitle }: XpLevelUpBannerProps) {
   const scale = useRef(new Animated.Value(0.6)).current;
   const opacity = useRef(new Animated.Value(0)).current;
 
@@ -40,8 +44,8 @@ export function XpLevelUpBanner({ visible, level }: XpLevelUpBannerProps) {
 
   return (
     <Animated.View style={[styles.banner, { opacity, transform: [{ scale }] }]}>
-      <Text style={styles.label}>Level Up!</Text>
-      <Text style={styles.level}>You've reached level {level}</Text>
+      <Text style={styles.label}>{title ?? 'Level Up!'}</Text>
+      <Text style={styles.level}>{subtitle ?? `You've reached level ${level}`}</Text>
     </Animated.View>
   );
 }
