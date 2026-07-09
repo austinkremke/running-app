@@ -24,6 +24,11 @@ export default () => {
       {
         locationWhenInUsePermission:
           'Allow Run Off to use your location on the map while running.',
+        locationAlwaysAndWhenInUsePermission:
+          'Run Off tracks your route in the background so your run keeps recording when your phone is locked.',
+        isIosBackgroundLocationEnabled: true,
+        isAndroidBackgroundLocationEnabled: true,
+        isAndroidForegroundServiceEnabled: true,
       },
     ],
     [
@@ -40,6 +45,19 @@ export default () => {
       },
     ],
     'expo-apple-authentication',
+    [
+      'expo-splash-screen',
+      {
+        image: './assets/splash-icon.png',
+        imageWidth: 200,
+        resizeMode: 'contain',
+        backgroundColor: '#05070B',
+        dark: {
+          image: './assets/splash-icon.png',
+          backgroundColor: '#05070B',
+        },
+      },
+    ],
   ];
 
   if (googleIosUrlScheme) {
@@ -62,8 +80,13 @@ export default () => {
       usesAppleSignIn: true,
       bundleIdentifier: 'com.atkremke.running-app',
       infoPlist: {
+        UIBackgroundModes: ['location'],
         NSLocationWhenInUseUsageDescription:
           'Run Off needs your location to show your position on the map while running.',
+        NSLocationAlwaysAndWhenInUseUsageDescription:
+          'Run Off tracks your route in the background so your run keeps recording when your phone is locked.',
+        NSLocationAlwaysUsageDescription:
+          'Run Off tracks your route in the background so your run keeps recording when your phone is locked.',
         NSPhotoLibraryUsageDescription:
           'Run Off needs access to your photos to set a profile picture.',
         ...(googleIosClientId ? { GIDClientID: googleIosClientId } : {}),
@@ -92,8 +115,10 @@ export default () => {
       permissions: [
         'ACCESS_COARSE_LOCATION',
         'ACCESS_FINE_LOCATION',
+        'ACCESS_BACKGROUND_LOCATION',
         'android.permission.ACCESS_COARSE_LOCATION',
         'android.permission.ACCESS_FINE_LOCATION',
+        'android.permission.ACCESS_BACKGROUND_LOCATION',
       ],
       predictiveBackGestureEnabled: false,
       package: 'com.atkremke.runningapp',

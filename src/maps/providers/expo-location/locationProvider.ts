@@ -1,9 +1,34 @@
 import * as Device from 'expo-device';
 import * as Location from 'expo-location';
+import * as TaskManager from 'expo-task-manager';
 import { Platform } from 'react-native';
 
 import { MAP_CONFIG, MOCK_GPS } from '../../config';
 import type { GpsPoint, LocationProvider, LocationWatcher } from '../../types';
+
+const BACKGROUND_LOCATION_TASK = 'run-off-background-location';
+
+// Listeners registered by the active run recording — kept outside React so the
+// TaskManager task (which can run after the JS context is re-woken in the
+// background) always has somewhere to deliver points, even across re-renders.
+const pointListeners = new Set<(point: GpsPoint) => void>();
+
+if (!TaskManager.isTaskDefined(BACKGROUND_LOCATION_TASK)) {
+  TaskManager.defineTask(BACKGROUND_LOCATION_TASK, async ({ data, error }) => {
+    if (error) {
+      console.warn('Background location task error', error);
+      return;
+    }
+
+    const locations = (data as { locations?: Location.LocationObject[] } | undefined)?.locations;
+    if (!locations) return;
+
+    for (const location of locations) {
+      const point = locationToGpsPoint(location);
+      pointListeners.forEach((listener) => listener(point));
+    }
+  });
+}
 
 async function shouldUseMockGps(): Promise<boolean> {
   if (Platform.OS === 'web') return true;
@@ -48,8 +73,19 @@ export const expoLocationProvider: LocationProvider = {
   id: 'expo-location',
 
   async requestPermissions() {
-    const { status } = await Location.requestForegroundPermissionsAsync();
-    return status === 'granted';
+    const { status: foregroundStatus } = await Location.requestForegroundPermissionsAsync();
+    if (foregroundStatus !== 'granted') return false;
+
+    if (Platform.OS !== 'web') {
+      const { status: backgroundStatus } = await Location.requestBackgroundPermissionsAsync();
+      if (backgroundStatus !== 'granted') {
+        console.warn(
+          'Background location permission not granted — run tracking will pause when the phone is locked.',
+        );
+      }
+    }
+
+    return true;
   },
 
   async getCurrentPosition() {
@@ -73,15 +109,33 @@ export const expoLocationProvider: LocationProvider = {
       return { stop: () => clearInterval(timer) };
     }
 
-    const subscription = await Location.watchPositionAsync(
-      {
+    pointListeners.add(onPoint);
+
+    const alreadyStarted = await Location.hasStartedLocationUpdatesAsync(BACKGROUND_LOCATION_TASK);
+    if (!alreadyStarted) {
+      await Location.startLocationUpdatesAsync(BACKGROUND_LOCATION_TASK, {
         accuracy: Location.Accuracy.High,
         timeInterval: MAP_CONFIG.GPS_INTERVAL_MS,
         distanceInterval: MAP_CONFIG.GPS_DISTANCE_METERS,
-      },
-      (position) => onPoint(locationToGpsPoint(position)),
-    );
+        showsBackgroundLocationIndicator: true,
+        foregroundService: {
+          notificationTitle: 'Run Off',
+          notificationBody: 'Tracking your run…',
+        },
+      });
+    }
 
-    return { stop: () => subscription.remove() };
+    const watcher: LocationWatcher = {
+      stop: () => {
+        pointListeners.delete(onPoint);
+        if (pointListeners.size === 0) {
+          Location.stopLocationUpdatesAsync(BACKGROUND_LOCATION_TASK).catch((error) => {
+            console.warn('Failed to stop background location updates', error);
+          });
+        }
+      },
+    };
+
+    return watcher;
   },
 };

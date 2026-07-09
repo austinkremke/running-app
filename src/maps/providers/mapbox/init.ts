@@ -3,7 +3,7 @@ export const mapboxToken = (process.env.EXPO_PUBLIC_MAPBOX_ACCESS_TOKEN ?? '').t
 /** True when a real Mapbox public token is configured (starts with pk.). */
 export const isMapboxConfigured = mapboxToken.startsWith('pk.');
 
-/** Mapbox Standard style — same as territory-run. */
+/** Mapbox Standard style — same as run-off. */
 export const MAPBOX_STYLE_URL = 'mapbox://styles/mapbox/standard';
 
 /** Dark theme for Mapbox Standard (day | dusk | dawn | night). */
