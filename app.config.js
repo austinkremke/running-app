@@ -81,6 +81,7 @@ export default () => {
       usesAppleSignIn: true,
       bundleIdentifier: 'com.atkremke.running-app',
       infoPlist: {
+        ITSAppUsesNonExemptEncryption: false,
         UIBackgroundModes: ['location'],
         NSLocationWhenInUseUsageDescription:
           'Run Off needs your location to show your position on the map while running.',
