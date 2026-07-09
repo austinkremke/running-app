@@ -70,6 +70,7 @@ export default () => {
   return {
     name: 'Run Off',
     slug: 'running-app',
+    owner: 'austinkremke',
     scheme: 'runningapp',
     version: '1.0.0',
     orientation: 'portrait',
@@ -130,6 +131,9 @@ export default () => {
     extra: {
       googleIosClientId: googleIosClientId || undefined,
       googleWebClientId: googleWebClientId || undefined,
+      eas: {
+        projectId: '7978a309-6236-43e4-b5f3-1d74cb9544f6',
+      },
     },
   };
 };
