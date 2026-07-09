@@ -57,7 +57,7 @@ export function OnboardingProvider({ children }: { children: ReactNode }) {
       if (cancelled) return;
 
       setHasCompletedOnboarding(completedLocally);
-      setStep(completedLocally ? 'howItWorks' : 'howItWorks');
+      setStep('howItWorks');
       setOnboardingReady(true);
     }
 

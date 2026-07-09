@@ -6,4 +6,5 @@ export { OnboardingCTA } from './OnboardingCTA';
 export { OnboardingProgressIndicator } from './OnboardingProgressIndicator';
 export { OnboardingStepContainer } from './OnboardingStepContainer';
 export { OutscoreOpponentVisual } from './OutscoreOpponentVisual';
+export { RankLeaderboardClimb, RankLeaderboardClimbLayout } from './RankLeaderboardClimb';
 export { TeamLeaderboardDemo } from './TeamLeaderboardDemo';

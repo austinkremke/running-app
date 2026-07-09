@@ -55,9 +55,10 @@ export function FindMatchVisual() {
         </Animated.View>
       ) : (
         <View style={styles.matchedBlock}>
-          <Animated.Text style={[styles.formatLabel, { opacity: formatOpacity }]}>
-            3 Day Run Off
-          </Animated.Text>
+          <Animated.View style={[styles.formatBlock, { opacity: formatOpacity }]}>
+            <Text style={styles.formatLabel}>3 Day Run Off</Text>
+            <Text style={styles.formatSubtitle}>Highest Score Wins</Text>
+          </Animated.View>
 
           <View style={styles.matchupRow}>
             <Animated.View
@@ -125,12 +126,24 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     gap: spacing.lg,
   },
+  formatBlock: {
+    alignItems: 'center',
+    gap: 2,
+  },
   formatLabel: {
     color: colors.textPrimary,
-    fontSize: 15,
+    fontSize: 20,
     fontWeight: '800',
     fontStyle: 'italic',
     letterSpacing: 0.6,
+    textTransform: 'uppercase',
+  },
+  formatSubtitle: {
+    color: colors.accentLime,
+    fontSize: 12,
+    fontWeight: '700',
+    fontStyle: 'italic',
+    letterSpacing: 0.4,
     textTransform: 'uppercase',
   },
   matchupRow: {

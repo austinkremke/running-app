@@ -22,9 +22,6 @@ export function OnboardingShell({ step }: OnboardingShellProps) {
           onFindFirstMatch={() => {
             void completeOnboarding({ showChallengeDrawer: true });
           }}
-          onMaybeLater={() => {
-            void completeOnboarding();
-          }}
           onSkip={() => {
             void completeOnboarding();
           }}
