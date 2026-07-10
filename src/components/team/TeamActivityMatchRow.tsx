@@ -10,7 +10,7 @@ type TeamActivityMatchRowProps = {
   showDivider?: boolean;
 };
 
-const LOGO_SIZE = 28;
+const LOGO_SIZE = 36;
 
 function outcomeCopy(outcome: TeamMatchHistoryEntry['outcome']) {
   if (outcome === 'win') {

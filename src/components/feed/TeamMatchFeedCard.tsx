@@ -8,7 +8,7 @@ import { TeamAvatar } from '../team/TeamAvatar';
 import { getTeamLogoAccentColor } from '../team/teamLogoTheme';
 import { RunCardEngagement } from './RunCardEngagement';
 
-const LOGO_SIZE = 40;
+const LOGO_SIZE = 48;
 
 type TeamMatchFeedCardProps = {
   post: TeamMatchFeedPost;

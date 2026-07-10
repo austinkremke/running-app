@@ -341,14 +341,32 @@ function asHistoryLogoAccent(value: string | null | undefined): TeamLogoAccent {
   return HISTORY_LOGO_ACCENTS.has(value as TeamLogoAccent) ? (value as TeamLogoAccent) : 'lime';
 }
 
-function toHistorySide(team: Tables<'teams'>): TeamMatchHistorySide {
+function toHistorySide(team: Tables<'teams'>, rankTierId?: string): TeamMatchHistorySide {
   return {
     id: team.id,
     name: team.name,
     accent: asHistoryLogoAccent(team.logo_accent),
     shieldIcon: team.logo_icon,
     logoUrl: team.logo_url ?? undefined,
+    rankTierId,
   };
+}
+
+/** Resolves each team's rank_tiers.id from its team_rank.competitive_rating. */
+async function fetchTeamRankTierIds(teamIds: string[]): Promise<Map<string, string>> {
+  if (!supabase || teamIds.length === 0) return new Map();
+
+  const [tierRows, { data: teamRanks, error }] = await Promise.all([
+    fetchRankTiers(),
+    supabase.from('team_rank').select('team_id, competitive_rating').in('team_id', teamIds),
+  ]);
+
+  if (error) throw error;
+
+  const tiers = tierRows.map(mapRankTierRow);
+  return new Map(
+    (teamRanks ?? []).map((row) => [row.team_id, tierFromRating(row.competitive_rating, tiers).id]),
+  );
 }
 
 export async function fetchTeamMatchHistory(
@@ -381,6 +399,7 @@ export async function fetchTeamMatchHistory(
   if (teamsError) throw teamsError;
 
   const teamsById = new Map((teams ?? []).map((team) => [team.id, team]));
+  const rankTierIdsByTeam = await fetchTeamRankTierIds(teamIds);
 
   return matches
     .map((match): TeamMatchHistoryEntry | null => {
@@ -403,8 +422,8 @@ export async function fetchTeamMatchHistory(
       return {
         id: match.id,
         endsAt: match.ends_at,
-        homeTeam: toHistorySide(homeTeam),
-        awayTeam: toHistorySide(awayTeam),
+        homeTeam: toHistorySide(homeTeam, rankTierIdsByTeam.get(homeTeam.id)),
+        awayTeam: toHistorySide(awayTeam, rankTierIdsByTeam.get(awayTeam.id)),
         homePoints,
         awayPoints,
         outcome,
@@ -453,6 +472,7 @@ export async function fetchTeamMatchFeedPosts(
   if (teamsError) throw teamsError;
 
   const teamsById = new Map((teams ?? []).map((team) => [team.id, team]));
+  const rankTierIdsByTeam = await fetchTeamRankTierIds(teamIds);
 
   return posts
     .map((post): TeamMatchFeedPost | null => {
@@ -479,8 +499,8 @@ export async function fetchTeamMatchFeedPosts(
         matchId: match.id,
         endsAt: match.ends_at,
         postedAtIso: post.created_at,
-        homeTeam: toHistorySide(homeTeam),
-        awayTeam: toHistorySide(awayTeam),
+        homeTeam: toHistorySide(homeTeam, rankTierIdsByTeam.get(homeTeam.id)),
+        awayTeam: toHistorySide(awayTeam, rankTierIdsByTeam.get(awayTeam.id)),
         homePoints: state.home_points ?? 0,
         awayPoints: state.away_points ?? 0,
         result: state.result ?? 'tie',

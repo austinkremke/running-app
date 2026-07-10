@@ -4,7 +4,7 @@ import { StyleSheet, Text, View } from 'react-native';
 import type { UserProfile } from '../../mock';
 import { colors, spacing } from '../../theme';
 import { ProfileAvatar } from './ProfileAvatar';
-import { rankTierColorForTier } from '../team/rankAvatarBorderTheme';
+import { rankTierColorForTier, shortRankTierName } from '../team/rankAvatarBorderTheme';
 
 type ProfileTopSectionProps = {
   profile: Pick<UserProfile, 'name' | 'avatarUrl' | 'clanName' | 'level' | 'rank'>;
@@ -59,7 +59,7 @@ export function ProfileTopSection({ profile, onEditAvatar }: ProfileTopSectionPr
                   { color: rankTierColorForTier(profile.rank.tierId) },
                 ]}
               >
-                {profile.rank.title}
+                {shortRankTierName(profile.rank.tierId, profile.rank.title)}
               </Text>
             </Text>
             <Text style={styles.ratingLine}>
@@ -79,7 +79,10 @@ export function ProfileTopSection({ profile, onEditAvatar }: ProfileTopSectionPr
                     { color: rankTierColorForTier(profile.rank.nextRankGoal.nextTierId) },
                   ]}
                 >
-                  {profile.rank.nextRankGoal.nextTierTitle}
+                  {shortRankTierName(
+                    profile.rank.nextRankGoal.nextTierId,
+                    profile.rank.nextRankGoal.nextTierTitle,
+                  )}
                 </Text>
               </Text>
             ) : null}

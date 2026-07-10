@@ -1,49 +1,57 @@
-import type { ImageSourcePropType } from 'react-native';
-
 import { colors } from '../../theme';
 import type { RankBorderTierId } from './rankBorderLayout';
-import {
-  RANK_BORDER_AVATAR_DIAMETER_RATIO,
-  rankBorderAssetMeta,
-  rankBorderAvatarLayout,
-} from './rankBorderLayout';
+import { isRankBorderTier, rankBorderAvatarLayout } from './rankBorderLayout';
 
-export const RANK_BORDER_IMAGES = {
-  bronze: require('../../../assets/borders/bronze-border.png'),
-  silver: require('../../../assets/borders/silver-border.png'),
-  gold: require('../../../assets/borders/gold-border.png'),
-  elite: require('../../../assets/borders/elite-border.png'),
-  legend: require('../../../assets/borders/legend-border.png'),
-} as const;
+export type { RankBorderAvatarLayout, RankBorderTierId } from './rankBorderLayout';
+export { rankBorderAvatarLayout } from './rankBorderLayout';
 
-export type { RankBorderAssetMeta, RankBorderAvatarLayout, RankBorderTierId } from './rankBorderLayout';
-export {
-  RANK_BORDER_ASSET_META,
-  RANK_BORDER_AVATAR_DIAMETER_RATIO,
-  rankBorderAssetMeta,
-  rankBorderAvatarLayout,
-} from './rankBorderLayout';
+export type RankBorderGradientStop = { offset: string; color: string };
+
+function metallicSweep(light: string, base: string, dark: string): RankBorderGradientStop[] {
+  return [
+    { offset: '0%', color: light },
+    { offset: '18%', color: base },
+    { offset: '38%', color: dark },
+    { offset: '55%', color: base },
+    { offset: '72%', color: light },
+    { offset: '88%', color: base },
+    { offset: '100%', color: dark },
+  ];
+}
 
 export const RANK_TIER_COLORS: Record<RankBorderTierId, string> = {
   bronze: '#CD8B5E',
   silver: '#B8C8DC',
   gold: colors.accentGold,
   elite: colors.accentPurple,
-  legend: '#E8C04A',
+  legend: '#3ED17A',
 };
 
-export function rankBorderSourceForTier(
+/** Diagonal metallic-shimmer gradient stops per tier, used for the SVG ring stroke. */
+export const RANK_BORDER_GRADIENT_STOPS: Record<RankBorderTierId, RankBorderGradientStop[]> = {
+  bronze: metallicSweep('#FFD9AE', '#CD8B5E', '#7A4A28'),
+  silver: metallicSweep('#FFFFFF', '#B8C8DC', '#6B7A8F'),
+  gold: metallicSweep('#FFF3B0', colors.accentGold, '#A6791C'),
+  elite: metallicSweep('#D9C2FF', colors.accentPurple, '#5A2FA0'),
+  legend: metallicSweep('#C6FFDD', '#3ED17A', '#158A4C'),
+};
+
+export function rankBorderGradientStopsForTier(
   tierId: string | null | undefined,
-): ImageSourcePropType | null {
-  if (!tierId) {
+): RankBorderGradientStop[] | null {
+  if (!isRankBorderTier(tierId)) {
     return null;
   }
 
-  if (tierId in RANK_BORDER_IMAGES) {
-    return RANK_BORDER_IMAGES[tierId as RankBorderTierId];
-  }
+  return RANK_BORDER_GRADIENT_STOPS[tierId];
+}
 
-  return null;
+/**
+ * Returns the validated tier id when a rank border should render, or null otherwise.
+ * Callers that only need to know "does this rank get a border" can keep doing `!= null`.
+ */
+export function rankBorderSourceForTier(tierId: string | null | undefined): RankBorderTierId | null {
+  return isRankBorderTier(tierId) ? tierId : null;
 }
 
 export function rankTierColorForTier(tierId: string | null | undefined): string {

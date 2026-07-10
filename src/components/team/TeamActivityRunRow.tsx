@@ -3,6 +3,8 @@ import { Image, Pressable, StyleSheet, Text, View } from 'react-native';
 
 import type { Run } from '../../mock';
 import { colors, spacing } from '../../theme';
+import { RankBorderAvatar } from './RankBorderAvatar';
+import { rankBorderSourceForTier } from './rankAvatarBorderTheme';
 
 type TeamActivityRunRowProps = {
   run: Run;
@@ -11,8 +13,11 @@ type TeamActivityRunRowProps = {
 };
 
 const AVATAR_SIZE = 36;
+const RANK_BORDER_FRAME_SIZE = 42;
 
 export function TeamActivityRunRow({ run, onPress, showDivider = true }: TeamActivityRunRowProps) {
+  const hasRankBorder = rankBorderSourceForTier(run.user.rankTierId) != null;
+
   return (
     <View>
       <Pressable
@@ -22,7 +27,13 @@ export function TeamActivityRunRow({ run, onPress, showDivider = true }: TeamAct
         onPress={onPress}
         style={({ pressed }) => [styles.row, pressed && onPress ? styles.pressed : null]}
       >
-        {run.user.avatarUrl ? (
+        {hasRankBorder ? (
+          <RankBorderAvatar
+            avatarUrl={run.user.avatarUrl}
+            rankTierId={run.user.rankTierId}
+            size={RANK_BORDER_FRAME_SIZE}
+          />
+        ) : run.user.avatarUrl ? (
           <Image source={{ uri: run.user.avatarUrl }} style={styles.avatar} />
         ) : (
           <View style={[styles.avatar, styles.avatarPlaceholder]} />

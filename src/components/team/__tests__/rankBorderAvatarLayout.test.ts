@@ -1,19 +1,21 @@
 import { rankBorderAvatarLayout } from '../rankBorderLayout';
 
 describe('rankBorderAvatarLayout', () => {
-  it('sizes bronze avatar to the measured inner hole diameter', () => {
+  it('insets the avatar by the ring width plus a gap for a known tier', () => {
     const layout = rankBorderAvatarLayout(72, 'bronze');
 
-    expect(layout.avatarDiameter).toBe(50);
-    expect(layout.avatarLeft).toBeCloseTo(11.12, 1);
-    expect(layout.avatarTop).toBeCloseTo(10.96, 1);
+    expect(layout.ringWidth).toBe(5);
+    expect(layout.avatarDiameter).toBe(56);
+    expect(layout.avatarLeft).toBe(8);
+    expect(layout.avatarTop).toBe(8);
   });
 
-  it('falls back to the default ratio when tier meta is missing', () => {
+  it('renders no ring and fills the frame for an unknown tier', () => {
     const layout = rankBorderAvatarLayout(72, 'unknown');
 
-    expect(layout.avatarDiameter).toBe(53);
-    expect(layout.avatarLeft).toBe(9.5);
-    expect(layout.avatarTop).toBe(9.5);
+    expect(layout.ringWidth).toBe(0);
+    expect(layout.avatarDiameter).toBe(72);
+    expect(layout.avatarLeft).toBe(0);
+    expect(layout.avatarTop).toBe(0);
   });
 });

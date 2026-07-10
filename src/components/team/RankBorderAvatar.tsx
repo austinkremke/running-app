@@ -1,10 +1,11 @@
 import type { ReactNode } from 'react';
 import { Image, StyleSheet, View } from 'react-native';
+import Svg, { Circle, Defs, LinearGradient, Stop } from 'react-native-svg';
 
 import { colors } from '../../theme';
 import {
   rankBorderAvatarLayout,
-  rankBorderSourceForTier,
+  rankBorderGradientStopsForTier,
 } from './rankAvatarBorderTheme';
 
 type RankBorderAvatarProps = {
@@ -16,8 +17,10 @@ type RankBorderAvatarProps = {
 };
 
 export function RankBorderAvatar({ avatarUrl, size, rankTierId, fallback }: RankBorderAvatarProps) {
-  const borderSource = rankBorderSourceForTier(rankTierId);
-  const { avatarDiameter, avatarLeft, avatarTop } = rankBorderAvatarLayout(size, rankTierId);
+  const gradientStops = rankBorderGradientStopsForTier(rankTierId);
+  const { avatarDiameter, avatarLeft, avatarTop, ringWidth } = rankBorderAvatarLayout(size, rankTierId);
+  const gradientId = `rank-border-${rankTierId ?? 'none'}-${size}`;
+  const ringRadius = (size - ringWidth) / 2;
 
   return (
     <View style={[styles.frame, { width: size, height: size }]}>
@@ -42,14 +45,24 @@ export function RankBorderAvatar({ avatarUrl, size, rankTierId, fallback }: Rank
         )}
       </View>
 
-      {borderSource ? (
-        <Image
-          accessibilityIgnoresInvertColors
-          pointerEvents="none"
-          resizeMode="contain"
-          source={borderSource}
-          style={styles.borderOverlay}
-        />
+      {gradientStops ? (
+        <Svg height={size} pointerEvents="none" style={styles.borderOverlay} width={size}>
+          <Defs>
+            <LinearGradient id={gradientId} x1="0%" x2="100%" y1="0%" y2="100%">
+              {gradientStops.map((stop) => (
+                <Stop key={stop.offset} offset={stop.offset} stopColor={stop.color} />
+              ))}
+            </LinearGradient>
+          </Defs>
+          <Circle
+            cx={size / 2}
+            cy={size / 2}
+            fill="none"
+            r={ringRadius}
+            stroke={`url(#${gradientId})`}
+            strokeWidth={ringWidth}
+          />
+        </Svg>
       ) : null}
     </View>
   );
@@ -73,8 +86,8 @@ const styles = StyleSheet.create({
     backgroundColor: colors.surfaceElevated,
   },
   borderOverlay: {
-    ...StyleSheet.absoluteFillObject,
-    width: '100%',
-    height: '100%',
+    position: 'absolute',
+    top: 0,
+    left: 0,
   },
 });
