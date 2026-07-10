@@ -1,0 +1,11 @@
+{
+  "version": "0.0.1",
+  "configurations": [
+    {
+      "name": "run-off-website",
+      "runtimeExecutable": "npm",
+      "runtimeArgs": ["--prefix", "/Users/austinkremke/Projects/run-off-website", "run", "dev"],
+      "port": 3000
+    }
+  ]
+}
