@@ -45,7 +45,7 @@ export function RootNavigator() {
   }
 
   if (!session || !hasCompletedOnboarding) {
-    return <OnboardingShell step={session ? (step === 'login' ? 'howItWorks' : step) : 'login'} />;
+    return <OnboardingShell step={session && step === 'login' ? 'howItWorks' : step} />;
   }
 
   return (
