@@ -21,6 +21,9 @@ import {
   signOutOAuthProviders,
 } from '../services/oauthAuth';
 import { isSupabaseConfigured, supabase } from '../services/supabase';
+import { formatAuthError } from './authErrorFormatting';
+
+export { formatAuthError };
 
 type AuthContextValue = {
   session: Session | null;
@@ -28,8 +31,8 @@ type AuthContextValue = {
   loading: boolean;
   authError: string | null;
   clearAuthError: () => void;
-  signUpWithEmail: (email: string, password: string, displayName: string) => Promise<void>;
-  signInWithEmail: (email: string, password: string) => Promise<void>;
+  sendEmailOtp: (email: string) => Promise<void>;
+  verifyEmailOtp: (email: string, code: string) => Promise<void>;
   signInWithApple: () => Promise<void>;
   signInWithGoogle: () => Promise<void>;
   signOut: () => Promise<void>;
@@ -37,19 +40,6 @@ type AuthContextValue = {
 };
 
 const AuthContext = createContext<AuthContextValue | null>(null);
-
-function formatAuthError(message: string): string {
-  if (message.includes('Invalid login credentials')) {
-    return 'Invalid email or password.';
-  }
-  if (message.includes('User already registered')) {
-    return 'An account with this email already exists. Sign in instead.';
-  }
-  if (message.includes('Password should be at least')) {
-    return 'Password must be at least 6 characters.';
-  }
-  return message;
-}
 
 export function AuthProvider({ children }: { children: ReactNode }) {
   const [session, setSession] = useState<Session | null>(null);
@@ -116,48 +106,40 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     });
   }, [session, refreshGameState]);
 
-  const signUpWithEmail = useCallback(
-    async (email: string, password: string, displayName: string) => {
-      if (!supabase) {
-        throw new Error('Supabase is not configured.');
-      }
-
-      setAuthError(null);
-      const trimmedEmail = email.trim().toLowerCase();
-      const trimmedName = displayName.trim() || trimmedEmail.split('@')[0] || 'runner';
-
-      const { data, error } = await supabase.auth.signUp({
-        email: trimmedEmail,
-        password,
-        options: {
-          data: { display_name: trimmedName },
-        },
-      });
-
-      if (error) {
-        const message = formatAuthError(error.message);
-        setAuthError(message);
-        throw new Error(message);
-      }
-
-      if (!data.session) {
-        const message = 'Check your email to confirm your account, then sign in.';
-        setAuthError(message);
-        throw new Error(message);
-      }
-    },
-    [],
-  );
-
-  const signInWithEmail = useCallback(async (email: string, password: string) => {
+  const sendEmailOtp = useCallback(async (email: string) => {
     if (!supabase) {
       throw new Error('Supabase is not configured.');
     }
 
     setAuthError(null);
-    const { error } = await supabase.auth.signInWithPassword({
+    const trimmedEmail = email.trim().toLowerCase();
+    const trimmedName = trimmedEmail.split('@')[0] || 'runner';
+
+    const { error } = await supabase.auth.signInWithOtp({
+      email: trimmedEmail,
+      options: {
+        shouldCreateUser: true,
+        data: { display_name: trimmedName },
+      },
+    });
+
+    if (error) {
+      const message = formatAuthError(error.message);
+      setAuthError(message);
+      throw new Error(message);
+    }
+  }, []);
+
+  const verifyEmailOtp = useCallback(async (email: string, code: string) => {
+    if (!supabase) {
+      throw new Error('Supabase is not configured.');
+    }
+
+    setAuthError(null);
+    const { error } = await supabase.auth.verifyOtp({
       email: email.trim().toLowerCase(),
-      password,
+      token: code.trim(),
+      type: 'email',
     });
 
     if (error) {
@@ -216,8 +198,8 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       loading,
       authError,
       clearAuthError,
-      signUpWithEmail,
-      signInWithEmail,
+      sendEmailOtp,
+      verifyEmailOtp,
       signInWithApple,
       signInWithGoogle,
       signOut,
@@ -229,8 +211,8 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       loading,
       authError,
       clearAuthError,
-      signUpWithEmail,
-      signInWithEmail,
+      sendEmailOtp,
+      verifyEmailOtp,
       signInWithApple,
       signInWithGoogle,
       signOut,

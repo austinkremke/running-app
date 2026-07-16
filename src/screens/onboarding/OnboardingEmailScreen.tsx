@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import {
   ActivityIndicator,
   KeyboardAvoidingView,
@@ -15,43 +15,89 @@ import { OnboardingPrimaryButton, OnboardingScreenHeader } from '../../component
 import { useAuth, useOnboarding } from '../../context';
 import { colors, spacing } from '../../theme';
 
-type EmailMode = 'signIn' | 'signUp';
+type Stage = 'enterEmail' | 'enterCode';
+
+const RESEND_COOLDOWN_SECONDS = 30;
+// Supabase's OTP length is configurable project-side (not always 6), so this
+// only guards against an obviously incomplete code rather than an exact length.
+const MIN_CODE_LENGTH = 4;
+const MAX_CODE_LENGTH = 10;
 
 export function OnboardingEmailScreen() {
   const { goToStep } = useOnboarding();
-  const { signInWithEmail, signUpWithEmail, authError, clearAuthError } = useAuth();
+  const { sendEmailOtp, verifyEmailOtp, authError, clearAuthError } = useAuth();
 
-  const [mode, setMode] = useState<EmailMode>('signIn');
+  const [stage, setStage] = useState<Stage>('enterEmail');
   const [email, setEmail] = useState('');
-  const [password, setPassword] = useState('');
-  const [displayName, setDisplayName] = useState('');
+  const [code, setCode] = useState('');
   const [submitting, setSubmitting] = useState(false);
   const [localError, setLocalError] = useState<string | null>(null);
+  const [resendCooldown, setResendCooldown] = useState(0);
 
   const errorMessage = localError ?? authError;
 
-  async function handleSubmit() {
+  useEffect(() => {
+    if (resendCooldown <= 0) return undefined;
+
+    const timer = setInterval(() => {
+      setResendCooldown((seconds) => Math.max(0, seconds - 1));
+    }, 1000);
+
+    return () => clearInterval(timer);
+  }, [resendCooldown]);
+
+  async function handleSendCode() {
     clearAuthError();
     setLocalError(null);
 
     const trimmedEmail = email.trim();
-    if (!trimmedEmail || !password) {
-      setLocalError('Email and password are required.');
-      return;
-    }
-
-    if (mode === 'signUp' && password.length < 6) {
-      setLocalError('Password must be at least 6 characters.');
+    if (!trimmedEmail) {
+      setLocalError('Enter your email address.');
       return;
     }
 
     setSubmitting(true);
     try {
-      if (mode === 'signUp') {
-        await signUpWithEmail(trimmedEmail, password, displayName);
-      } else {
-        await signInWithEmail(trimmedEmail, password);
-      }
+      await sendEmailOtp(trimmedEmail);
+      setCode('');
+      setStage('enterCode');
+      setResendCooldown(RESEND_COOLDOWN_SECONDS);
+    } catch {
+      // authError is set in context
+    } finally {
+      setSubmitting(false);
+    }
+  }
+
+  async function handleResendCode() {
+    if (resendCooldown > 0 || submitting) return;
+
+    clearAuthError();
+    setLocalError(null);
+    setSubmitting(true);
+    try {
+      await sendEmailOtp(email);
+      setCode('');
+      setResendCooldown(RESEND_COOLDOWN_SECONDS);
+    } catch {
+      // authError is set in context
+    } finally {
+      setSubmitting(false);
+    }
+  }
+
+  async function handleVerifyCode() {
+    clearAuthError();
+    setLocalError(null);
+
+    if (code.trim().length < MIN_CODE_LENGTH) {
+      setLocalError('Enter the code from your email.');
+      return;
+    }
+
+    setSubmitting(true);
+    try {
+      await verifyEmailOtp(email, code);
       goToStep('howItWorks');
     } catch {
       // authError is set in context
@@ -60,10 +106,17 @@ export function OnboardingEmailScreen() {
     }
   }
 
-  function toggleMode() {
+  function handleBack() {
     clearAuthError();
     setLocalError(null);
-    setMode((current) => (current === 'signIn' ? 'signUp' : 'signIn'));
+
+    if (stage === 'enterCode') {
+      setCode('');
+      setStage('enterEmail');
+      return;
+    }
+
+    goToStep('login');
   }
 
   return (
@@ -74,66 +127,76 @@ export function OnboardingEmailScreen() {
       >
         <View style={styles.container}>
           <OnboardingScreenHeader
-            onBack={() => goToStep('login')}
-            title={mode === 'signIn' ? 'SIGN IN' : 'CREATE ACCOUNT'}
+            onBack={handleBack}
+            title={stage === 'enterEmail' ? 'CONTINUE WITH EMAIL' : 'ENTER CODE'}
           />
 
-          <View style={styles.form}>
-            {mode === 'signUp' ? (
+          {stage === 'enterEmail' ? (
+            <View style={styles.form}>
+              <Text style={styles.hint}>We'll email you a code to sign in — no password needed.</Text>
+
               <TextInput
-                autoCapitalize="words"
+                autoCapitalize="none"
                 autoCorrect={false}
-                onChangeText={setDisplayName}
-                placeholder="Display name"
+                autoFocus
+                keyboardType="email-address"
+                onChangeText={setEmail}
+                placeholder="Email"
                 placeholderTextColor={colors.textSecondary}
                 style={styles.input}
-                value={displayName}
+                textContentType="emailAddress"
+                value={email}
               />
-            ) : null}
 
-            <TextInput
-              autoCapitalize="none"
-              autoCorrect={false}
-              keyboardType="email-address"
-              onChangeText={setEmail}
-              placeholder="Email"
-              placeholderTextColor={colors.textSecondary}
-              style={styles.input}
-              textContentType="emailAddress"
-              value={email}
-            />
+              {errorMessage ? <Text style={styles.error}>{errorMessage}</Text> : null}
 
-            <TextInput
-              autoCapitalize="none"
-              autoCorrect={false}
-              onChangeText={setPassword}
-              placeholder="Password"
-              placeholderTextColor={colors.textSecondary}
-              secureTextEntry
-              style={styles.input}
-              textContentType={mode === 'signIn' ? 'password' : 'newPassword'}
-              value={password}
-            />
+              <OnboardingPrimaryButton
+                label={submitting ? 'SENDING…' : 'SEND CODE'}
+                onPress={submitting ? undefined : handleSendCode}
+              />
 
-            {errorMessage ? <Text style={styles.error}>{errorMessage}</Text> : null}
+              {submitting ? (
+                <ActivityIndicator color={colors.accentLime} style={styles.spinner} />
+              ) : null}
+            </View>
+          ) : (
+            <View style={styles.form}>
+              <Text style={styles.hint}>We sent a code to {email}</Text>
 
-            <OnboardingPrimaryButton
-              label={submitting ? 'WORKING…' : mode === 'signIn' ? 'SIGN IN' : 'CREATE ACCOUNT'}
-              onPress={submitting ? undefined : handleSubmit}
-            />
+              <TextInput
+                autoFocus
+                keyboardType="number-pad"
+                maxLength={MAX_CODE_LENGTH}
+                onChangeText={setCode}
+                placeholder="Code from your email"
+                placeholderTextColor={colors.textSecondary}
+                style={styles.input}
+                textContentType="oneTimeCode"
+                value={code}
+              />
 
-            {submitting ? (
-              <ActivityIndicator color={colors.accentLime} style={styles.spinner} />
-            ) : null}
-          </View>
+              {errorMessage ? <Text style={styles.error}>{errorMessage}</Text> : null}
 
-          <Pressable onPress={toggleMode} style={styles.toggle}>
-            <Text style={styles.toggleText}>
-              {mode === 'signIn'
-                ? 'Need an account? Create one'
-                : 'Already have an account? Sign in'}
-            </Text>
-          </Pressable>
+              <OnboardingPrimaryButton
+                label={submitting ? 'VERIFYING…' : 'VERIFY'}
+                onPress={submitting ? undefined : handleVerifyCode}
+              />
+
+              {submitting ? (
+                <ActivityIndicator color={colors.accentLime} style={styles.spinner} />
+              ) : null}
+
+              <Pressable
+                disabled={resendCooldown > 0 || submitting}
+                onPress={handleResendCode}
+                style={styles.toggle}
+              >
+                <Text style={[styles.toggleText, resendCooldown > 0 && styles.toggleTextDisabled]}>
+                  {resendCooldown > 0 ? `Resend code in ${resendCooldown}s` : 'Resend code'}
+                </Text>
+              </Pressable>
+            </View>
+          )}
         </View>
       </KeyboardAvoidingView>
     </SafeAreaView>
@@ -156,6 +219,11 @@ const styles = StyleSheet.create({
   },
   form: {
     gap: spacing.md,
+  },
+  hint: {
+    color: colors.textSecondary,
+    fontSize: 14,
+    lineHeight: 20,
   },
   input: {
     borderWidth: 1,
@@ -182,5 +250,8 @@ const styles = StyleSheet.create({
     color: colors.accentLime,
     fontSize: 14,
     fontWeight: '700',
+  },
+  toggleTextDisabled: {
+    color: colors.textSecondary,
   },
 });
