@@ -1,20 +1,21 @@
 import { Platform } from 'react-native';
-import { sha256 } from 'js-sha256';
 
 import { getGoogleClientIds, isGoogleAuthConfigured } from '../config/auth';
 import { syncProfileAvatar } from './profileAvatar';
 import { supabase } from './supabase';
+import {
+  createAppleNonce,
+  displayNameFromAppleCredential,
+  formatProviderAuthError,
+  isSignInCancellationError,
+} from './oauthAuthHelpers';
 
-function formatProviderAuthError(message: string): string {
-  if (
-    message.includes('Passed nonce and nonce in id_token') ||
-    message.includes('passed nonce and nonce in id_token') ||
-    message.includes('Nonces mismatch')
-  ) {
-    return `${message} Enable "Skip nonce check" for Google in Supabase → Authentication → Providers → Google, then try again.`;
-  }
-  return message;
-}
+export {
+  createAppleNonce,
+  displayNameFromAppleCredential,
+  formatProviderAuthError,
+  isSignInCancellationError,
+};
 
 export class OAuthAuthError extends Error {
   constructor(
@@ -35,15 +36,6 @@ function ensureSupabase() {
   return supabase;
 }
 
-function createAppleNonce(): { rawNonce: string; hashedNonce: string } {
-  const rawNonce =
-    typeof globalThis.crypto?.randomUUID === 'function'
-      ? globalThis.crypto.randomUUID()
-      : `${Date.now()}-${Math.random().toString(36).slice(2)}`;
-
-  return { rawNonce, hashedNonce: sha256(rawNonce) };
-}
-
 function configureGoogleSignIn(GoogleSignin: {
   configure: (options: {
     iosClientId: string;
@@ -60,18 +52,6 @@ function configureGoogleSignIn(GoogleSignin: {
     offlineAccess: false,
   });
   googleConfigured = true;
-}
-
-function displayNameFromAppleCredential(
-  fullName: {
-    givenName: string | null;
-    familyName: string | null;
-  } | null,
-): string | null {
-  if (!fullName) return null;
-  const parts = [fullName.givenName, fullName.familyName].filter(Boolean);
-  const name = parts.join(' ').trim();
-  return name || null;
 }
 
 async function syncProfileDisplayName(userId: string, displayName: string): Promise<void> {
@@ -112,12 +92,7 @@ export async function signInWithAppleNative(): Promise<void> {
       nonce: hashedNonce,
     });
   } catch (error) {
-    if (
-      error &&
-      typeof error === 'object' &&
-      'code' in error &&
-      error.code === 'ERR_REQUEST_CANCELED'
-    ) {
+    if (isSignInCancellationError(error)) {
       throw new OAuthAuthError('Sign in cancelled.', 'cancelled');
     }
     throw error;
