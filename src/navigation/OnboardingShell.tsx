@@ -23,7 +23,7 @@ export function OnboardingShell({ step }: OnboardingShellProps) {
       return (
         <OnboardingTutorialScreen
           onFindFirstMatch={() => {
-            void completeOnboarding({ showChallengeDrawer: true });
+            void completeOnboarding();
           }}
           onSkip={() => {
             void completeOnboarding();

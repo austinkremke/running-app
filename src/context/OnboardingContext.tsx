@@ -20,13 +20,8 @@ type OnboardingContextValue = {
   step: OnboardingStep;
   hasCompletedOnboarding: boolean;
   onboardingReady: boolean;
-  showChallengeDrawer: boolean;
-  shouldOpenSoloMatch: boolean;
   goToStep: (step: OnboardingStep) => void;
-  completeOnboarding: (options?: { showChallengeDrawer?: boolean }) => Promise<void>;
-  acceptChallenge: () => void;
-  dismissChallenge: () => void;
-  consumeSoloMatchNavigation: () => void;
+  completeOnboarding: () => Promise<void>;
 };
 
 const OnboardingContext = createContext<OnboardingContextValue | null>(null);
@@ -38,8 +33,6 @@ export function OnboardingProvider({ children }: { children: ReactNode }) {
   const [step, setStep] = useState<OnboardingStep>('welcome');
   const [hasCompletedOnboarding, setHasCompletedOnboarding] = useState(false);
   const [onboardingReady, setOnboardingReady] = useState(false);
-  const [showChallengeDrawer, setShowChallengeDrawer] = useState(false);
-  const [shouldOpenSoloMatch, setShouldOpenSoloMatch] = useState(false);
 
   useEffect(() => {
     let cancelled = false;
@@ -77,36 +70,16 @@ export function OnboardingProvider({ children }: { children: ReactNode }) {
     setStep(nextStep);
   }, []);
 
-  const completeOnboarding = useCallback(
-    async (options?: { showChallengeDrawer?: boolean }) => {
-      setHasCompletedOnboarding(true);
+  const completeOnboarding = useCallback(async () => {
+    setHasCompletedOnboarding(true);
 
-      if (userId) {
-        await writeOnboardingCompleted(userId);
-        markOnboardingCompleted(userId).catch((error) => {
-          console.error('Failed to sync onboarding completion', error);
-        });
-      }
-
-      if (options?.showChallengeDrawer) {
-        setShowChallengeDrawer(true);
-      }
-    },
-    [userId],
-  );
-
-  const acceptChallenge = useCallback(() => {
-    setShowChallengeDrawer(false);
-    setShouldOpenSoloMatch(true);
-  }, []);
-
-  const dismissChallenge = useCallback(() => {
-    setShowChallengeDrawer(false);
-  }, []);
-
-  const consumeSoloMatchNavigation = useCallback(() => {
-    setShouldOpenSoloMatch(false);
-  }, []);
+    if (userId) {
+      await writeOnboardingCompleted(userId);
+      markOnboardingCompleted(userId).catch((error) => {
+        console.error('Failed to sync onboarding completion', error);
+      });
+    }
+  }, [userId]);
 
   return (
     <OnboardingContext.Provider
@@ -114,13 +87,8 @@ export function OnboardingProvider({ children }: { children: ReactNode }) {
         step,
         hasCompletedOnboarding,
         onboardingReady,
-        showChallengeDrawer,
-        shouldOpenSoloMatch,
         goToStep,
         completeOnboarding,
-        acceptChallenge,
-        dismissChallenge,
-        consumeSoloMatchNavigation,
       }}
     >
       {children}

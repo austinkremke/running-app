@@ -11,7 +11,6 @@ import {
 import { NotificationCenterDrawer } from '../components/notification';
 import {
   useAuth,
-  useOnboarding,
   useSoloMatchCompletion,
   useTeamMatchCompletion,
   useUserId,
@@ -55,7 +54,6 @@ const MATCH_TABS = [
 export function AppShell() {
   const { gameState } = useAuth();
   const userId = useUserId();
-  const { shouldOpenSoloMatch, consumeSoloMatchNavigation } = useOnboarding();
   const { syncCompletions } = useSoloMatchCompletion();
   const { syncCompletions: syncTeamCompletions } = useTeamMatchCompletion();
   const { showMatchTabBadge, showSoloTabBadge } = useMatchTabIndicators();
@@ -114,16 +112,6 @@ export function AppShell() {
       void syncTeamCompletions();
     }
   }, [activeRoute, syncCompletions, syncTeamCompletions]);
-
-  useEffect(() => {
-    if (!shouldOpenSoloMatch) {
-      return;
-    }
-
-    setActiveRoute('soloMatch');
-    setActiveMatchTab('solo');
-    consumeSoloMatchNavigation();
-  }, [consumeSoloMatchNavigation, shouldOpenSoloMatch]);
 
   const {
     title,
