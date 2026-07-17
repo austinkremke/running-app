@@ -16,6 +16,7 @@ export type TeamNotification = {
   teamTag: string;
   teamLogoIcon: string;
   teamLogoAccent: TeamLogoAccent;
+  teamLogoUrl?: string;
   actorId: string;
   actorName: string;
   actorAvatarUrl?: string;
@@ -52,6 +53,7 @@ function parseNotification(payload: unknown): TeamNotification | null {
     teamTag: typeof row.team_tag === 'string' ? row.team_tag : '',
     teamLogoIcon: typeof row.team_logo_icon === 'string' ? row.team_logo_icon : 'paw',
     teamLogoAccent: asLogoAccent(row.team_logo_accent),
+    teamLogoUrl: typeof row.team_logo_url === 'string' ? row.team_logo_url : undefined,
     actorId: typeof row.actor_id === 'string' ? row.actor_id : '',
     actorName: typeof row.actor_name === 'string' ? row.actor_name : 'Runner',
     actorAvatarUrl: typeof row.actor_avatar_url === 'string' ? row.actor_avatar_url : undefined,

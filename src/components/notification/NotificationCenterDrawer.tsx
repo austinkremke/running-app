@@ -1,21 +1,23 @@
 import { Image, Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
 
-import type { TeamNotification } from '../../services/teamMembershipService';
+import type { AppNotification } from '../../hooks/useTeamNotifications';
 import { colors, spacing } from '../../theme';
 import { BottomSheetDrawer } from '../drawer';
 import { TeamAvatar } from '../team/TeamAvatar';
 
 type NotificationCenterDrawerProps = {
   visible: boolean;
-  notifications: TeamNotification[];
+  notifications: AppNotification[];
   loading?: boolean;
   actionLoadingId?: string | null;
-  onRespond: (notification: TeamNotification, accept: boolean) => void;
+  onRespond: (notification: AppNotification, accept: boolean) => void;
   onClose: () => void;
 };
 
-function primaryLabel(notification: TeamNotification): string {
-  return notification.kind === 'invite' ? 'Join' : 'Approve';
+function primaryLabel(notification: AppNotification): string {
+  if (notification.kind === 'invite') return 'Join';
+  if (notification.kind === 'request') return 'Approve';
+  return 'Accept';
 }
 
 export function NotificationCenterDrawer({
@@ -41,18 +43,33 @@ export function NotificationCenterDrawer({
               {notifications.map((notification) => {
                 const busy = actionLoadingId === notification.id;
                 const isInvite = notification.kind === 'invite';
+                const isFriendRequest = notification.kind === 'friend_request';
 
                 return (
                   <View key={notification.id} style={styles.row}>
-                    <TeamAvatar
-                      accent={notification.teamLogoAccent}
-                      icon={notification.teamLogoIcon}
-                      size={34}
-                    />
+                    {isFriendRequest ? (
+                      notification.actorAvatarUrl ? (
+                        <Image source={{ uri: notification.actorAvatarUrl }} style={styles.friendAvatar} />
+                      ) : (
+                        <View style={[styles.friendAvatar, styles.friendAvatarPlaceholder]} />
+                      )
+                    ) : (
+                      <TeamAvatar
+                        accent={notification.teamLogoAccent}
+                        icon={notification.teamLogoIcon}
+                        imageUrl={notification.teamLogoUrl}
+                        size={34}
+                      />
+                    )}
 
                     <View style={styles.meta}>
                       <Text numberOfLines={2} style={styles.message}>
-                        {isInvite ? (
+                        {isFriendRequest ? (
+                          <>
+                            <Text style={styles.strong}>{notification.actorName}</Text> wants to be your
+                            friend
+                          </>
+                        ) : isInvite ? (
                           <>
                             <Text style={styles.strong}>{notification.teamName}</Text> invited you to
                             join
@@ -65,9 +82,11 @@ export function NotificationCenterDrawer({
                         )}
                       </Text>
                       <Text style={styles.sub}>
-                        {isInvite
-                          ? `From ${notification.actorName} · Lvl ${notification.actorLevel}`
-                          : `Level ${notification.actorLevel}`}
+                        {isFriendRequest
+                          ? `Level ${notification.actorLevel}`
+                          : isInvite
+                            ? `From ${notification.actorName} · Lvl ${notification.actorLevel}`
+                            : `Level ${notification.actorLevel}`}
                       </Text>
                     </View>
 
@@ -142,6 +161,14 @@ const styles = StyleSheet.create({
     borderWidth: 1,
     borderColor: colors.border,
     padding: spacing.md,
+  },
+  friendAvatar: {
+    width: 34,
+    height: 34,
+    borderRadius: 17,
+  },
+  friendAvatarPlaceholder: {
+    backgroundColor: colors.surfaceElevated,
   },
   meta: {
     flex: 1,

@@ -4,6 +4,7 @@ import {
   OnboardingEmailScreen,
   OnboardingLoginScreen,
   OnboardingTutorialScreen,
+  OnboardingWelcomeScreen,
 } from '../screens/onboarding';
 
 type OnboardingShellProps = {
@@ -11,9 +12,11 @@ type OnboardingShellProps = {
 };
 
 export function OnboardingShell({ step }: OnboardingShellProps) {
-  const { completeOnboarding } = useOnboarding();
+  const { completeOnboarding, goToStep } = useOnboarding();
 
   switch (step) {
+    case 'login':
+      return <OnboardingLoginScreen />;
     case 'email':
       return <OnboardingEmailScreen />;
     case 'howItWorks':
@@ -27,8 +30,13 @@ export function OnboardingShell({ step }: OnboardingShellProps) {
           }}
         />
       );
-    case 'login':
+    case 'welcome':
     default:
-      return <OnboardingLoginScreen />;
+      return (
+        <OnboardingWelcomeScreen
+          onJoin={() => goToStep('login')}
+          onLogin={() => goToStep('login')}
+        />
+      );
   }
 }

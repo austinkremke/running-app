@@ -1,5 +1,5 @@
 import { Ionicons } from '@expo/vector-icons';
-import { Image, StyleSheet, Text, View } from 'react-native';
+import { Image, Pressable, StyleSheet, Text, View } from 'react-native';
 
 import type { RunUser } from '../../mock';
 import { colors, spacing } from '../../theme';
@@ -14,7 +14,10 @@ type RunCardHeaderProps = {
   location: string;
   showAddFriend?: boolean;
   addFriendDisabled?: boolean;
+  addFriendPending?: boolean;
   onAddFriend?: () => void;
+  /** Opens the runner's profile — tapping the avatar/name, separate from the card body's run-detail tap target. */
+  onOpenProfile?: () => void;
 };
 
 const AVATAR_SIZE = 40;
@@ -26,50 +29,64 @@ export function RunCardHeader({
   location,
   showAddFriend = false,
   addFriendDisabled = false,
+  addFriendPending = false,
   onAddFriend,
+  onOpenProfile,
 }: RunCardHeaderProps) {
   const hasRankBorder = rankBorderSourceForTier(user.rankTierId) != null;
   const frameSize = hasRankBorder ? RANK_BORDER_FRAME_SIZE : AVATAR_SIZE;
 
   return (
     <View style={styles.container}>
-      <View style={[styles.avatarWrap, { width: frameSize + 4 }]}>
-        {hasRankBorder ? (
-          <RankBorderAvatar
-            avatarUrl={user.avatarUrl}
-            rankTierId={user.rankTierId}
-            size={frameSize}
-          />
-        ) : (
-          <View
-            style={[
-              styles.avatarPlain,
-              { width: AVATAR_SIZE, height: AVATAR_SIZE, borderRadius: AVATAR_SIZE / 2 },
-            ]}
-          >
-            {user.avatarUrl ? (
-              <Image source={{ uri: user.avatarUrl }} style={styles.avatar} />
-            ) : (
-              <View style={[styles.avatar, styles.avatarPlaceholder]} />
-            )}
-          </View>
-        )}
-        <UserLevelBadge level={user.level} />
-      </View>
-
-      <View style={styles.meta}>
-        <Text style={styles.name}>{user.name}</Text>
-        <Text style={styles.subline}>
-          {postedAt} • {location}
-        </Text>
-        <View style={styles.teamRow}>
-          <Ionicons color={colors.accentLime} name="shield-outline" size={11} />
-          <Text style={styles.teamName}>{user.teamName}</Text>
+      <Pressable
+        accessibilityHint="Opens this runner's profile"
+        accessibilityRole="button"
+        disabled={!onOpenProfile}
+        onPress={onOpenProfile}
+        style={styles.identity}
+      >
+        <View style={[styles.avatarWrap, { width: frameSize + 4 }]}>
+          {hasRankBorder ? (
+            <RankBorderAvatar
+              avatarUrl={user.avatarUrl}
+              rankTierId={user.rankTierId}
+              size={frameSize}
+            />
+          ) : (
+            <View
+              style={[
+                styles.avatarPlain,
+                { width: AVATAR_SIZE, height: AVATAR_SIZE, borderRadius: AVATAR_SIZE / 2 },
+              ]}
+            >
+              {user.avatarUrl ? (
+                <Image source={{ uri: user.avatarUrl }} style={styles.avatar} />
+              ) : (
+                <View style={[styles.avatar, styles.avatarPlaceholder]} />
+              )}
+            </View>
+          )}
+          <UserLevelBadge level={user.level} />
         </View>
-      </View>
+
+        <View style={styles.meta}>
+          <Text style={styles.name}>{user.name}</Text>
+          <Text style={styles.subline}>
+            {postedAt} • {location}
+          </Text>
+          <View style={styles.teamRow}>
+            <Ionicons color={colors.accentLime} name="shield-outline" size={11} />
+            <Text style={styles.teamName}>{user.teamName}</Text>
+          </View>
+        </View>
+      </Pressable>
 
       {showAddFriend && onAddFriend ? (
-        <RunCardAddFriendButton disabled={addFriendDisabled} onPress={onAddFriend} />
+        <RunCardAddFriendButton
+          disabled={addFriendDisabled}
+          onPress={onAddFriend}
+          pending={addFriendPending}
+        />
       ) : null}
     </View>
   );
@@ -77,6 +94,12 @@ export function RunCardHeader({
 
 const styles = StyleSheet.create({
   container: {
+    flexDirection: 'row',
+    alignItems: 'flex-start',
+    gap: spacing.sm,
+  },
+  identity: {
+    flex: 1,
     flexDirection: 'row',
     alignItems: 'flex-start',
     gap: spacing.sm,

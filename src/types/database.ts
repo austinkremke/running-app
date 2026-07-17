@@ -359,6 +359,48 @@ export type Database = {
           },
         ]
       }
+      friend_requests: {
+        Row: {
+          created_at: string
+          from_user_id: string
+          id: string
+          status: string
+          to_user_id: string
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          from_user_id: string
+          id?: string
+          status?: string
+          to_user_id: string
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          from_user_id?: string
+          id?: string
+          status?: string
+          to_user_id?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "friend_requests_from_user_id_fkey"
+            columns: ["from_user_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "friend_requests_to_user_id_fkey"
+            columns: ["to_user_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       friendships: {
         Row: {
           created_at: string
@@ -1259,6 +1301,7 @@ export type Database = {
       }
       can_view_feed_post: { Args: { p_post_id: string }; Returns: boolean }
       can_view_match: { Args: { p_match_id: string }; Returns: boolean }
+      cancel_friend_request: { Args: { p_request_id: string }; Returns: Json }
       cancel_solo_match_challenge: {
         Args: { p_challenge_id: string }
         Returns: Json
@@ -1335,6 +1378,7 @@ export type Database = {
         Returns: undefined
       }
       forfeit_solo_match: { Args: { p_match_id: string }; Returns: Json }
+      get_friend_notifications: { Args: never; Returns: Json }
       get_my_solo_match_completions: {
         Args: { p_limit?: number; p_user_id?: string }
         Returns: Json
@@ -1352,6 +1396,7 @@ export type Database = {
         Args: { p_achievement_id: string; p_user_id: string }
         Returns: Json
       }
+      has_friend_notifications: { Args: never; Returns: boolean }
       has_incoming_solo_match_challenge: {
         Args: { p_user_id?: string }
         Returns: boolean
@@ -1399,8 +1444,13 @@ export type Database = {
         Args: { p_event_type: string; p_metadata?: Json }
         Returns: Json
       }
+      remove_friend: { Args: { p_friend_user_id: string }; Returns: undefined }
       repair_solo_match_activity_credits: { Args: never; Returns: Json }
       request_to_join_team: { Args: { p_team_id: string }; Returns: Json }
+      respond_to_friend_request: {
+        Args: { p_accept: boolean; p_request_id: string }
+        Returns: Json
+      }
       respond_to_join_request: {
         Args: { p_accept: boolean; p_request_id: string }
         Returns: Json
@@ -1409,6 +1459,7 @@ export type Database = {
         Args: { p_accept: boolean; p_request_id: string }
         Returns: Json
       }
+      send_friend_request: { Args: { p_to_user_id: string }; Returns: Json }
       send_solo_match_challenge: {
         Args: { p_challenged_user_id: string; p_match_type_id?: string }
         Returns: Json

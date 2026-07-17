@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useMemo, useState } from 'react';
-import { ScrollView, StyleSheet, Text, View } from 'react-native';
+import { Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
 
 import {
   AchievementsAllModal,
@@ -8,6 +8,7 @@ import {
   ExperienceCard,
   OverallStatsSection,
   ProfileTopSection,
+  RankUpCelebrationDrawer,
   SectionHeader,
   StatDetailDrawer,
   type StatDetailTarget,
@@ -20,95 +21,22 @@ import type { OverallStat } from '../mock';
 import { performAchievementCardAction } from '../services/achievementCardActions';
 import type { AchievementListItem } from '../services/achievementService';
 import { sortAchievementsForMeCarousel } from '../services/achievementService';
-import { formatDurationClock, formatPace } from '../services/distanceService';
-import {
-  fetchProfileOverallStats,
-  type ProfileOverallStats,
-} from '../services/profileStatsService';
+import { buildOverallStats } from '../services/buildOverallStats';
+import { fetchProfileOverallStats, type ProfileOverallStats } from '../services/profileStatsService';
 import { fetchTeamNameById } from '../services/teamService';
 import { colors, spacing } from '../theme';
 
-function buildOverallStats(
-  stats: ProfileOverallStats,
-  seasonRecord: { wins: number; losses: number },
-): OverallStat[] {
-  return [
-    {
-      id: 'stat-distance',
-      icon: 'footsteps-outline',
-      iconColor: colors.accentLime,
-      value: stats.totalDistanceMiles.toFixed(1),
-      unit: 'mi',
-      label: 'Total Distance',
-      layout: 'grid',
-      metricKey: 'distance',
-    },
-    {
-      id: 'stat-calories',
-      icon: 'flame',
-      iconColor: '#FF8A3D',
-      value: stats.totalCalories.toLocaleString(),
-      unit: 'cal',
-      label: 'Calories Burned',
-      layout: 'grid',
-      metricKey: 'calories',
-    },
-    {
-      id: 'stat-time',
-      icon: 'stopwatch-outline',
-      iconColor: colors.accentLime,
-      value: formatDurationClock(stats.totalDurationSeconds),
-      unit: 'hr',
-      label: 'Total Time',
-      layout: 'grid',
-      metricKey: 'time',
-    },
-    {
-      id: 'stat-pace',
-      icon: 'speedometer-outline',
-      iconColor: colors.accentLime,
-      value: stats.avgPaceSecondsPerMile > 0 ? formatPace(stats.avgPaceSecondsPerMile) : '--',
-      unit: 'min/mi',
-      label: 'Avg Pace',
-      layout: 'grid',
-      metricKey: 'pace',
-    },
-    {
-      id: 'stat-elevation',
-      icon: 'trending-up',
-      iconColor: colors.accentLime,
-      value: stats.totalElevationGainFt.toLocaleString(),
-      unit: 'ft',
-      label: 'Elevation Gain',
-      layout: 'grid',
-      metricKey: 'elevation',
-    },
-    {
-      id: 'stat-runs',
-      icon: 'footsteps',
-      iconColor: colors.accentLime,
-      value: String(stats.totalRuns),
-      label: 'Total Runs',
-      layout: 'grid',
-      metricKey: 'runs',
-    },
-    {
-      id: 'stat-record',
-      icon: 'trophy',
-      iconColor: colors.accentLime,
-      value: String(seasonRecord.wins),
-      label: 'Match Wins',
-      sublabel: `${seasonRecord.wins} - ${seasonRecord.losses} Record`,
-      layout: 'wide',
-    },
-  ];
-}
-
 type MeScreenProps = {
+  onOpenDevScreenshotMock?: () => void;
+  onOpenDevTeamScreenshotMock?: () => void;
   onOpenSettings?: () => void;
 };
 
-export function MeScreen({ onOpenSettings }: MeScreenProps) {
+export function MeScreen({
+  onOpenDevScreenshotMock,
+  onOpenDevTeamScreenshotMock,
+  onOpenSettings,
+}: MeScreenProps) {
   const { gameState } = useAuth();
   const userId = useUserId();
   const { level, experience } = usePlayerProgress();
@@ -120,6 +48,7 @@ export function MeScreen({ onOpenSettings }: MeScreenProps) {
     onUnlock: showAchievementUnlocks,
   });
   const [viewAllVisible, setViewAllVisible] = useState(false);
+  const [rankUpMockVisible, setRankUpMockVisible] = useState(false);
   const [teamName, setTeamName] = useState('');
   const [overallStats, setOverallStats] = useState<ProfileOverallStats | null>(null);
   const [statDetailTarget, setStatDetailTarget] = useState<StatDetailTarget | null>(null);
@@ -243,6 +172,41 @@ export function MeScreen({ onOpenSettings }: MeScreenProps) {
           />
         ) : null}
 
+        {/* Dev-only screenshot mockup buttons — commented out for now, not removed.
+        {onOpenDevScreenshotMock ? (
+          <Pressable
+            accessibilityLabel="Dev: 1v1 screenshot mockup"
+            accessibilityRole="button"
+            onPress={onOpenDevScreenshotMock}
+            style={styles.devButton}
+          >
+            <Text style={styles.devButtonLabel}>DEV: 1V1 SCREENSHOT MOCKUP</Text>
+          </Pressable>
+        ) : null}
+
+        {__DEV__ ? (
+          <Pressable
+            accessibilityLabel="Dev: rank up screenshot mockup"
+            accessibilityRole="button"
+            onPress={() => setRankUpMockVisible(true)}
+            style={styles.devButton}
+          >
+            <Text style={styles.devButtonLabel}>DEV: RANK UP SCREENSHOT MOCKUP</Text>
+          </Pressable>
+        ) : null}
+
+        {onOpenDevTeamScreenshotMock ? (
+          <Pressable
+            accessibilityLabel="Dev: team screenshot mockup"
+            accessibilityRole="button"
+            onPress={onOpenDevTeamScreenshotMock}
+            style={styles.devButton}
+          >
+            <Text style={styles.devButtonLabel}>DEV: TEAM SCREENSHOT MOCKUP</Text>
+          </Pressable>
+        ) : null}
+        */}
+
         <View style={styles.bottomSpacer} />
       </ScrollView>
 
@@ -259,6 +223,15 @@ export function MeScreen({ onOpenSettings }: MeScreenProps) {
         userId={userId}
         visible={statDetailTarget != null}
       />
+
+      {__DEV__ ? (
+        <RankUpCelebrationDrawer
+          fromTierId="silver"
+          onClose={() => setRankUpMockVisible(false)}
+          toTierId="gold"
+          visible={rankUpMockVisible}
+        />
+      ) : null}
     </>
   );
 }
@@ -286,5 +259,21 @@ const styles = StyleSheet.create({
   },
   bottomSpacer: {
     height: spacing.md,
+  },
+  devButton: {
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginHorizontal: spacing.sm,
+    paddingVertical: spacing.sm,
+    borderRadius: 10,
+    borderWidth: 1,
+    borderColor: colors.border,
+    borderStyle: 'dashed',
+  },
+  devButtonLabel: {
+    color: colors.textSecondary,
+    fontSize: 11,
+    fontWeight: '700',
+    letterSpacing: 0.4,
   },
 });

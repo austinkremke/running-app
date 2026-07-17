@@ -107,6 +107,20 @@ export async function addFriend(friendUserId: string): Promise<void> {
   }
 }
 
+export async function removeFriend(friendUserId: string): Promise<void> {
+  if (!supabase) {
+    throw new Error('Supabase is not configured.');
+  }
+
+  const { error } = await supabase.rpc('remove_friend', {
+    p_friend_user_id: friendUserId,
+  });
+
+  if (error) {
+    throw error;
+  }
+}
+
 export async function isFriend(userId: string, otherUserId: string): Promise<boolean> {
   if (!supabase || userId === otherUserId) {
     return false;

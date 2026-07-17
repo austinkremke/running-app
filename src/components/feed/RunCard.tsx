@@ -12,6 +12,7 @@ type RunCardProps = {
   run: Run;
   viewerUserId?: string | null;
   isFriend?: boolean;
+  isFriendPending?: boolean;
   engagementDisabled?: boolean;
   addFriendDisabled?: boolean;
   onAddFriend?: () => void;
@@ -20,12 +21,15 @@ type RunCardProps = {
   onShare?: () => void;
   /** Opens the run detail screen — the card body (not the engagement row) is the tap target. */
   onOpenDetail?: () => void;
+  /** Opens the runner's profile — the avatar/name specifically, not the rest of the card. */
+  onOpenProfile?: () => void;
 };
 
 export function RunCard({
   run,
   viewerUserId = null,
   isFriend = false,
+  isFriendPending = false,
   engagementDisabled = false,
   addFriendDisabled = false,
   onAddFriend,
@@ -33,6 +37,7 @@ export function RunCard({
   onOpenComments,
   onShare,
   onOpenDetail,
+  onOpenProfile,
 }: RunCardProps) {
   const canAddFriend = Boolean(
     viewerUserId && viewerUserId !== run.user.id && !isFriend && onAddFriend,
@@ -49,8 +54,10 @@ export function RunCard({
       >
         <RunCardHeader
           addFriendDisabled={addFriendDisabled}
+          addFriendPending={isFriendPending}
           location={run.location}
           onAddFriend={onAddFriend}
+          onOpenProfile={onOpenProfile}
           postedAt={run.postedAt}
           showAddFriend={canAddFriend}
           user={run.user}

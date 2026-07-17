@@ -12,7 +12,10 @@ export type AppRoute =
   | 'team'
   | 'topTeams'
   | 'me'
-  | 'settings';
+  | 'settings'
+  | 'userProfile'
+  | 'devSoloMatchScreenshot'
+  | 'devTeamScreenshot';
 
 type RouteConfig = {
   title: string;
@@ -51,6 +54,9 @@ export const ROUTES: Record<AppRoute, RouteConfig> = {
   },
   me: { title: 'ME', screen: MeScreen, showFeedTabs: false, showHeaderBorder: true },
   settings: { title: 'SETTINGS', showFeedTabs: false, showHeaderBorder: true },
+  userProfile: { title: 'PROFILE', showFeedTabs: false, hideChrome: true },
+  devSoloMatchScreenshot: { title: '1V1 MATCH', showFeedTabs: false, hideChrome: true },
+  devTeamScreenshot: { title: 'TEAM', showFeedTabs: false, hideChrome: true },
 };
 
 export function isAppRoute(key: string): key is AppRoute {

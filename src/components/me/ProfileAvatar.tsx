@@ -39,24 +39,26 @@ export function ProfileAvatar({
         </View>
       )}
 
-      <Pressable
-        accessibilityLabel="Edit profile photo"
-        accessibilityRole="button"
-        hitSlop={6}
-        onPress={onEditPress}
-        style={[
-          styles.editButton,
-          {
-            width: editSize,
-            height: editSize,
-            borderRadius: editSize / 2,
-            right: -2,
-            bottom: -2,
-          },
-        ]}
-      >
-        <Ionicons color={colors.textPrimary} name="pencil" size={editSize * 0.45} />
-      </Pressable>
+      {onEditPress ? (
+        <Pressable
+          accessibilityLabel="Edit profile photo"
+          accessibilityRole="button"
+          hitSlop={6}
+          onPress={onEditPress}
+          style={[
+            styles.editButton,
+            {
+              width: editSize,
+              height: editSize,
+              borderRadius: editSize / 2,
+              right: -2,
+              bottom: -2,
+            },
+          ]}
+        >
+          <Ionicons color={colors.textPrimary} name="pencil" size={editSize * 0.45} />
+        </Pressable>
+      ) : null}
     </View>
   );
 }

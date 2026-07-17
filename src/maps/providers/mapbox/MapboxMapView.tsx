@@ -57,6 +57,14 @@ export function MapboxMapView({
 }: MapViewProps) {
   const mapbox = getMapboxModule();
   const cameraRef = useRef<{ setCamera: (config: object) => void; fitBounds: (...args: unknown[]) => void } | null>(null);
+  // Guards against dispatching imperative camera commands before the native
+  // Camera view has registered (or after this component has unmounted) —
+  // without this, @rnmapbox/maps retries the dispatch for ~10s and then
+  // throws an unhandled "Could not find view with tag ... in
+  // updateCameraStop" rejection, which can surface on a totally different
+  // screen since the retry outlives the component that triggered it.
+  const mapReadyRef = useRef(false);
+  const isMountedRef = useRef(true);
   const userCoordinateRef = useRef<[number, number] | null>(null);
   const [userCoordinate, setUserCoordinate] = useState<[number, number] | null>(null);
   const isRoutePreview = showRouteEndpoints && !interactive;
@@ -71,6 +79,7 @@ export function MapboxMapView({
   const routeEnd = routePoints.length > 1 ? routePoints[routePoints.length - 1] : null;
 
   const fitRouteToViewport = useCallback(() => {
+    if (!mapReadyRef.current || !isMountedRef.current) return;
     if (!showRouteEndpoints || routePoints.length < 2) return;
 
     const lngs = routePoints.map((point) => point.longitude);
@@ -88,6 +97,21 @@ export function MapboxMapView({
     );
   }, [routePoints, showRouteEndpoints]);
 
+  const handleMapReady = useCallback(() => {
+    mapReadyRef.current = true;
+    if (!isMountedRef.current) return;
+
+    if (!followRoute && !showRouteEndpoints) {
+      cameraRef.current?.setCamera({
+        centerCoordinate,
+        zoomLevel,
+        animationDuration: 0,
+      });
+    }
+
+    fitRouteToViewport();
+  }, [centerCoordinate, fitRouteToViewport, followRoute, showRouteEndpoints, zoomLevel]);
+
   const handleUserLocationUpdate = useCallback(
     (location: { coords?: { longitude: number; latitude: number } }) => {
       if (!location.coords) return;
@@ -103,6 +127,7 @@ export function MapboxMapView({
 
   useEffect(() => {
     if (!recenterSignal) return;
+    if (!mapReadyRef.current || !isMountedRef.current) return;
 
     const coordinate = userCoordinateRef.current;
     if (!coordinate) return;
@@ -123,6 +148,7 @@ export function MapboxMapView({
   // is scoped to the plain live-location map (starting/recording a run).
   useEffect(() => {
     if (followRoute || showRouteEndpoints) return;
+    if (!mapReadyRef.current || !isMountedRef.current) return;
 
     cameraRef.current?.setCamera({
       centerCoordinate,
@@ -134,6 +160,13 @@ export function MapboxMapView({
   useEffect(() => {
     fitRouteToViewport();
   }, [fitRouteToViewport]);
+
+  useEffect(() => {
+    isMountedRef.current = true;
+    return () => {
+      isMountedRef.current = false;
+    };
+  }, []);
 
   const routeGeoJson = useMemo<GeoJSON.FeatureCollection<GeoJSON.LineString>>(() => {
     if (routePoints.length < 2) {
@@ -197,7 +230,7 @@ export function MapboxMapView({
       zoomEnabled={!isRoutePreview}
       attributionEnabled={false}
       logoEnabled={false}
-      onDidFinishLoadingMap={fitRouteToViewport}
+      onDidFinishLoadingMap={handleMapReady}
     >
       <StyleImport
         id="basemap"

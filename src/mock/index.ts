@@ -1,5 +1,7 @@
 export { MOCK_SOLO_CHAT_MESSAGES } from './soloChat';
 export { MOCK_ACTIVE_SOLO_MATCH } from './soloActiveMatch';
+export { MOCK_SOLO_MATCH_SCREENSHOT } from './soloMatchScreenshotMock';
+export { MOCK_TEAM_SCREENSHOT } from './teamScreenshotMock';
 export { MOCK_ONBOARDING_NPC } from './onboardingNpc';
 export type { OnboardingNpcOpponent } from './onboardingNpc';
 export { MOCK_CHALLENGE_FRIENDS } from './friends';

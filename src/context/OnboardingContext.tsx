@@ -14,7 +14,7 @@ import {
 } from '../storage/onboardingStorage';
 import { useAuth } from './AuthContext';
 
-export type OnboardingStep = 'login' | 'email' | 'howItWorks';
+export type OnboardingStep = 'welcome' | 'login' | 'email' | 'howItWorks';
 
 type OnboardingContextValue = {
   step: OnboardingStep;
@@ -35,7 +35,7 @@ export function OnboardingProvider({ children }: { children: ReactNode }) {
   const { session } = useAuth();
   const userId = session?.user?.id ?? null;
 
-  const [step, setStep] = useState<OnboardingStep>('login');
+  const [step, setStep] = useState<OnboardingStep>('welcome');
   const [hasCompletedOnboarding, setHasCompletedOnboarding] = useState(false);
   const [onboardingReady, setOnboardingReady] = useState(false);
   const [showChallengeDrawer, setShowChallengeDrawer] = useState(false);
@@ -47,7 +47,7 @@ export function OnboardingProvider({ children }: { children: ReactNode }) {
     async function loadOnboardingState() {
       if (!userId) {
         setHasCompletedOnboarding(false);
-        setStep('login');
+        setStep('welcome');
         setOnboardingReady(true);
         return;
       }

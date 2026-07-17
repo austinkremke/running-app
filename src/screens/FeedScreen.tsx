@@ -20,14 +20,15 @@ import { formatRelativeTime } from '../utils/formatRelativeTime';
 type FeedScreenProps = {
   activeTab: FeedTab;
   onOpenRun?: (run: Run) => void;
+  onOpenProfile?: (userId: string) => void;
 };
 
-export function FeedScreen({ activeTab, onOpenRun }: FeedScreenProps) {
+export function FeedScreen({ activeTab, onOpenRun, onOpenProfile }: FeedScreenProps) {
   const { session } = useAuth();
   const viewerUserId = session?.user?.id ?? null;
   const { items, loading, error, refresh, toggleLike, bumpCommentCount, likingPostId } =
     useFeed(activeTab);
-  const { isFriend, addFriendById } = useFriends();
+  const { isFriend, isPending, sendFriendRequestTo } = useFriends();
   const { runEvaluation, recordEvent } = useAchievementUnlockPresentation();
   const [commentsPostId, setCommentsPostId] = useState<string | null>(null);
   const [addingFriendId, setAddingFriendId] = useState<string | null>(null);
@@ -89,15 +90,15 @@ export function FeedScreen({ activeTab, onOpenRun }: FeedScreenProps) {
 
     setAddingFriendId(friendUserId);
     try {
-      await addFriendById(friendUserId);
+      await sendFriendRequestTo(friendUserId);
       await runEvaluation();
       if (activeTab === 'friends') {
         await refresh();
       }
     } catch (addError) {
       Alert.alert(
-        'Add friend failed',
-        addError instanceof Error ? addError.message : 'Could not add friend.',
+        'Friend request failed',
+        addError instanceof Error ? addError.message : 'Could not send friend request.',
       );
     } finally {
       setAddingFriendId(null);
@@ -167,11 +168,13 @@ export function FeedScreen({ activeTab, onOpenRun }: FeedScreenProps) {
               addFriendDisabled={addingFriendId === item.run.user.id}
               engagementDisabled={likingPostId === item.id}
               isFriend={isFriend(item.run.user.id)}
+              isFriendPending={isPending(item.run.user.id)}
               onAddFriend={() => {
                 void handleAddFriend(item.run);
               }}
               onOpenComments={() => setCommentsPostId(item.id)}
               onOpenDetail={onOpenRun ? () => onOpenRun(item.run) : undefined}
+              onOpenProfile={onOpenProfile ? () => onOpenProfile(item.run.user.id) : undefined}
               onShare={() => {
                 void handleShare(item.run);
               }}
@@ -190,12 +193,14 @@ export function FeedScreen({ activeTab, onOpenRun }: FeedScreenProps) {
       <FindFriendsDrawer
         addingFriendId={addingFriendId}
         isFriend={isFriend}
+        isFriendPending={isPending}
         onAddFriend={(result) => {
           void handleAddFriendFromSearch(result);
         }}
         onClose={() => {
           setFindFriendsVisible(false);
         }}
+        onOpenProfile={onOpenProfile ? (result) => onOpenProfile(result.id) : undefined}
         viewerUserId={viewerUserId}
         visible={findFriendsVisible}
       />

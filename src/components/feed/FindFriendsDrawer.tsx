@@ -17,18 +17,22 @@ type FindFriendsDrawerProps = {
   visible: boolean;
   viewerUserId: string | null;
   isFriend: (userId: string) => boolean;
+  isFriendPending?: (userId: string) => boolean;
   addingFriendId?: string | null;
   onAddFriend: (result: FriendSearchResult) => void;
   onClose: () => void;
+  onOpenProfile?: (result: FriendSearchResult) => void;
 };
 
 export function FindFriendsDrawer({
   visible,
   viewerUserId,
   isFriend,
+  isFriendPending,
   addingFriendId = null,
   onAddFriend,
   onClose,
+  onOpenProfile,
 }: FindFriendsDrawerProps) {
   const { query, setQuery, results, loading, error } = useFriendSearch(viewerUserId, visible);
 
@@ -82,7 +86,9 @@ export function FindFriendsDrawer({
               <FriendSearchResultRow
                 adding={addingFriendId === item.id}
                 isFriend={isFriend(item.id)}
+                isFriendPending={isFriendPending?.(item.id)}
                 onAddFriend={() => onAddFriend(item)}
+                onOpenProfile={onOpenProfile ? () => onOpenProfile(item) : undefined}
                 result={item}
                 showDivider={index < results.length - 1}
               />

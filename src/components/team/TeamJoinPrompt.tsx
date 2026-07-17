@@ -49,6 +49,7 @@ export function TeamJoinPrompt({
                 <TeamAvatar
                   accent={team.shieldAccent}
                   icon={team.shieldIcon}
+                  imageUrl={team.logoUrl}
                   rankTierId={team.rankTierId}
                   size={34}
                 />

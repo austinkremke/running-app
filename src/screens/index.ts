@@ -1,3 +1,5 @@
+export { DevSoloMatchScreenshotScreen } from './DevSoloMatchScreenshotScreen';
+export { DevTeamScreenshotScreen } from './DevTeamScreenshotScreen';
 export { FeedScreen } from './FeedScreen';
 export { MatchScreen } from './MatchScreen';
 export { MeScreen } from './MeScreen';
@@ -9,3 +11,4 @@ export { TeamMatchScreen } from './TeamMatchScreen';
 export { TeamScreen } from './TeamScreen';
 export { TopTeamsScreen } from './TopTeamsScreen';
 export { SettingsScreen } from './SettingsScreen';
+export { UserProfileScreen } from './UserProfileScreen';

@@ -11,41 +11,56 @@ type TeamMemberRowProps = {
   showDivider?: boolean;
   /** Shows the ⋮ menu and handles taps — pass only when the viewer can manage this member. */
   onOptionsPress?: (member: TeamMember) => void;
+  /** Opens this member's profile — the avatar/name area, separate from the ⋮ options menu. */
+  onOpenProfile?: (member: TeamMember) => void;
 };
 
 const AVATAR_SIZE = 36;
 
-export function TeamMemberRow({ member, showDivider = true, onOptionsPress }: TeamMemberRowProps) {
+export function TeamMemberRow({
+  member,
+  showDivider = true,
+  onOptionsPress,
+  onOpenProfile,
+}: TeamMemberRowProps) {
   return (
     <View>
       <View style={styles.row}>
-        <View style={styles.avatarWrap}>
-          <View
-            style={[
-              styles.avatarRing,
-              member.isOnline && styles.avatarRingOnline,
-            ]}
-          >
-            {member.avatarUrl ? (
-              <Image source={{ uri: member.avatarUrl }} style={styles.avatar} />
-            ) : (
-              <View style={[styles.avatar, styles.avatarPlaceholder]} />
-            )}
+        <Pressable
+          accessibilityHint="Opens this member's profile"
+          accessibilityRole="button"
+          disabled={!onOpenProfile}
+          onPress={onOpenProfile ? () => onOpenProfile(member) : undefined}
+          style={styles.identity}
+        >
+          <View style={styles.avatarWrap}>
+            <View
+              style={[
+                styles.avatarRing,
+                member.isOnline && styles.avatarRingOnline,
+              ]}
+            >
+              {member.avatarUrl ? (
+                <Image source={{ uri: member.avatarUrl }} style={styles.avatar} />
+              ) : (
+                <View style={[styles.avatar, styles.avatarPlaceholder]} />
+              )}
+            </View>
           </View>
-        </View>
 
-        <View style={styles.meta}>
-          <View style={styles.nameRow}>
-            <Text numberOfLines={1} style={styles.name}>
-              {member.name}
-            </Text>
-            {member.role ? <TeamRoleBadge role={member.role} /> : null}
+          <View style={styles.meta}>
+            <View style={styles.nameRow}>
+              <Text numberOfLines={1} style={styles.name}>
+                {member.name}
+              </Text>
+              {member.role ? <TeamRoleBadge role={member.role} /> : null}
+            </View>
+            <View style={styles.statusRow}>
+              {member.isOnline ? <View style={styles.onlineDot} /> : null}
+              <Text style={styles.status}>{member.status}</Text>
+            </View>
           </View>
-          <View style={styles.statusRow}>
-            {member.isOnline ? <View style={styles.onlineDot} /> : null}
-            <Text style={styles.status}>{member.status}</Text>
-          </View>
-        </View>
+        </Pressable>
 
         <HexBadge badgeText={String(member.level)} size={30} stroked variant="purple" />
 
@@ -87,6 +102,13 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     gap: spacing.sm,
     paddingVertical: spacing.md,
+  },
+  identity: {
+    flex: 1,
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: spacing.sm,
+    minWidth: 0,
   },
   avatarWrap: {
     width: AVATAR_SIZE,

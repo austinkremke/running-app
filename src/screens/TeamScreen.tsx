@@ -40,9 +40,15 @@ type TeamScreenProps = {
   onOpenTopTeams?: () => void;
   onOpenRun?: (run: Run) => void;
   onViewAllActivity?: () => void;
+  onOpenProfile?: (userId: string) => void;
 };
 
-export function TeamScreen({ onOpenTopTeams, onOpenRun, onViewAllActivity }: TeamScreenProps) {
+export function TeamScreen({
+  onOpenTopTeams,
+  onOpenRun,
+  onViewAllActivity,
+  onOpenProfile,
+}: TeamScreenProps) {
   const userId = useUserId();
   const { refreshGameState } = useAuth();
   const { runEvaluation } = useAchievementUnlockPresentation();
@@ -379,6 +385,7 @@ export function TeamScreen({ onOpenTopTeams, onOpenRun, onViewAllActivity }: Tea
           members={team.members}
           onInvitePress={canManageRoster ? () => setInviteVisible(true) : undefined}
           onMemberOptionsPress={canManageRoster ? handleMemberOptions : undefined}
+          onOpenProfile={onOpenProfile ? (member) => onOpenProfile(member.id) : undefined}
         />
         <TeamActivitySection
           loading={teamActivityLoading}

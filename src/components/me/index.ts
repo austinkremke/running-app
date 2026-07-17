@@ -4,6 +4,7 @@ export { AchievementsSkeleton } from './AchievementsSkeleton';
 export { ExperienceCard } from './ExperienceCard';
 export { OverallStatsSection } from './OverallStatsSection';
 export { ProfileTopSection } from './ProfileTopSection';
+export { RankUpCelebrationDrawer } from './RankUpCelebrationDrawer';
 export { SectionHeader } from './SectionHeader';
 export { StatDetailDrawer, type StatDetailTarget } from './StatDetailDrawer';
 export { WeeklyTrendChart } from './WeeklyTrendChart';

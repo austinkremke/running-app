@@ -45,7 +45,8 @@ export function RootNavigator() {
   }
 
   if (!session || !hasCompletedOnboarding) {
-    return <OnboardingShell step={session && step === 'login' ? 'howItWorks' : step} />;
+    const preAuthStep = step === 'welcome' || step === 'login';
+    return <OnboardingShell step={session && preAuthStep ? 'howItWorks' : step} />;
   }
 
   return (

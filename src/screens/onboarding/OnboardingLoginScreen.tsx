@@ -2,7 +2,7 @@ import { useEffect, useState } from 'react';
 import { ActivityIndicator, Platform, StyleSheet, Text, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
-import { OnboardingAuthButton, RunOffLogo } from '../../components/onboarding';
+import { OnboardingAuthButton, OnboardingScreenHeader, RunOffLogo } from '../../components/onboarding';
 import { isGoogleAuthConfigured } from '../../config/auth';
 import { useAuth, isSupabaseConfigured, useOnboarding } from '../../context';
 import { isAppleSignInAvailable } from '../../services/oauthAuth';
@@ -65,12 +65,15 @@ export function OnboardingLoginScreen() {
 
   return (
     <SafeAreaView style={styles.safe}>
+      <OnboardingScreenHeader onBack={() => goToStep('welcome')} />
+
       <View style={styles.container}>
         <View style={styles.hero}>
           <RunOffLogo />
 
           <View style={styles.headlineBlock}>
-            <Text style={styles.headline}>RUN.{'\n'}COMPETE.</Text>
+            <Text style={styles.headline}>RUN.</Text>
+            <Text style={styles.headline}>COMPETE.</Text>
             <Text style={styles.headlineAccent}>CLIMB THE RANKS.</Text>
           </View>
         </View>
@@ -129,7 +132,7 @@ const styles = StyleSheet.create({
     flex: 1,
     justifyContent: 'space-between',
     paddingHorizontal: spacing.lg,
-    paddingTop: spacing.xxl,
+    paddingTop: spacing.xl,
     paddingBottom: spacing.xl,
   },
   hero: {
@@ -147,7 +150,6 @@ const styles = StyleSheet.create({
     fontWeight: '800',
     fontStyle: 'italic',
     textAlign: 'center',
-    lineHeight: 38,
     letterSpacing: 0.5,
   },
   headlineAccent: {

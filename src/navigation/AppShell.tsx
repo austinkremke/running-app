@@ -25,6 +25,8 @@ import { openSoloMatchMenu } from '../services/soloMatchMenuBus';
 import { openTeamMenu } from '../services/teamMenuBus';
 import { fetchActiveSoloMatchId, fetchActiveTeamMatchId } from '../services/matchService';
 import { getSoloMatchmakingStatus } from '../services/matchmakingService';
+import { DevSoloMatchScreenshotScreen } from '../screens/DevSoloMatchScreenshotScreen';
+import { DevTeamScreenshotScreen } from '../screens/DevTeamScreenshotScreen';
 import { FeedScreen } from '../screens/FeedScreen';
 import { RunDetailScreen } from '../screens/RunDetailScreen';
 import { MatchScreen } from '../screens/MatchScreen';
@@ -35,6 +37,7 @@ import { SoloMatchScreen } from '../screens/SoloMatchScreen';
 import { TeamMatchScreen } from '../screens/TeamMatchScreen';
 import { TeamScreen } from '../screens/TeamScreen';
 import { TopTeamsScreen } from '../screens/TopTeamsScreen';
+import { UserProfileScreen } from '../screens/UserProfileScreen';
 import { colors } from '../theme';
 import { isAppRoute, ROUTES, type AppRoute } from './routes';
 
@@ -73,11 +76,24 @@ export function AppShell() {
   const [detailRun, setDetailRun] = useState<Run | null>(null);
   const [detailReturnRoute, setDetailReturnRoute] = useState<AppRoute>('feed');
   const [feedReloadKey, setFeedReloadKey] = useState(0);
+  const [detailUserId, setDetailUserId] = useState<string | null>(null);
+  const [profileReturnRoute, setProfileReturnRoute] = useState<AppRoute>('feed');
 
   function openRunDetail(run: Run) {
     setDetailRun(run);
     setDetailReturnRoute(activeRoute === 'runDetail' ? detailReturnRoute : activeRoute);
     setActiveRoute('runDetail');
+  }
+
+  function openUserProfile(profileUserId: string) {
+    if (profileUserId === userId) {
+      setActiveRoute('me');
+      return;
+    }
+
+    setDetailUserId(profileUserId);
+    setProfileReturnRoute(activeRoute === 'userProfile' ? profileReturnRoute : activeRoute);
+    setActiveRoute('userProfile');
   }
 
   useEffect(() => {
@@ -200,7 +216,20 @@ export function AppShell() {
 
   function renderScreen() {
     if (activeRoute === 'feed') {
-      return <FeedScreen activeTab={activeFeedTab} key={feedReloadKey} onOpenRun={openRunDetail} />;
+      return (
+        <FeedScreen
+          activeTab={activeFeedTab}
+          key={feedReloadKey}
+          onOpenProfile={openUserProfile}
+          onOpenRun={openRunDetail}
+        />
+      );
+    }
+
+    if (activeRoute === 'userProfile' && detailUserId) {
+      return (
+        <UserProfileScreen onBack={() => setActiveRoute(profileReturnRoute)} userId={detailUserId} />
+      );
     }
 
     if (activeRoute === 'runDetail' && detailRun) {
@@ -241,6 +270,7 @@ export function AppShell() {
     if (activeRoute === 'team') {
       return (
         <TeamScreen
+          onOpenProfile={openUserProfile}
           onOpenRun={openRunDetail}
           onOpenTopTeams={() => setActiveRoute('topTeams')}
           onViewAllActivity={() => {
@@ -256,11 +286,25 @@ export function AppShell() {
     }
 
     if (activeRoute === 'me') {
-      return <MeScreen onOpenSettings={() => openSettings('me')} />;
+      return (
+        <MeScreen
+          onOpenDevScreenshotMock={__DEV__ ? () => setActiveRoute('devSoloMatchScreenshot') : undefined}
+          onOpenDevTeamScreenshotMock={__DEV__ ? () => setActiveRoute('devTeamScreenshot') : undefined}
+          onOpenSettings={() => openSettings('me')}
+        />
+      );
     }
 
     if (activeRoute === 'settings') {
       return <SettingsScreen onBack={() => setActiveRoute(settingsReturnRoute)} />;
+    }
+
+    if (activeRoute === 'devSoloMatchScreenshot') {
+      return <DevSoloMatchScreenshotScreen onBack={() => setActiveRoute('me')} />;
+    }
+
+    if (activeRoute === 'devTeamScreenshot') {
+      return <DevTeamScreenshotScreen onBack={() => setActiveRoute('me')} />;
     }
 
     return RouteScreen ? <RouteScreen /> : null;

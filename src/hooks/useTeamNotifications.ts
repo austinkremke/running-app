@@ -11,15 +11,23 @@ import {
   type TeamNotification,
 } from '../services/teamMembershipService';
 import {
+  fetchFriendRequestNotifications,
+  hasFriendRequestNotifications,
+  respondToFriendRequest,
+  type FriendRequestNotification,
+} from '../services/friendRequestService';
+import {
   notifyTeamNotificationsChanged,
   subscribeTeamNotifications,
 } from '../services/teamNotificationBus';
+
+export type AppNotification = TeamNotification | FriendRequestNotification;
 
 const POLL_INTERVAL_MS = 15_000;
 
 export function useTeamNotifications() {
   const userId = useUserId();
-  const [notifications, setNotifications] = useState<TeamNotification[]>([]);
+  const [notifications, setNotifications] = useState<AppNotification[]>([]);
   const [loading, setLoading] = useState(true);
   const [actionLoadingId, setActionLoadingId] = useState<string | null>(null);
 
@@ -31,9 +39,16 @@ export function useTeamNotifications() {
     }
 
     try {
-      setNotifications(await fetchTeamNotifications());
+      const [team, friend] = await Promise.all([
+        fetchTeamNotifications(),
+        fetchFriendRequestNotifications(),
+      ]);
+      const merged: AppNotification[] = [...team, ...friend].sort(
+        (a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime(),
+      );
+      setNotifications(merged);
     } catch (error) {
-      console.warn('Failed to load team notifications', error);
+      console.warn('Failed to load notifications', error);
     } finally {
       setLoading(false);
     }
@@ -64,13 +79,15 @@ export function useTeamNotifications() {
   }, [refresh]);
 
   const respond = useCallback(
-    async (notification: TeamNotification, accept: boolean) => {
+    async (notification: AppNotification, accept: boolean) => {
       setActionLoadingId(notification.id);
       try {
         if (notification.kind === 'invite') {
           await respondToTeamInvite(notification.id, accept);
-        } else {
+        } else if (notification.kind === 'request') {
           await respondToJoinRequest(notification.id, accept);
+        } else {
+          await respondToFriendRequest(notification.id, accept);
         }
         notifyTeamNotificationsChanged();
         await refresh();
@@ -118,9 +135,13 @@ export function useHasTeamNotifications(): boolean {
     }
 
     try {
-      setHasUnread(await hasTeamNotifications());
+      const [team, friend] = await Promise.all([
+        hasTeamNotifications(),
+        hasFriendRequestNotifications(),
+      ]);
+      setHasUnread(team || friend);
     } catch (error) {
-      console.warn('Failed to check team notification indicator', error);
+      console.warn('Failed to check notification indicator', error);
     }
   }, [userId]);
 

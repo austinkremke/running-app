@@ -9,9 +9,12 @@ import { RunCardAddFriendButton } from './RunCardAddFriendButton';
 type FriendSearchResultRowProps = {
   result: FriendSearchResult;
   isFriend: boolean;
+  isFriendPending?: boolean;
   adding?: boolean;
   onAddFriend?: () => void;
   showDivider?: boolean;
+  /** Opens this runner's profile — the avatar/name area, separate from the add-friend button. */
+  onOpenProfile?: () => void;
 };
 
 const AVATAR_FRAME_SIZE = 44;
@@ -19,43 +22,53 @@ const AVATAR_FRAME_SIZE = 44;
 export function FriendSearchResultRow({
   result,
   isFriend,
+  isFriendPending = false,
   adding = false,
   onAddFriend,
   showDivider = true,
+  onOpenProfile,
 }: FriendSearchResultRowProps) {
   return (
     <View>
       <View style={styles.row}>
-        <RankBorderAvatar
-          avatarUrl={result.avatarUrl}
-          rankTierId={result.rankTierId}
-          size={AVATAR_FRAME_SIZE}
-        />
+        <Pressable
+          accessibilityHint="Opens this runner's profile"
+          accessibilityRole="button"
+          disabled={!onOpenProfile}
+          onPress={onOpenProfile}
+          style={styles.identity}
+        >
+          <RankBorderAvatar
+            avatarUrl={result.avatarUrl}
+            rankTierId={result.rankTierId}
+            size={AVATAR_FRAME_SIZE}
+          />
 
-        <View style={styles.meta}>
-          <Text numberOfLines={1} style={styles.name}>
-            {result.displayName}
-          </Text>
-          {result.rankTitle ? (
-            <Text
-              numberOfLines={1}
-              style={[styles.rankTitle, { color: rankTierColorForTier(result.rankTierId) }]}
-            >
-              {result.rankTitle}
-              {result.competitiveRating != null
-                ? ` · ${result.competitiveRating.toLocaleString()} PR`
-                : ''}
+          <View style={styles.meta}>
+            <Text numberOfLines={1} style={styles.name}>
+              {result.displayName}
             </Text>
-          ) : null}
-          <Text numberOfLines={1} style={styles.subline}>
-            Level {result.level} · {result.teamName}
-          </Text>
-        </View>
+            {result.rankTitle ? (
+              <Text
+                numberOfLines={1}
+                style={[styles.rankTitle, { color: rankTierColorForTier(result.rankTierId) }]}
+              >
+                {result.rankTitle}
+                {result.competitiveRating != null
+                  ? ` · ${result.competitiveRating.toLocaleString()} PR`
+                  : ''}
+              </Text>
+            ) : null}
+            <Text numberOfLines={1} style={styles.subline}>
+              Level {result.level} · {result.teamName}
+            </Text>
+          </View>
+        </Pressable>
 
         {isFriend ? (
           <Text style={styles.friendsLabel}>Friends</Text>
         ) : onAddFriend ? (
-          <RunCardAddFriendButton disabled={adding} onPress={onAddFriend} />
+          <RunCardAddFriendButton disabled={adding} onPress={onAddFriend} pending={isFriendPending} />
         ) : null}
       </View>
 
@@ -71,6 +84,13 @@ const styles = StyleSheet.create({
     gap: spacing.sm,
     paddingHorizontal: spacing.md,
     paddingVertical: spacing.md,
+  },
+  identity: {
+    flex: 1,
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: spacing.sm,
+    minWidth: 0,
   },
   meta: {
     flex: 1,

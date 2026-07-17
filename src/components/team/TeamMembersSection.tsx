@@ -15,6 +15,8 @@ type TeamMembersSectionProps = {
   canManageMember?: (member: TeamMember) => boolean;
   /** Shows the Invite button (leaders/co-leaders only). */
   onInvitePress?: () => void;
+  /** Opens a member's profile — the avatar/name area, separate from the ⋮ options menu. */
+  onOpenProfile?: (member: TeamMember) => void;
 };
 
 export function TeamMembersSection({
@@ -24,6 +26,7 @@ export function TeamMembersSection({
   onMemberOptionsPress,
   canManageMember,
   onInvitePress,
+  onOpenProfile,
 }: TeamMembersSectionProps) {
   return (
     <View style={styles.container}>
@@ -42,6 +45,7 @@ export function TeamMembersSection({
           <TeamMemberRow
             key={member.id}
             member={member}
+            onOpenProfile={onOpenProfile}
             onOptionsPress={
               onMemberOptionsPress && (canManageMember?.(member) ?? true)
                 ? onMemberOptionsPress
