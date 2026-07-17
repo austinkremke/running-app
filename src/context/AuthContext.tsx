@@ -25,6 +25,13 @@ import { formatAuthError } from './authErrorFormatting';
 
 export { formatAuthError };
 
+// App Store / Play reviewers can't receive a real OTP email, and the app has
+// no password to give them — this account gets a fixed code instead of the
+// random per-request OTP, verified server-side by the reviewer-login edge
+// function (see supabase/functions/reviewer-login).
+const REVIEWER_EMAIL = 'review@getrunoff.com';
+const REVIEWER_CODE = '123456';
+
 type AuthContextValue = {
   session: Session | null;
   gameState: UserGameState | null;
@@ -136,9 +143,41 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     }
 
     setAuthError(null);
+    const trimmedEmail = email.trim().toLowerCase();
+    const trimmedCode = code.trim();
+
+    if (trimmedEmail === REVIEWER_EMAIL && trimmedCode === REVIEWER_CODE) {
+      const { data, error } = await supabase.functions.invoke<{
+        access_token?: string;
+        refresh_token?: string;
+        error?: string;
+      }>('reviewer-login', {
+        body: { email: trimmedEmail, code: trimmedCode },
+      });
+
+      if (error || !data?.access_token || !data.refresh_token) {
+        const message = formatAuthError(data?.error ?? error?.message ?? 'Could not sign in.');
+        setAuthError(message);
+        throw new Error(message);
+      }
+
+      const { error: setSessionError } = await supabase.auth.setSession({
+        access_token: data.access_token,
+        refresh_token: data.refresh_token,
+      });
+
+      if (setSessionError) {
+        const message = formatAuthError(setSessionError.message);
+        setAuthError(message);
+        throw new Error(message);
+      }
+
+      return;
+    }
+
     const { error } = await supabase.auth.verifyOtp({
-      email: email.trim().toLowerCase(),
-      token: code.trim(),
+      email: trimmedEmail,
+      token: trimmedCode,
       type: 'email',
     });
 
