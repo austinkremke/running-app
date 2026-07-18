@@ -12,6 +12,7 @@ import { AppState, type AppStateStatus } from 'react-native';
 
 import { SoloMatchResultDrawer } from '../components/match/solo/SoloMatchResultDrawer';
 import { useAuth, useUserId } from './AuthContext';
+import { ackMatchCompletion } from '../services/matchmakingService';
 import { runSoloMatchCompletionFlow } from '../services/soloMatchCompletionFlow';
 import { subscribeSoloMatchCompletionSync } from '../services/soloMatchCompletionBus';
 import { markSoloMatchResultSeen } from '../storage/soloMatchResultStorage';
@@ -86,6 +87,9 @@ export function SoloMatchCompletionProvider({ children }: { children: ReactNode 
 
     if (completion) {
       await markSoloMatchResultSeen(completion.matchId);
+      ackMatchCompletion(completion.matchId).catch((error) => {
+        console.warn('Could not ack solo match completion', error);
+      });
     }
 
     const next = queueRef.current.shift();

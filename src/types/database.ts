@@ -480,6 +480,32 @@ export type Database = {
           },
         ]
       }
+      match_completion_acks: {
+        Row: {
+          acked_at: string
+          match_id: string
+          user_id: string
+        }
+        Insert: {
+          acked_at?: string
+          match_id: string
+          user_id: string
+        }
+        Update: {
+          acked_at?: string
+          match_id?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "match_completion_acks_match_id_fkey"
+            columns: ["match_id"]
+            isOneToOne: false
+            referencedRelation: "matches"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       match_messages: {
         Row: {
           body: string
@@ -1252,6 +1278,7 @@ export type Database = {
         Args: { p_criteria: Json; p_criteria_type: string; p_user_id: string }
         Returns: number
       }
+      ack_match_completion: { Args: { p_match_id: string }; Returns: undefined }
       activity_has_visible_feed_post: {
         Args: { p_activity_id: string }
         Returns: boolean

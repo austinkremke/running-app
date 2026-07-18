@@ -12,6 +12,7 @@ import { AppState, type AppStateStatus } from 'react-native';
 
 import { TeamMatchResultDrawer } from '../components/match/team';
 import { useUserId } from './AuthContext';
+import { ackMatchCompletion } from '../services/matchmakingService';
 import { runTeamMatchCompletionFlow } from '../services/teamMatchCompletionFlow';
 import { subscribeTeamMatchCompletionSync } from '../services/teamMatchCompletionBus';
 import { markTeamMatchResultSeen } from '../storage/teamMatchResultStorage';
@@ -81,6 +82,9 @@ export function TeamMatchCompletionProvider({ children }: { children: ReactNode 
 
     if (completion) {
       await markTeamMatchResultSeen(completion.matchId);
+      ackMatchCompletion(completion.matchId).catch((error) => {
+        console.warn('Could not ack team match completion', error);
+      });
     }
 
     const next = queueRef.current.shift();

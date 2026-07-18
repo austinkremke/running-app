@@ -122,6 +122,19 @@ export async function forfeitSoloMatch(matchId: string): Promise<SoloMatchComple
   return parseSoloMatchCompletion(payload.completion);
 }
 
+/** Durably marks a match's completion drawer as seen, so it never replays — including on a fresh install. */
+export async function ackMatchCompletion(matchId: string): Promise<void> {
+  if (!supabase) {
+    return;
+  }
+
+  const { error } = await supabase.rpc('ack_match_completion', { p_match_id: matchId });
+
+  if (error) {
+    throw error;
+  }
+}
+
 export async function fetchMySoloMatchCompletions(): Promise<SoloMatchCompletion[]> {
   if (!supabase) {
     return [];
