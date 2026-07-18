@@ -73,11 +73,19 @@ export const expoLocationProvider: LocationProvider = {
   id: 'expo-location',
 
   async requestPermissions() {
-    const { status: foregroundStatus } = await Location.requestForegroundPermissionsAsync();
+    const foregroundCurrent = await Location.getForegroundPermissionsAsync();
+    const foregroundStatus =
+      foregroundCurrent.status === 'granted'
+        ? foregroundCurrent.status
+        : (await Location.requestForegroundPermissionsAsync()).status;
     if (foregroundStatus !== 'granted') return false;
 
     if (Platform.OS !== 'web') {
-      const { status: backgroundStatus } = await Location.requestBackgroundPermissionsAsync();
+      const backgroundCurrent = await Location.getBackgroundPermissionsAsync();
+      const backgroundStatus =
+        backgroundCurrent.status === 'granted'
+          ? backgroundCurrent.status
+          : (await Location.requestBackgroundPermissionsAsync()).status;
       if (backgroundStatus !== 'granted') {
         console.warn(
           'Background location permission not granted — run tracking will pause when the phone is locked.',

@@ -1,8 +1,7 @@
 import { useMemo } from 'react';
 import { StyleSheet, View, type StyleProp, type ViewStyle } from 'react-native';
 
-import { useInitialMapRegion } from '../../hooks/useInitialMapRegion';
-import { activeMapProvider } from '../../maps';
+import { activeMapProvider, DEFAULT_MAP_REGION } from '../../maps';
 import { regionFromRoutePoints } from '../../maps/mapCamera';
 import type { GpsPoint } from '../../maps/types';
 import { colors } from '../../theme';
@@ -13,11 +12,11 @@ type StaticRouteMapPreviewProps = {
 };
 
 export function StaticRouteMapPreview({ routePoints, style }: StaticRouteMapPreviewProps) {
-  const { region: initialRegion } = useInitialMapRegion();
-  const region = useMemo(
-    () => regionFromRoutePoints(routePoints, 1.08) ?? initialRegion,
-    [initialRegion, routePoints],
-  );
+  // This is a completed run's static thumbnail — it renders the route itself,
+  // never the viewer's live location, so it must not trigger a location
+  // permission prompt. DEFAULT_MAP_REGION only matters as an unreachable
+  // fallback since routePoints.length < 2 already short-circuits below.
+  const region = useMemo(() => regionFromRoutePoints(routePoints, 1.08) ?? DEFAULT_MAP_REGION, [routePoints]);
   const MapView = activeMapProvider.MapView;
 
   if (routePoints.length < 2) {
