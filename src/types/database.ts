@@ -193,6 +193,41 @@ export type Database = {
           },
         ]
       }
+      device_push_tokens: {
+        Row: {
+          created_at: string
+          expo_token: string
+          id: string
+          platform: string
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          expo_token: string
+          id?: string
+          platform: string
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          expo_token?: string
+          id?: string
+          platform?: string
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "device_push_tokens_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       feature_gates: {
         Row: {
           created_at: string
@@ -757,6 +792,100 @@ export type Database = {
             columns: ["match_type_id"]
             isOneToOne: false
             referencedRelation: "match_types"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      notification_events: {
+        Row: {
+          body: string
+          category: string
+          created_at: string
+          data: Json
+          deliver_at: string
+          id: string
+          sent_at: string | null
+          status: string
+          title: string
+          user_id: string
+        }
+        Insert: {
+          body: string
+          category: string
+          created_at?: string
+          data?: Json
+          deliver_at?: string
+          id?: string
+          sent_at?: string | null
+          status?: string
+          title: string
+          user_id: string
+        }
+        Update: {
+          body?: string
+          category?: string
+          created_at?: string
+          data?: Json
+          deliver_at?: string
+          id?: string
+          sent_at?: string | null
+          status?: string
+          title?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "notification_events_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      notification_preferences: {
+        Row: {
+          comments: boolean
+          friend_activity: boolean
+          friend_challenge: boolean
+          friend_requests: boolean
+          likes: boolean
+          match_complete: boolean
+          match_found: boolean
+          match_reminders: boolean
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          comments?: boolean
+          friend_activity?: boolean
+          friend_challenge?: boolean
+          friend_requests?: boolean
+          likes?: boolean
+          match_complete?: boolean
+          match_found?: boolean
+          match_reminders?: boolean
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          comments?: boolean
+          friend_activity?: boolean
+          friend_challenge?: boolean
+          friend_requests?: boolean
+          likes?: boolean
+          match_complete?: boolean
+          match_found?: boolean
+          match_reminders?: boolean
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "notification_preferences_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: true
+            referencedRelation: "profiles"
             referencedColumns: ["id"]
           },
         ]
@@ -1365,6 +1494,7 @@ export type Database = {
       }
       delete_activity: { Args: { p_activity_id: string }; Returns: Json }
       delete_own_account: { Args: never; Returns: undefined }
+      delete_push_token: { Args: { p_token: string }; Returns: undefined }
       demote_member: { Args: { p_user_id: string }; Returns: undefined }
       disband_team: { Args: never; Returns: undefined }
       elo_expected_score: {
@@ -1406,6 +1536,27 @@ export type Database = {
       }
       forfeit_solo_match: { Args: { p_match_id: string }; Returns: Json }
       get_friend_notifications: { Args: never; Returns: Json }
+      get_my_notification_preferences: {
+        Args: never
+        Returns: {
+          comments: boolean
+          friend_activity: boolean
+          friend_challenge: boolean
+          friend_requests: boolean
+          likes: boolean
+          match_complete: boolean
+          match_found: boolean
+          match_reminders: boolean
+          updated_at: string
+          user_id: string
+        }
+        SetofOptions: {
+          from: "*"
+          to: "notification_preferences"
+          isOneToOne: true
+          isSetofReturn: false
+        }
+      }
       get_my_solo_match_completions: {
         Args: { p_limit?: number; p_user_id?: string }
         Returns: Json
@@ -1505,6 +1656,10 @@ export type Database = {
       transfer_leadership: { Args: { p_user_id: string }; Returns: undefined }
       try_pair_solo_queue: { Args: never; Returns: string }
       try_pair_team_queue: { Args: never; Returns: string }
+      update_notification_preference: {
+        Args: { p_category: string; p_enabled: boolean }
+        Returns: undefined
+      }
       update_team: {
         Args: {
           p_logo_accent?: string
@@ -1514,6 +1669,10 @@ export type Database = {
           p_name?: string
           p_team_id: string
         }
+        Returns: undefined
+      }
+      upsert_push_token: {
+        Args: { p_platform: string; p_token: string }
         Returns: undefined
       }
       user_has_live_active_solo_match: {

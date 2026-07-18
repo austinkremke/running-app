@@ -5,6 +5,7 @@ import {
   TeamMatchCompletionProvider,
   InAppNotificationProvider,
 } from '../context';
+import { usePushRegistration } from '../hooks/usePushRegistration';
 import { AuthLoadingScreen } from '../screens/onboarding/AuthLoadingScreen';
 import { AppShell } from './AppShell';
 import { OnboardingShell } from './OnboardingShell';
@@ -12,6 +13,8 @@ import { OnboardingShell } from './OnboardingShell';
 export function RootNavigator() {
   const { session, loading: authLoading } = useAuth();
   const { hasCompletedOnboarding, onboardingReady, step } = useOnboarding();
+
+  usePushRegistration(session?.user?.id ?? null);
 
   if (authLoading || (session && !onboardingReady)) {
     return <AuthLoadingScreen />;

@@ -13,10 +13,12 @@ import {
   View,
 } from 'react-native';
 
-import { SettingsRow, SettingsSection, UnitToggle } from '../components/settings';
+import { NotificationPreferenceRow, SettingsRow, SettingsSection, UnitToggle } from '../components/settings';
 import { APP_VERSION, LEGAL_LINKS } from '../config/appMeta';
 import { useAuth } from '../context';
+import { useNotificationPreferences } from '../hooks/useNotificationPreferences';
 import { useUserPreferences } from '../hooks/useUserPreferences';
+import type { NotificationCategory } from '../services/pushNotifications';
 import { deleteOwnAccount, getLinkedProviders } from '../services/accountService';
 import { initialsFromDisplayName, pickProfilePhotoUri, uploadProfileAvatar } from '../services/profileAvatar';
 import { updateDisplayName } from '../services/profileService';
@@ -26,9 +28,25 @@ type SettingsScreenProps = {
   onBack?: () => void;
 };
 
+const NOTIFICATION_CATEGORY_LABELS: { category: NotificationCategory; label: string }[] = [
+  { category: 'likes', label: 'Likes on your runs' },
+  { category: 'comments', label: 'Comments on your runs' },
+  { category: 'friend_requests', label: 'Friend requests' },
+  { category: 'friend_challenge', label: 'Friend challenges' },
+  { category: 'match_found', label: 'Match found' },
+  { category: 'match_reminders', label: 'Time left in match' },
+  { category: 'match_complete', label: 'Match results' },
+  { category: 'friend_activity', label: 'Friend completed a run' },
+];
+
 export function SettingsScreen({ onBack }: SettingsScreenProps) {
   const { session, gameState, signOut, refreshGameState } = useAuth();
   const { preferences, setDistanceUnit } = useUserPreferences();
+  const {
+    preferences: notificationPreferences,
+    savingCategory,
+    setCategory: setNotificationCategory,
+  } = useNotificationPreferences();
   const userId = session?.user?.id ?? null;
 
   const [displayName, setDisplayName] = useState(gameState?.profile.display_name ?? '');
@@ -227,6 +245,15 @@ export function SettingsScreen({ onBack }: SettingsScreenProps) {
           }}
           value="Manage alerts in iOS Settings"
         />
+        {NOTIFICATION_CATEGORY_LABELS.map(({ category, label }) => (
+          <NotificationPreferenceRow
+            disabled={savingCategory === category}
+            key={category}
+            label={label}
+            onChange={(value) => void setNotificationCategory(category, value)}
+            value={notificationPreferences[category]}
+          />
+        ))}
       </SettingsSection>
 
       <SettingsSection title="Linked sign-in">

@@ -39,6 +39,12 @@ export default () => {
       },
     ],
     [
+      'expo-notifications',
+      {
+        color: '#E3FF6A',
+      },
+    ],
+    [
       '@rnmapbox/maps',
       {
         RNMapboxMapsVersion: '11.20.1',
