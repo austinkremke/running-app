@@ -20,16 +20,38 @@ const EMPTY_STATS: ProfileOverallStats = {
   avgPaceSecondsPerMile: 0,
 };
 
-/** Lifetime totals across every synced activity — powers the Me tab overall stats. */
-export async function fetchProfileOverallStats(userId: string): Promise<ProfileOverallStats> {
+export type OverallStatsRange = 'all' | 'week' | 'month' | 'year';
+
+/** Start-of-range cutoff for a rolling window ending now; `null` for all-time (no filter). */
+export function rangeSinceDate(range: OverallStatsRange): Date | null {
+  if (range === 'all') return null;
+
+  const since = new Date();
+  if (range === 'week') since.setDate(since.getDate() - 7);
+  else if (range === 'month') since.setDate(since.getDate() - 30);
+  else since.setDate(since.getDate() - 365);
+  return since;
+}
+
+/** Totals across synced activities — lifetime by default, or since a given cutoff for the Me tab range tabs. */
+export async function fetchProfileOverallStats(
+  userId: string,
+  since?: Date | null,
+): Promise<ProfileOverallStats> {
   if (!supabase) {
     return EMPTY_STATS;
   }
 
-  const { data, error } = await supabase
+  let query = supabase
     .from('activities')
     .select('distance_meters, duration_seconds, summary_json')
     .eq('user_id', userId);
+
+  if (since) {
+    query = query.gte('started_at', since.toISOString());
+  }
+
+  const { data, error } = await query;
 
   if (error) {
     throw error;

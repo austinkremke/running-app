@@ -1,10 +1,12 @@
 export { AchievementsAllModal } from './AchievementsAllModal';
 export { AchievementsSection } from './AchievementsSection';
 export { AchievementsSkeleton } from './AchievementsSkeleton';
+export { BarTrendChart } from './BarTrendChart';
+export { CompetitiveStatsSection } from './CompetitiveStatsSection';
 export { ExperienceCard } from './ExperienceCard';
+export { OverallStatsRangeTabs } from './OverallStatsRangeTabs';
 export { OverallStatsSection } from './OverallStatsSection';
 export { ProfileTopSection } from './ProfileTopSection';
 export { RankUpCelebrationDrawer } from './RankUpCelebrationDrawer';
 export { SectionHeader } from './SectionHeader';
 export { StatDetailDrawer, type StatDetailTarget } from './StatDetailDrawer';
-export { WeeklyTrendChart } from './WeeklyTrendChart';

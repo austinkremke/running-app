@@ -20,7 +20,7 @@ type UserProfileScreenProps = {
 
 export function UserProfileScreen({ userId, onBack }: UserProfileScreenProps) {
   const viewerUserId = useUserId();
-  const { profile, seasonRecord, overallStats, loading } = useOtherUserProfile(userId);
+  const { profile, overallStats, loading } = useOtherUserProfile(userId);
   const { isFriend, isPending, sendFriendRequestTo, removeFriendById } = useFriends();
   const [statDetailTarget, setStatDetailTarget] = useState<StatDetailTarget | null>(null);
   const [friendActionBusy, setFriendActionBusy] = useState(false);
@@ -34,7 +34,9 @@ export function UserProfileScreen({ userId, onBack }: UserProfileScreenProps) {
     setStatDetailTarget({
       metricKey: stat.metricKey,
       label: stat.label,
-      lifetimeValue: stat.unit ? `${stat.value} ${stat.unit}` : stat.value,
+      icon: stat.icon,
+      iconColor: stat.iconColor,
+      currentValue: stat.unit ? `${stat.value} ${stat.unit}` : stat.value,
     });
   }
 
@@ -134,7 +136,7 @@ export function UserProfileScreen({ userId, onBack }: UserProfileScreenProps) {
           {overallStats ? (
             <OverallStatsSection
               onStatPress={handleStatPress}
-              stats={buildOverallStats(overallStats, seasonRecord)}
+              stats={buildOverallStats(overallStats)}
             />
           ) : null}
 

@@ -5,7 +5,9 @@ import {
   AchievementsAllModal,
   AchievementsSection,
   AchievementsSkeleton,
+  CompetitiveStatsSection,
   ExperienceCard,
+  OverallStatsRangeTabs,
   OverallStatsSection,
   ProfileTopSection,
   RankUpCelebrationDrawer,
@@ -22,7 +24,13 @@ import { performAchievementCardAction } from '../services/achievementCardActions
 import type { AchievementListItem } from '../services/achievementService';
 import { sortAchievementsForMeCarousel } from '../services/achievementService';
 import { buildOverallStats } from '../services/buildOverallStats';
-import { fetchProfileOverallStats, type ProfileOverallStats } from '../services/profileStatsService';
+import { fetchCompetitiveStats, type CompetitiveStats } from '../services/competitiveStatsService';
+import {
+  fetchProfileOverallStats,
+  rangeSinceDate,
+  type OverallStatsRange,
+  type ProfileOverallStats,
+} from '../services/profileStatsService';
 import { fetchTeamNameById } from '../services/teamService';
 import { colors, spacing } from '../theme';
 
@@ -42,7 +50,7 @@ export function MeScreen({
   const { level, experience } = usePlayerProgress();
   const { showAchievementUnlocks } = useXpGain();
   const { recordEvent } = useAchievementUnlockPresentation();
-  const { profileRank, seasonRecord } = useRankDisplay();
+  const { profileRank } = useRankDisplay();
   const { allAchievements, loading, reload } = useAchievements({
     evaluateOnMount: true,
     onUnlock: showAchievementUnlocks,
@@ -51,6 +59,8 @@ export function MeScreen({
   const [rankUpMockVisible, setRankUpMockVisible] = useState(false);
   const [teamName, setTeamName] = useState('');
   const [overallStats, setOverallStats] = useState<ProfileOverallStats | null>(null);
+  const [overallStatsRange, setOverallStatsRange] = useState<OverallStatsRange>('all');
+  const [competitiveStats, setCompetitiveStats] = useState<CompetitiveStats | null>(null);
   const [statDetailTarget, setStatDetailTarget] = useState<StatDetailTarget | null>(null);
   const carouselAchievements = useMemo(
     () => sortAchievementsForMeCarousel(allAchievements),
@@ -67,13 +77,35 @@ export function MeScreen({
 
     let cancelled = false;
 
-    fetchProfileOverallStats(userId)
+    fetchProfileOverallStats(userId, rangeSinceDate(overallStatsRange))
       .then((stats) => {
         if (!cancelled) setOverallStats(stats);
       })
       .catch((error) => {
         console.warn('Failed to load overall stats', error);
         if (!cancelled) setOverallStats(null);
+      });
+
+    return () => {
+      cancelled = true;
+    };
+  }, [userId, overallStatsRange]);
+
+  useEffect(() => {
+    if (!userId) {
+      setCompetitiveStats(null);
+      return;
+    }
+
+    let cancelled = false;
+
+    fetchCompetitiveStats(userId)
+      .then((stats) => {
+        if (!cancelled) setCompetitiveStats(stats);
+      })
+      .catch((error) => {
+        console.warn('Failed to load competitive stats', error);
+        if (!cancelled) setCompetitiveStats(null);
       });
 
     return () => {
@@ -130,7 +162,9 @@ export function MeScreen({
     setStatDetailTarget({
       metricKey: stat.metricKey,
       label: stat.label,
-      lifetimeValue: stat.unit ? `${stat.value} ${stat.unit}` : stat.value,
+      icon: stat.icon,
+      iconColor: stat.iconColor,
+      currentValue: stat.unit ? `${stat.value} ${stat.unit}` : stat.value,
     });
   }
 
@@ -167,10 +201,15 @@ export function MeScreen({
 
         {overallStats ? (
           <OverallStatsSection
+            headerAccessory={
+              <OverallStatsRangeTabs onChange={setOverallStatsRange} value={overallStatsRange} />
+            }
             onStatPress={handleStatPress}
-            stats={buildOverallStats(overallStats, seasonRecord)}
+            stats={buildOverallStats(overallStats)}
           />
         ) : null}
+
+        {competitiveStats ? <CompetitiveStatsSection stats={competitiveStats} /> : null}
 
         {/* Dev-only screenshot mockup buttons — commented out for now, not removed.
         {onOpenDevScreenshotMock ? (
@@ -219,6 +258,7 @@ export function MeScreen({
 
       <StatDetailDrawer
         onClose={() => setStatDetailTarget(null)}
+        range={overallStatsRange}
         target={statDetailTarget}
         userId={userId}
         visible={statDetailTarget != null}

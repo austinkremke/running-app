@@ -1,3 +1,4 @@
+import type { ReactNode } from 'react';
 import { Pressable, StyleSheet, View } from 'react-native';
 
 import type { OverallStat } from '../../mock';
@@ -8,6 +9,8 @@ import { StatCard } from './StatCard';
 type OverallStatsSectionProps = {
   stats: OverallStat[];
   onStatPress?: (stat: OverallStat) => void;
+  /** Rendered directly under the section header, above the stat grid (e.g. range tabs). */
+  headerAccessory?: ReactNode;
 };
 
 function StatCardTappable({
@@ -43,7 +46,7 @@ function chunkStats<T>(items: T[], size: number): T[][] {
   return rows;
 }
 
-export function OverallStatsSection({ stats, onStatPress }: OverallStatsSectionProps) {
+export function OverallStatsSection({ stats, onStatPress, headerAccessory }: OverallStatsSectionProps) {
   const gridStats = stats.filter((stat) => stat.layout !== 'wide');
   const wideStats = stats.filter((stat) => stat.layout === 'wide');
   const gridRows = chunkStats(gridStats, 3);
@@ -51,6 +54,7 @@ export function OverallStatsSection({ stats, onStatPress }: OverallStatsSectionP
   return (
     <View style={styles.container}>
       <SectionHeader title="OVERALL STATS" />
+      {headerAccessory}
 
       <View style={styles.grid}>
         {gridRows.map((row, rowIndex) => (

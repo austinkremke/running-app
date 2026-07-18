@@ -4,10 +4,7 @@ import { formatDurationClock, formatPace } from './distanceService';
 import type { ProfileOverallStats } from './profileStatsService';
 
 /** Shared by MeScreen (own profile) and UserProfileScreen (other users) so the stat-card grid stays in sync. */
-export function buildOverallStats(
-  stats: ProfileOverallStats,
-  seasonRecord: { wins: number; losses: number },
-): OverallStat[] {
+export function buildOverallStats(stats: ProfileOverallStats): OverallStat[] {
   return [
     {
       id: 'stat-distance',
@@ -67,15 +64,6 @@ export function buildOverallStats(
       label: 'Total Runs',
       layout: 'grid',
       metricKey: 'runs',
-    },
-    {
-      id: 'stat-record',
-      icon: 'trophy',
-      iconColor: colors.accentLime,
-      value: String(seasonRecord.wins),
-      label: 'Match Wins',
-      sublabel: `${seasonRecord.wins} - ${seasonRecord.losses} Record`,
-      layout: 'wide',
     },
   ];
 }
