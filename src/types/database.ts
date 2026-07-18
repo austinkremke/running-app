@@ -1356,6 +1356,68 @@ export type Database = {
           },
         ]
       }
+      user_pace_profiles: {
+        Row: {
+          avg_easy_pct: number
+          avg_hard_pct: number
+          avg_recovery_pct: number
+          avg_workout_pct: number
+          computed_at: string
+          confidence: string
+          easy_threshold_sec: number
+          longest_hard_seconds: number
+          longest_workout_seconds: number
+          recovery_threshold_sec: number
+          run_count: number
+          sample_count: number
+          updated_at: string
+          user_id: string
+          workout_threshold_sec: number
+        }
+        Insert: {
+          avg_easy_pct?: number
+          avg_hard_pct?: number
+          avg_recovery_pct?: number
+          avg_workout_pct?: number
+          computed_at?: string
+          confidence: string
+          easy_threshold_sec: number
+          longest_hard_seconds?: number
+          longest_workout_seconds?: number
+          recovery_threshold_sec: number
+          run_count?: number
+          sample_count?: number
+          updated_at?: string
+          user_id: string
+          workout_threshold_sec: number
+        }
+        Update: {
+          avg_easy_pct?: number
+          avg_hard_pct?: number
+          avg_recovery_pct?: number
+          avg_workout_pct?: number
+          computed_at?: string
+          confidence?: string
+          easy_threshold_sec?: number
+          longest_hard_seconds?: number
+          longest_workout_seconds?: number
+          recovery_threshold_sec?: number
+          run_count?: number
+          sample_count?: number
+          updated_at?: string
+          user_id?: string
+          workout_threshold_sec?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "user_pace_profiles_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: true
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       xp_ledger: {
         Row: {
           amount: number

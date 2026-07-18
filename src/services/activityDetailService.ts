@@ -9,6 +9,7 @@ export type RunExtras = {
   startedAt: string;
   dateLabel: string;
   summary: PostRunSummary | null;
+  trackStoragePath: string | null;
 };
 
 function formatDateLabel(iso: string): string {
@@ -91,6 +92,7 @@ export async function fetchRunExtras(feedPostOrActivityId: string): Promise<RunE
     startedAt: activity.started_at,
     dateLabel: formatDateLabel(activity.started_at),
     summary: summaryFromActivity(activity),
+    trackStoragePath: activity.track_storage_path,
   };
 }
 

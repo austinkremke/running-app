@@ -5,7 +5,10 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 
 import { FullscreenRouteMap, StaticRouteMapPreview } from '../components/map';
 import {
+  ClimbingAnalysisCard,
+  HeartRateAnalysisCard,
   MileSplitsSection,
+  PaceDistributionCard,
   PostRunChartSection,
   PostRunPrimaryStats,
 } from '../components/post-run';
@@ -18,8 +21,16 @@ import {
   fetchRunExtras,
   type RunExtras,
 } from '../services/activityDetailService';
+import { fetchActivityTrack } from '../services/activityTrackService';
+import { buildClimbingAnalysis } from '../services/climbingAnalysisService';
+import { buildHeartRateAnalysis } from '../services/heartRateAnalysisService';
+import { buildPaceDistribution } from '../services/paceDistributionService';
+import { getPaceProfile } from '../services/paceProfileService';
 import { toggleFeedLike } from '../services/feedEngagementService';
 import { colors, spacing } from '../theme';
+import type { ClimbingAnalysisResult } from '../types/climbingAnalysis';
+import type { HeartRateAnalysisResult } from '../types/heartRateAnalysis';
+import type { PaceDistributionResult } from '../types/paceAnalysis';
 
 type RunDetailScreenProps = {
   run: Run;
@@ -30,6 +41,9 @@ type RunDetailScreenProps = {
 export function RunDetailScreen({ run, onBack, onDeleted }: RunDetailScreenProps) {
   const viewerId = useUserId();
   const [extras, setExtras] = useState<RunExtras | null>(null);
+  const [paceDistribution, setPaceDistribution] = useState<PaceDistributionResult | null>(null);
+  const [climbingAnalysis, setClimbingAnalysis] = useState<ClimbingAnalysisResult | null>(null);
+  const [heartRateAnalysis, setHeartRateAnalysis] = useState<HeartRateAnalysisResult | null>(null);
   const [mapFullscreen, setMapFullscreen] = useState(false);
   const [commentsOpen, setCommentsOpen] = useState(false);
   const [deleting, setDeleting] = useState(false);
@@ -54,6 +68,40 @@ export function RunDetailScreen({ run, onBack, onDeleted }: RunDetailScreenProps
 
   const summary = extras?.summary ?? null;
   const isOwner = Boolean(viewerId && extras && viewerId === extras.activityUserId);
+
+  useEffect(() => {
+    if (!isOwner || !extras?.trackStoragePath || !viewerId) {
+      setPaceDistribution(null);
+      setClimbingAnalysis(null);
+      setHeartRateAnalysis(null);
+      return;
+    }
+
+    let cancelled = false;
+    (async () => {
+      try {
+        const [records, profile] = await Promise.all([
+          fetchActivityTrack(extras.trackStoragePath),
+          getPaceProfile(viewerId),
+        ]);
+        if (cancelled) return;
+        setPaceDistribution(buildPaceDistribution(records, profile));
+        setClimbingAnalysis(buildClimbingAnalysis(records, profile));
+        setHeartRateAnalysis(buildHeartRateAnalysis(records));
+      } catch (error) {
+        console.warn('[RunDetailScreen] premium analytics failed', error);
+        if (!cancelled) {
+          setPaceDistribution(null);
+          setClimbingAnalysis(null);
+          setHeartRateAnalysis(null);
+        }
+      }
+    })();
+
+    return () => {
+      cancelled = true;
+    };
+  }, [isOwner, extras?.trackStoragePath, viewerId]);
 
   const primaryStats = summary
     ? [
@@ -157,6 +205,9 @@ export function RunDetailScreen({ run, onBack, onDeleted }: RunDetailScreenProps
         <PostRunPrimaryStats stats={primaryStats} />
         {summary ? <PostRunChartSection summary={summary} /> : null}
         <MileSplitsSection splits={summary?.splits} />
+        {paceDistribution ? <PaceDistributionCard result={paceDistribution} /> : null}
+        {climbingAnalysis ? <ClimbingAnalysisCard result={climbingAnalysis} /> : null}
+        {heartRateAnalysis ? <HeartRateAnalysisCard result={heartRateAnalysis} /> : null}
 
         <View style={styles.engagementCard}>
           <RunCardEngagement
