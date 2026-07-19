@@ -340,20 +340,13 @@ export type SoloMatchComparisonStat = {
 
 export type SoloMatchActivity = {
   id: string;
+  avatarUrl?: string;
   dayLabel: string;
   distanceMiles: number;
   durationLabel: string;
   pointsEarned: number;
   accent: TeamMatchAccent;
-};
-
-export type SoloMatchHighlight = {
-  id: string;
-  icon: string;
-  label: string;
-  value: string;
-  subtext: string;
-  accent?: TeamMatchAccent;
+  run?: Run;
 };
 
 export type ActiveSoloMatch = {
@@ -365,7 +358,6 @@ export type ActiveSoloMatch = {
   info: SoloMatchInfo;
   stats: SoloMatchComparisonStat[];
   activities: SoloMatchActivity[];
-  highlights: SoloMatchHighlight[];
 };
 
 export type TeamLogoAccent = 'lime' | 'purple' | 'gold' | 'silver' | 'cyan' | 'blue';

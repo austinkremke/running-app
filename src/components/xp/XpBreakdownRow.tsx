@@ -84,18 +84,23 @@ export function XpBreakdownRow({ segment, state }: XpBreakdownRowProps) {
       ]}
     >
       <View style={styles.copy}>
-        <Text style={[styles.label, isPending ? styles.labelPending : styles.labelRevealed]}>
-          {segment.label}
+        <Text numberOfLines={1} style={styles.line}>
+          <Text style={[styles.label, isPending ? styles.labelPending : styles.labelRevealed]}>
+            {segment.label}
+          </Text>
+          {segment.detail ? (
+            <Animated.Text
+              style={[
+                styles.detail,
+                isPending ? styles.detailPending : styles.detailRevealed,
+                { opacity: detailOpacity },
+              ]}
+            >
+              {'  ·  '}
+              {segment.detail}
+            </Animated.Text>
+          ) : null}
         </Text>
-        <Animated.Text
-          style={[
-            styles.detail,
-            isPending ? styles.detailPending : styles.detailRevealed,
-            { opacity: detailOpacity },
-          ]}
-        >
-          {segment.detail ?? ' '}
-        </Animated.Text>
       </View>
 
       <View style={styles.xpSlot}>
@@ -122,11 +127,11 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'space-between',
     gap: spacing.sm,
-    paddingVertical: spacing.sm,
+    paddingVertical: spacing.xs,
     paddingHorizontal: spacing.md,
     borderRadius: 10,
     borderWidth: 1,
-    minHeight: 52,
+    minHeight: 36,
   },
   rowPending: {
     backgroundColor: colors.background,
@@ -138,7 +143,9 @@ const styles = StyleSheet.create({
   },
   copy: {
     flex: 1,
-    gap: 2,
+  },
+  line: {
+    fontSize: 13,
   },
   label: {
     fontSize: 13,
@@ -153,7 +160,6 @@ const styles = StyleSheet.create({
   detail: {
     fontSize: 11,
     fontWeight: '500',
-    minHeight: 14,
   },
   detailPending: {
     color: colors.textSecondary,

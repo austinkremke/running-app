@@ -29,7 +29,6 @@ export type {
   SoloMatchmaking,
   SoloMatchActivity,
   SoloMatchComparisonStat,
-  SoloMatchHighlight,
   SoloMatchInfo,
   SoloMatchRunner,
   SoloSeasonRecord,

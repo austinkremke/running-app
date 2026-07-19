@@ -83,7 +83,6 @@ function buildInitialMatch(): ActiveSoloMatch {
     },
     stats: [],
     activities: [],
-    highlights: [],
   };
 }
 

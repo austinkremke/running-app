@@ -5,26 +5,37 @@ import type { SoloMatchActivity } from '../../../mock';
 import { colors, spacing } from '../../../theme';
 import { SoloMatchActivityRow } from './SoloMatchActivityRow';
 
+const PREVIEW_COUNT = 5;
+
 type SoloMatchActivitySectionProps = {
   activities: SoloMatchActivity[];
+  onViewAll?: () => void;
+  onSelectActivity?: (activity: SoloMatchActivity) => void;
 };
 
-export function SoloMatchActivitySection({ activities }: SoloMatchActivitySectionProps) {
+export function SoloMatchActivitySection({
+  activities,
+  onViewAll,
+  onSelectActivity,
+}: SoloMatchActivitySectionProps) {
+  const preview = activities.slice(0, PREVIEW_COUNT);
+
   return (
     <View style={styles.container}>
       <Text style={styles.title}>LATEST ACTIVITY</Text>
 
       <View style={styles.list}>
-        {activities.map((activity, index) => (
+        {preview.map((activity, index) => (
           <SoloMatchActivityRow
             activity={activity}
             key={activity.id}
-            showDivider={index < activities.length - 1}
+            onPress={onSelectActivity ? () => onSelectActivity(activity) : undefined}
+            showDivider={index < preview.length - 1}
           />
         ))}
       </View>
 
-      <Pressable accessibilityRole="button" style={styles.action}>
+      <Pressable accessibilityRole="button" onPress={onViewAll} style={styles.action}>
         <Text style={styles.actionLabel}>VIEW ALL ACTIVITY</Text>
         <Ionicons color={colors.accentLime} name="chevron-forward" size={14} />
       </Pressable>

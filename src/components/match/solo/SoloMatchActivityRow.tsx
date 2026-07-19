@@ -1,25 +1,37 @@
-import { Ionicons } from '@expo/vector-icons';
 import { Pressable, StyleSheet, Text, View } from 'react-native';
 
-import { RunnerIcon } from '../../icons';
+import { Avatar } from '../../avatar';
 import type { SoloMatchActivity } from '../../../mock';
 import { colors, spacing } from '../../../theme';
-import { formatMatchPoints, getTeamMatchAccentColor } from './soloMatchTheme';
+import {
+  formatMatchPoints,
+  getTeamMatchAccentColor,
+  TEAM_MATCH_AVATAR_BORDER_WIDTH,
+} from './soloMatchTheme';
 
 type SoloMatchActivityRowProps = {
   activity: SoloMatchActivity;
+  onPress?: () => void;
   showDivider?: boolean;
 };
 
-export function SoloMatchActivityRow({ activity, showDivider = true }: SoloMatchActivityRowProps) {
+export function SoloMatchActivityRow({ activity, onPress, showDivider = true }: SoloMatchActivityRowProps) {
   const accentColor = getTeamMatchAccentColor(activity.accent);
 
   return (
     <View>
-      <View style={styles.row}>
-        <View style={[styles.iconWrap, { borderColor: accentColor }]}>
-          <RunnerIcon color={accentColor} size={14} />
-        </View>
+      <Pressable
+        accessibilityRole={onPress ? 'button' : undefined}
+        disabled={!onPress}
+        onPress={onPress}
+        style={styles.row}
+      >
+        <Avatar
+          avatarUrl={activity.avatarUrl}
+          borderColor={accentColor}
+          borderWidth={TEAM_MATCH_AVATAR_BORDER_WIDTH}
+          size={28}
+        />
 
         <View style={styles.meta}>
           <Text style={styles.day}>{activity.dayLabel}</Text>
@@ -32,7 +44,7 @@ export function SoloMatchActivityRow({ activity, showDivider = true }: SoloMatch
             +{formatMatchPoints(activity.pointsEarned)} pts
           </Text>
         </View>
-      </View>
+      </Pressable>
 
       {showDivider ? <View style={styles.divider} /> : null}
     </View>
@@ -45,15 +57,6 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     gap: spacing.sm,
     paddingVertical: spacing.sm,
-  },
-  iconWrap: {
-    width: 28,
-    height: 28,
-    borderRadius: 14,
-    borderWidth: 1,
-    alignItems: 'center',
-    justifyContent: 'center',
-    backgroundColor: colors.surfaceElevated,
   },
   meta: {
     flex: 1,

@@ -134,35 +134,4 @@ export const MOCK_ACTIVE_SOLO_MATCH: ActiveSoloMatch = {
       accent: 'purple',
     },
   ],
-  highlights: [
-    {
-      id: 'longest-run',
-      icon: 'footsteps-outline',
-      label: 'Longest Run',
-      value: '6.11 mi',
-      subtext: '3 Days Ago',
-    },
-    {
-      id: 'best-pace',
-      icon: 'timer-outline',
-      label: 'Best Pace',
-      value: '6:21 /mi',
-      subtext: '4 Days Ago',
-    },
-    {
-      id: 'streak',
-      icon: 'flame-outline',
-      label: 'Current Streak',
-      value: '7 Days',
-      subtext: 'Keep it up!',
-    },
-    {
-      id: 'xp',
-      icon: 'flash-outline',
-      label: 'XP On The Line',
-      value: '250 XP',
-      subtext: 'Win Bonus',
-      accent: 'purple',
-    },
-  ],
 };

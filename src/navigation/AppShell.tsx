@@ -252,7 +252,13 @@ export function AppShell() {
     }
 
     if (activeRoute === 'soloMatch') {
-      return <SoloMatchScreen onQuit={() => setActiveRoute('match')} onRunPress={openRun} />;
+      return (
+        <SoloMatchScreen
+          onOpenRunDetail={openRunDetail}
+          onQuit={() => setActiveRoute('match')}
+          onRunPress={openRun}
+        />
+      );
     }
 
     if (activeRoute === 'team') {

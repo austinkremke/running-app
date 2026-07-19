@@ -48,6 +48,7 @@ export function SettingsScreen({ onBack }: SettingsScreenProps) {
     setCategory: setNotificationCategory,
   } = useNotificationPreferences();
   const userId = session?.user?.id ?? null;
+  const [notificationCategoriesExpanded, setNotificationCategoriesExpanded] = useState(false);
 
   const [displayName, setDisplayName] = useState(gameState?.profile.display_name ?? '');
   const [savingName, setSavingName] = useState(false);
@@ -245,15 +246,24 @@ export function SettingsScreen({ onBack }: SettingsScreenProps) {
           }}
           value="Manage alerts in iOS Settings"
         />
-        {NOTIFICATION_CATEGORY_LABELS.map(({ category, label }) => (
-          <NotificationPreferenceRow
-            disabled={savingCategory === category}
-            key={category}
-            label={label}
-            onChange={(value) => void setNotificationCategory(category, value)}
-            value={notificationPreferences[category]}
-          />
-        ))}
+        <SettingsRow
+          icon={notificationCategoriesExpanded ? 'chevron-up-outline' : 'chevron-down-outline'}
+          label="Notification categories"
+          onPress={() => setNotificationCategoriesExpanded((expanded) => !expanded)}
+          showChevron={false}
+          value={notificationCategoriesExpanded ? 'Tap to collapse' : `Tap to expand (${NOTIFICATION_CATEGORY_LABELS.length})`}
+        />
+        {notificationCategoriesExpanded
+          ? NOTIFICATION_CATEGORY_LABELS.map(({ category, label }) => (
+              <NotificationPreferenceRow
+                disabled={savingCategory === category}
+                key={category}
+                label={label}
+                onChange={(value) => void setNotificationCategory(category, value)}
+                value={notificationPreferences[category]}
+              />
+            ))
+          : null}
       </SettingsSection>
 
       <SettingsSection title="Linked sign-in">

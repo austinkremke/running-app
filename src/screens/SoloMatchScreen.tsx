@@ -3,15 +3,16 @@ import { ActivityIndicator, Alert, ScrollView, StyleSheet, Text, View } from 're
 
 import {
   SoloActiveMatchActions,
+  SoloMatchActivityFeedModal,
   SoloMatchActivitySection,
   SoloMatchChatDrawer,
-  SoloMatchHighlightsRow,
   SoloMatchOptionsDrawer,
   SoloMatchScoreboard,
   SoloMatchStatsSection,
 } from '../components/match/solo';
 import { useActiveSoloMatch } from '../hooks/useActiveSoloMatch';
 import { useAuth, useSoloMatchCompletion } from '../context';
+import type { Run } from '../mock';
 import { forfeitSoloMatch } from '../services/matchmakingService';
 import { notifyMatchRefresh } from '../services/matchRefreshBus';
 import { notifySoloMatchCompletionSync } from '../services/soloMatchCompletionBus';
@@ -21,6 +22,7 @@ import { colors, spacing } from '../theme';
 type SoloMatchScreenProps = {
   onRunPress?: () => void;
   onQuit?: () => void;
+  onOpenRunDetail?: (run: Run) => void;
   embedded?: boolean;
 };
 
@@ -28,13 +30,19 @@ function getErrorMessage(error: unknown, fallback: string): string {
   return error instanceof Error ? error.message : fallback;
 }
 
-export function SoloMatchScreen({ onRunPress, onQuit, embedded = false }: SoloMatchScreenProps) {
+export function SoloMatchScreen({ onRunPress, onQuit, onOpenRunDetail, embedded = false }: SoloMatchScreenProps) {
   const { refreshGameState } = useAuth();
   const { match, loading, refresh } = useActiveSoloMatch();
   const { syncCompletions } = useSoloMatchCompletion();
   const [chatVisible, setChatVisible] = useState(false);
   const [optionsVisible, setOptionsVisible] = useState(false);
   const [forfeiting, setForfeiting] = useState(false);
+  const [activityFeedVisible, setActivityFeedVisible] = useState(false);
+
+  function handleSelectActivity(run: Run | undefined) {
+    if (!run) return;
+    onOpenRunDetail?.(run);
+  }
 
   useEffect(() => {
     void syncCompletions();
@@ -123,8 +131,11 @@ export function SoloMatchScreen({ onRunPress, onQuit, embedded = false }: SoloMa
         />
 
         <SoloMatchStatsSection match={match} />
-        <SoloMatchActivitySection activities={match.activities} />
-        <SoloMatchHighlightsRow highlights={match.highlights} />
+        <SoloMatchActivitySection
+          activities={match.activities}
+          onSelectActivity={(activity) => handleSelectActivity(activity.run)}
+          onViewAll={() => setActivityFeedVisible(true)}
+        />
 
         <View style={styles.bottomSpacer} />
       </ScrollView>
@@ -147,6 +158,13 @@ export function SoloMatchScreen({ onRunPress, onQuit, embedded = false }: SoloMa
           confirmQuitMatch();
         }}
         visible={optionsVisible}
+      />
+
+      <SoloMatchActivityFeedModal
+        activities={match.activities}
+        onClose={() => setActivityFeedVisible(false)}
+        onSelectActivity={(activity) => handleSelectActivity(activity.run)}
+        visible={activityFeedVisible}
       />
 
       {forfeiting ? (
