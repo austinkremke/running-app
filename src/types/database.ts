@@ -133,6 +133,7 @@ export type Database = {
           external_id: string | null
           external_source: string | null
           id: string
+          import_metadata: Json | null
           match_id: string | null
           polyline: Json
           source: string
@@ -141,6 +142,7 @@ export type Database = {
           track_storage_path: string | null
           updated_at: string
           user_id: string
+          verification_status: string | null
         }
         Insert: {
           created_at?: string
@@ -150,6 +152,7 @@ export type Database = {
           external_id?: string | null
           external_source?: string | null
           id: string
+          import_metadata?: Json | null
           match_id?: string | null
           polyline?: Json
           source: string
@@ -158,6 +161,7 @@ export type Database = {
           track_storage_path?: string | null
           updated_at?: string
           user_id: string
+          verification_status?: string | null
         }
         Update: {
           created_at?: string
@@ -167,6 +171,7 @@ export type Database = {
           external_id?: string | null
           external_source?: string | null
           id?: string
+          import_metadata?: Json | null
           match_id?: string | null
           polyline?: Json
           source?: string
@@ -175,6 +180,7 @@ export type Database = {
           track_storage_path?: string | null
           updated_at?: string
           user_id?: string
+          verification_status?: string | null
         }
         Relationships: [
           {

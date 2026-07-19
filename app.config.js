@@ -52,6 +52,16 @@ export default () => {
     ],
     'expo-apple-authentication',
     [
+      '@kingstinct/react-native-healthkit',
+      {
+        NSHealthShareUsageDescription:
+          'Run Off reads your runs and workouts from Apple Health — including ones synced from Apple Watch, Garmin, or other connected apps — so they show up in your run history and earn XP.',
+        NSHealthUpdateUsageDescription:
+          'Run Off does not currently write any data back to Apple Health.',
+        background: false,
+      },
+    ],
+    [
       'expo-splash-screen',
       {
         image: './assets/splash-icon.png',

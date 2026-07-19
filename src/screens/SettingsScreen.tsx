@@ -20,6 +20,15 @@ import { useNotificationPreferences } from '../hooks/useNotificationPreferences'
 import { useUserPreferences } from '../hooks/useUserPreferences';
 import type { NotificationCategory } from '../services/pushNotifications';
 import { deleteOwnAccount, getLinkedProviders } from '../services/accountService';
+import {
+  buildActivityRecordsForWorkout,
+  fetchRecentHealthKitWorkoutProxies,
+  fetchRecentHeartRateSamplesUnfiltered,
+  isHealthKitAvailable,
+  requestHealthKitReadAccess,
+  summarizeHealthKitWorkout,
+} from '../services/healthKitService';
+import { syncHealthKitWorkouts } from '../services/healthKitSyncService';
 import { initialsFromDisplayName, pickProfilePhotoUri, uploadProfileAvatar } from '../services/profileAvatar';
 import { updateDisplayName } from '../services/profileService';
 import { colors, spacing } from '../theme';
@@ -49,6 +58,85 @@ export function SettingsScreen({ onBack }: SettingsScreenProps) {
   } = useNotificationPreferences();
   const userId = session?.user?.id ?? null;
   const [notificationCategoriesExpanded, setNotificationCategoriesExpanded] = useState(false);
+  const [healthKitSyncStatus, setHealthKitSyncStatus] = useState('Tap to sync');
+
+  async function handleSyncHealthKit() {
+    if (!isHealthKitAvailable()) {
+      setHealthKitSyncStatus('Not available on this device');
+      return;
+    }
+    if (!userId) {
+      setHealthKitSyncStatus('Sign in required');
+      return;
+    }
+
+    setHealthKitSyncStatus('Requesting access…');
+    try {
+      const granted = await requestHealthKitReadAccess();
+      if (!granted) {
+        setHealthKitSyncStatus('Access denied');
+        return;
+      }
+
+      setHealthKitSyncStatus('Syncing…');
+      const result = await syncHealthKitWorkouts(userId);
+
+      const parts = [`Synced ${result.syncedCount}`];
+      if (result.skippedDuplicateCount > 0) parts.push(`${result.skippedDuplicateCount} duplicate(s) skipped`);
+      if (result.errorCount > 0) parts.push(`${result.errorCount} failed`);
+      setHealthKitSyncStatus(parts.join(' · '));
+    } catch (error) {
+      setHealthKitSyncStatus(error instanceof Error ? error.message : 'Sync failed');
+    }
+  }
+
+  const [healthKitTestStatus, setHealthKitTestStatus] = useState('Tap to run');
+
+  async function handleTestHealthKit() {
+    if (!isHealthKitAvailable()) {
+      setHealthKitTestStatus('Not available on this device');
+      return;
+    }
+
+    setHealthKitTestStatus('Requesting access…');
+    try {
+      const granted = await requestHealthKitReadAccess();
+      if (!granted) {
+        setHealthKitTestStatus('Access denied');
+        return;
+      }
+
+      const workoutProxies = await fetchRecentHealthKitWorkoutProxies(10);
+      const workouts = await Promise.all(
+        workoutProxies.map(async (workout) => ({
+          summary: summarizeHealthKitWorkout(workout),
+          records: await buildActivityRecordsForWorkout(workout),
+        })),
+      );
+
+      setHealthKitTestStatus(`Found ${workouts.length} recent workout(s)`);
+      console.log(
+        '[HealthKit smoke test] recent workouts',
+        workouts.map(({ summary, records }) => ({
+          ...summary,
+          recordCount: records.length,
+          hasRoute: records.some((r) => r.latitude != null),
+          heartRateRecordCount: records.filter((r) => r.heartRateBpm != null).length,
+          heartRateBpmValues: records.filter((r) => r.heartRateBpm != null).map((r) => r.heartRateBpm),
+          firstRecord: records[0],
+          lastRecord: records[records.length - 1],
+        })),
+      );
+
+      const unfilteredHr = await fetchRecentHeartRateSamplesUnfiltered(24);
+      console.log('[HealthKit smoke test] unfiltered HR samples, last 24h', {
+        count: unfilteredHr.length,
+        samples: unfilteredHr,
+      });
+    } catch (error) {
+      setHealthKitTestStatus(error instanceof Error ? error.message : 'Failed');
+    }
+  }
 
   const [displayName, setDisplayName] = useState(gameState?.profile.display_name ?? '');
   const [savingName, setSavingName] = useState(false);
@@ -236,6 +324,30 @@ export function SettingsScreen({ onBack }: SettingsScreenProps) {
           update.
         </Text>
       </SettingsSection>
+
+      <SettingsSection title="Apple Health">
+        <SettingsRow
+          icon="fitness-outline"
+          label="Sync Apple Watch & Garmin runs"
+          onPress={() => void handleSyncHealthKit()}
+          value={healthKitSyncStatus}
+        />
+        <Text style={styles.helper}>
+          Pulls in recent workouts synced to Apple Health from Apple Watch or Garmin. Runs without
+          heart-rate data won't earn XP or count in matches.
+        </Text>
+      </SettingsSection>
+
+      {__DEV__ ? (
+        <SettingsSection title="Apple Health (Dev)">
+          <SettingsRow
+            icon="bug-outline"
+            label="Test HealthKit connection (debug log)"
+            onPress={() => void handleTestHealthKit()}
+            value={healthKitTestStatus}
+          />
+        </SettingsSection>
+      ) : null}
 
       <SettingsSection title="Notifications">
         <SettingsRow

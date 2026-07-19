@@ -1,20 +1,24 @@
 import type { PostRunSummary } from '../mock';
 
 /** Where activity samples originated — extensible for import/export adapters. */
-export type ActivitySource = 'phone-gps' | 'mock' | 'garmin-fit' | 'strava' | 'gpx';
+export type ActivitySource = 'phone-gps' | 'mock' | 'garmin-fit' | 'strava' | 'gpx' | 'healthkit';
 
-export type ActivityExternalSource = 'garmin' | 'strava';
+export type ActivityExternalSource = 'garmin' | 'strava' | 'apple-watch';
 
 export type ActivityStatus = 'recording' | 'paused' | 'completed' | 'cancelled';
 
 /**
- * One time-series sample (Garmin FIT `record` / Strava stream row).
+ * One time-series sample (Garmin FIT `record` / Strava stream row / HealthKit sample).
  * `distanceMeters` is cumulative from activity start.
+ *
+ * `latitude`/`longitude` are nullable — HealthKit workouts synced from Garmin
+ * carry no HKWorkoutRoute (Garmin does not write routes to Apple Health), so
+ * those records exist with pace/HR/distance data but no coordinates.
  */
 export type ActivityRecord = {
   timestamp: string;
-  latitude: number;
-  longitude: number;
+  latitude: number | null;
+  longitude: number | null;
   distanceMeters: number;
   elapsedSeconds: number;
   movingSeconds?: number;

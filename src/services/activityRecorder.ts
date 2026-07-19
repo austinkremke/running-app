@@ -42,11 +42,14 @@ export function appendGpsRecord(
   startedAt: string,
   source: ActivitySource,
 ): ActivityRecord[] | null {
+  // Records built by this module always come from gpsPointToRecordFields with a real
+  // GpsPoint, so coordinates are guaranteed here — only HealthKit imports (a separate
+  // pipeline) ever produce route-less records with null latitude/longitude.
   const lastRecord = records[records.length - 1];
   const lastGps: GpsPoint | undefined = lastRecord
     ? {
-        latitude: lastRecord.latitude,
-        longitude: lastRecord.longitude,
+        latitude: lastRecord.latitude!,
+        longitude: lastRecord.longitude!,
         accuracy: lastRecord.accuracyMeters,
         altitude: lastRecord.altitudeMeters,
         speed: lastRecord.speedMps,
@@ -58,9 +61,7 @@ export function appendGpsRecord(
     return null;
   }
 
-  const segmentMeters = lastRecord
-    ? haversineMeters(lastRecord, point)
-    : 0;
+  const segmentMeters = lastRecord ? haversineMeters(lastGps!, point) : 0;
   const distanceMeters = (lastRecord?.distanceMeters ?? 0) + segmentMeters;
 
   return [...records, gpsPointToRecordFields(point, startedAt, distanceMeters, source)];

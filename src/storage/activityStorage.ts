@@ -3,13 +3,13 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 import { recordsFromGpsPoints } from '../services/activityAdapters';
 import { buildPostRunSummary } from '../services/buildPostRunSummary';
 import type { GpsPoint } from '../maps/types';
-import type { ActivitySession, StoredActivity } from '../types/activity';
+import type { ActivitySession, ActivitySource, StoredActivity } from '../types/activity';
 
 const INDEX_KEY = '@runs/index';
 const runKey = (id: string) => `@runs/${id}`;
 
 type LegacyStoredRun = {
-  session: ActivitySession & { source?: string };
+  session: Omit<ActivitySession, 'source'> & { source?: string };
   points?: GpsPoint[];
   records?: StoredActivity['records'];
   summary: StoredActivity['summary'];
@@ -26,7 +26,8 @@ async function writeIndex(ids: string[]): Promise<void> {
 }
 
 function normalizeSession(session: LegacyStoredRun['session']): ActivitySession {
-  const source = session.source === 'gps' ? 'phone-gps' : session.source;
+  // Legacy local storage — source is untyped JSON.parse output, not a checked ActivitySource.
+  const source = (session.source === 'gps' ? 'phone-gps' : session.source) as ActivitySource;
   return { ...session, source };
 }
 

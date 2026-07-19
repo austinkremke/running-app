@@ -3,16 +3,22 @@ import type { ActivityPolylinePoint } from './activityPolyline';
 import type { ActivityRecord, ActivitySource } from '../types/activity';
 import { haversineMeters } from './distanceService';
 
-/** Map polyline / legacy UI — derived from records, not stored separately. */
+/**
+ * Map polyline / legacy UI — derived from records, not stored separately.
+ * Route-less records (e.g. Garmin imports via HealthKit) are dropped rather
+ * than producing null-coordinate points.
+ */
 export function recordsToGpsPoints(records: ActivityRecord[]): GpsPoint[] {
-  return records.map((record) => ({
-    latitude: record.latitude,
-    longitude: record.longitude,
-    timestamp: record.timestamp,
-    accuracy: record.accuracyMeters,
-    altitude: record.altitudeMeters,
-    speed: record.speedMps,
-  }));
+  return records
+    .filter((record) => record.latitude != null && record.longitude != null)
+    .map((record) => ({
+      latitude: record.latitude as number,
+      longitude: record.longitude as number,
+      timestamp: record.timestamp,
+      accuracy: record.accuracyMeters,
+      altitude: record.altitudeMeters,
+      speed: record.speedMps,
+    }));
 }
 
 export function polylineToGpsPoints(polyline: unknown, startedAt: string): GpsPoint[] {

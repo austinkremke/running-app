@@ -181,18 +181,20 @@ export function RunDetailScreen({ run, onBack, onDeleted }: RunDetailScreenProps
         showsVerticalScrollIndicator={false}
         style={styles.scroll}
       >
-        <Pressable
-          accessibilityHint="Opens the route full screen"
-          accessibilityLabel="View route full screen"
-          accessibilityRole="button"
-          onPress={() => setMapFullscreen(true)}
-          style={styles.mapCard}
-        >
-          <StaticRouteMapPreview routePoints={run.routePoints} style={styles.map} />
-          <View style={styles.expandBadge}>
-            <Ionicons color={colors.textPrimary} name="expand" size={14} />
-          </View>
-        </Pressable>
+        {run.routePoints.length >= 2 ? (
+          <Pressable
+            accessibilityHint="Opens the route full screen"
+            accessibilityLabel="View route full screen"
+            accessibilityRole="button"
+            onPress={() => setMapFullscreen(true)}
+            style={styles.mapCard}
+          >
+            <StaticRouteMapPreview routePoints={run.routePoints} style={styles.map} />
+            <View style={styles.expandBadge}>
+              <Ionicons color={colors.textPrimary} name="expand" size={14} />
+            </View>
+          </Pressable>
+        ) : null}
 
         <View style={styles.titleBlock}>
           <Text style={styles.title}>{run.title}</Text>

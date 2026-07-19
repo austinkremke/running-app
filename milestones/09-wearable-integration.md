@@ -1,7 +1,7 @@
 # Wearable Integration (HealthKit — Apple Watch & Garmin)
 
 > **Milestone:** 09
-> **Status:** Planned
+> **Status:** In progress — Phases 1-3 shipped. Phase 1 (foundation) and Phase 2 (ingestion mapping) validated on real device data — Garmin route-less path + HR confirmed live end-to-end, including finding and fixing a real library gotcha (`filter: { workout }` silently returns zero HR samples; fixed via date-range filtering). Phase 3 (verification tier + server enforcement) fully shipped: migration, pure tier logic, server-side XP/match-credit gating, cross-app duplicate detection (`healthKitDedup.ts`), and a real "Sync Apple Watch & Garmin runs" Settings row wired to auto-publish. **Decided: auto-publish, not review-first** — simplest, consistent with how native runs already work; the pipeline is structured with an explicit seam (documented in `healthKitSyncService.ts`, right before the upsert) so a future review-before-publish flow is additive, not a rewrite. Phase 4 (background sync) and Phases 5-6 not started.
 > **Depends on:** [01 Activity recording](./01-activity-recording.md), [02 Supabase](./02-supabase-backend.md) (activities + Storage), [03 XP & ranking](./03-xp-and-ranking.md) (`award_run_xp`)
 > **Unblocks:** Heart Rate Analysis (currently dead code), wearable-first runs, Garmin without partner approval
 
@@ -75,6 +75,12 @@ Grade every import; **enforce server-side**, never trust the client's own verdic
 
 Both Apple Watch and Garmin clear **Verified** without a route, and without a curated source allowlist.
 
+### Cross-app duplicate detection
+
+A separate problem from fake activities: the *same real run* can legitimately land in Apple Health more than once if the runner uses multiple fitness apps that each sync to Health (e.g. Garmin Connect **and** Strava both writing their own `HKWorkout` for one physical run, or Garmin plus the phone's own GPS tracking simultaneously). Each is a distinct `HKWorkout` with its own UUID, so UUID-based dedup doesn't catch it.
+
+`healthKitDedup.ts`'s `isDuplicateOfExisting` compares a candidate against the runner's existing activities (any source, not just HealthKit) on **close start time (±5 min) and close distance (±15%)**. A match is skipped entirely rather than merged — acceptable for v1; which of the cross-posted duplicates "wins" is whichever the sync pass reaches first, not deterministic by source.
+
 ### Trust boundary — be honest about this
 
 HealthKit data passes **through the client**, and Apple does not cryptographically sign HealthKit exports. A modified app could lie about what HealthKit returned. This model raises the bar substantially but is **not** tamper-proof.
@@ -85,34 +91,36 @@ Closing that gap requires **App Attest** (proves a request came from a genuine u
 
 ## Rollout phases
 
-### Phase 1 — HealthKit foundation
-- Native module + Expo config plugin (`@kingstinct/react-native-healthkit` preferred for TS types + plugin support; verify maintenance before committing).
-- `com.apple.developer.healthkit` entitlement; `NSHealthShareUsageDescription` in [`app.config.js`](../app.config.js).
-- Permission request UX + Settings toggle to connect/disconnect.
-- Read-only to start — **no** write-back to HealthKit in v1.
-- Requires a dev client build (already in place).
+### Phase 1 — HealthKit foundation ✅ shipped
+- `@kingstinct/react-native-healthkit` + `react-native-nitro-modules`, config plugin in [`app.config.js`](../app.config.js) (`NSHealthShareUsageDescription`/`NSHealthUpdateUsageDescription`, read-only — no write-back).
+- `healthKitService.ts` — availability check, `requestHealthKitReadAccess` (requires `HKWorkoutTypeIdentifier` **and** `HKWorkoutRouteTypeIdentifier` separately, or `getWorkoutRoutes()` throws "Authorization not determined").
+- Validated with a real permission dialog + real workout data on-device.
 
-### Phase 2 — Ingestion pipeline
-- Map `HKWorkout` → `ActivitySession` + summary; `HKWorkoutRoute` → coordinates/altitude; `heartRate` samples → `heartRateBpm`; `distanceWalkingRunning` samples → cumulative `distanceMeters`.
+### Phase 2 — Ingestion pipeline ✅ shipped
+- `healthKitMappers.ts` maps `HKWorkout` → `ActivityRecord[]`; `HKWorkoutRoute` → coordinates/altitude; `heartRate` samples → `heartRateBpm`; `distanceWalkingRunning`/`totalDistance` → cumulative `distanceMeters`.
 - **Two build strategies**, since sources differ:
-  - *Route present* (Apple Watch): build records from route points, interpolate HR onto them.
-  - *Route absent* (Garmin): build records on a time grid from distance + HR samples, no coordinates.
-- Dedup by `HKWorkout.UUID` → `activities.external_id` (column exists).
-- Reuse the existing sync path in [`activitySync.ts`](../src/services/activitySync.ts) — no second activity model.
+  - *Route present* (Apple Watch): `buildRecordsFromRoute` — records from route points, nearest-in-time HR attached.
+  - *Route absent* (Garmin — confirmed never syncs `HKWorkoutRoute`): `buildRecordsFromTimeGrid` — 15s time grid, distance apportioned linearly, no coordinates.
+- `healthKitService.ts`'s `buildActivityRecordsForWorkout` picks the strategy automatically per workout.
+- **Real bug found and fixed on-device**: `queryQuantitySamples`'s `filter: { workout }` silently returns zero HR samples even when real samples exist inside that workout's window (confirmed via an unfiltered date-range control query). Fixed by filtering on `filter: { date: { startDate: workout.startDate, endDate: workout.endDate } }` instead.
 
-### Phase 3 — Verification & server enforcement
-- Persist provenance + tier alongside the activity.
-- Gate `award_run_xp` and `credit_match_activity` on tier — unverified earns nothing and cannot score.
-- Note: `credit_match_activity` already window-checks; extend it, don't replace it.
+### Phase 3 — Verification & server enforcement ✅ shipped
+- `20260719000001_activity_verification_tier.sql` — `activities.verification_status`/`import_metadata`.
+- `healthKitVerification.ts` — pure `computeVerificationTier`, permissive gating per the table above.
+- `20260719000002_gate_xp_and_match_credit_on_verification.sql` — `award_run_xp`/`credit_match_activity` return zero/skipped for `verification_status = 'unverified'`; both extended in place, not replaced, and NULL (native runs) is completely unaffected.
+- `healthKitDedup.ts` — cross-app duplicate detection (see above).
+- `healthKitSyncService.ts.syncHealthKitWorkouts(userId)` — fetch → map → verify → dedup → **auto-publish** (upserts with `id = HKWorkout.uuid`, idempotent re-sync; uploads track; calls the same XP/match-credit RPCs a native run uses; **and** calls `createFeedPost` to create the matching `feed_posts` row — the feed reads from `feed_posts`, not `activities` directly, and native runs only get one via an explicit "Add to feed" tap. First pass missed this; synced workouts weren't appearing in the feed until it was added).
+- **Decided: auto-publish, not review-first.** The pipeline stops right before the upsert with a docblock marking that as the seam for a future review-before-publish flow — switching later means intercepting at that one point, not re-deriving fetch/map/verify/dedup.
+- Real "Sync Apple Watch & Garmin runs" row added to Settings (manual trigger; background delivery is Phase 4).
 
 ### Phase 4 — Background sync
 - HealthKit observer queries + background delivery so watch runs land without opening the app.
 - Dedupe on every pass; never double-award (XP awards are already idempotent per activity).
 
-### Phase 5 — UI
-- **Route-less empty state** for feed cards and run detail — the one genuinely new UI surface. Feed cards currently assume `activities.polyline`; run detail assumes a hero map.
-- Source badge on imported runs (Apple Watch / Garmin).
-- "Unverified — no XP" badge + explanation.
+### Phase 5 — UI (partially shipped)
+- **Route-less empty state** ✅ shipped for the two spots that assumed a route always exists: `RunCardMedia.tsx` (feed card) renders the photo full-width or nothing (not a blank map) when there's no route, and `RunDetailScreen.tsx`'s hero map Pressable simply doesn't render when `routePoints.length < 2`.
+- Source badge on imported runs (Apple Watch / Garmin) — not started.
+- "Unverified — no XP" badge + explanation — not started.
 - Premium analytics cards already degrade correctly (they ship `unavailable`/`null` states) — **no work needed there.**
 
 ### Phase 6 — App Attest (deferred)
@@ -122,13 +130,13 @@ Closing that gap requires **App Attest** (proves a request came from a genuine u
 
 ## Schema & type changes
 
-| Change | Where | Note |
-|--------|-------|------|
-| `latitude` / `longitude` → nullable | [`src/types/activity.ts`](../src/types/activity.ts) | **Blocking.** `ActivityRecord` currently requires both; route-less Garmin imports cannot be represented. Audit all consumers. |
-| Add `'healthkit'` to `ActivitySource` | `src/types/activity.ts` | Keep `HKSource` app name in provenance metadata, not the enum. |
-| Extend `ActivityExternalSource` | `src/types/activity.ts` | Currently `'garmin' \| 'strava'`. |
-| `activities.verification_status` | migration | `'verified' \| 'unverified'`. |
-| `activities.import_metadata` (jsonb) | migration | Source app, device, `wasUserEntered`, sample counts — the audit trail for the tier decision. |
+| Change | Where | Status |
+|--------|-------|--------|
+| `latitude` / `longitude` → nullable | [`src/types/activity.ts`](../src/types/activity.ts) | ✅ Done — all consumers audited; `activityPolyline.ts`/`activityAdapters.ts` made null-safe. |
+| Add `'healthkit'` to `ActivitySource` | `src/types/activity.ts` | ✅ Done. |
+| Extend `ActivityExternalSource` | `src/types/activity.ts` | ✅ Done — added `'apple-watch'` alongside `'garmin' \| 'strava'`. |
+| `activities.verification_status` | `20260719000001_activity_verification_tier.sql` | ✅ Done. |
+| `activities.import_metadata` (jsonb) | `20260719000001_activity_verification_tier.sql` | ✅ Done. |
 
 Follow the [SCHEMA.md workflow](../supabase/SCHEMA.md): migration → rollback → `db push` → regenerate `database.ts` → docs sync.
 
