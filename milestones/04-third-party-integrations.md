@@ -1,7 +1,7 @@
 # Third-Party Integrations (Garmin & Strava)
 
 > **Milestone:** 04  
-> **Status:** Planned  
+> **Status:** Planned — **Garmin ingest superseded by [09 Wearable integration](./09-wearable-integration.md)** (HealthKit covers Apple Watch + Garmin with no Garmin partner approval). Strava import and GPX/FIT **export** below remain valid and independent.  
 > **Depends on:** [01 Activity recording](./01-activity-recording.md), [02 Supabase](./02-supabase-backend.md) (Phase A–C for activities + Storage)  
 > **Unblocks:** [05 Matchmaking & feed](./05-matchmaking-and-feed.md)
 
