@@ -1,20 +1,31 @@
 import { useCallback, useEffect, useState } from 'react';
 
-import type { FeedTab, Run, TeamMatchFeedPost } from '../mock';
+import type { FeedTab, Run, SoloMatchFeedPost, TeamMatchFeedPost } from '../mock';
 import { useAuth } from '../context';
 import { fetchFeedPosts } from '../services/feedService';
-import { fetchTeamMatchFeedPosts } from '../services/matchService';
+import { fetchSoloMatchFeedPosts, fetchTeamMatchFeedPosts } from '../services/matchService';
 import { toggleFeedLike } from '../services/feedEngagementService';
 
 export type FeedItem =
   | { kind: 'run'; id: string; sortKey: string; run: Run }
-  | { kind: 'match'; id: string; sortKey: string; post: TeamMatchFeedPost };
+  | { kind: 'match'; id: string; sortKey: string; post: TeamMatchFeedPost }
+  | { kind: 'soloMatch'; id: string; sortKey: string; post: SoloMatchFeedPost };
 
-function toFeedItems(runs: Run[], matchPosts: TeamMatchFeedPost[]): FeedItem[] {
+function toFeedItems(
+  runs: Run[],
+  matchPosts: TeamMatchFeedPost[],
+  soloMatchPosts: SoloMatchFeedPost[],
+): FeedItem[] {
   const items: FeedItem[] = [
     ...runs.map((run): FeedItem => ({ kind: 'run', id: run.id, sortKey: run.postedAtIso ?? '', run })),
     ...matchPosts.map((post): FeedItem => ({
       kind: 'match',
+      id: post.id,
+      sortKey: post.postedAtIso,
+      post,
+    })),
+    ...soloMatchPosts.map((post): FeedItem => ({
+      kind: 'soloMatch',
       id: post.id,
       sortKey: post.postedAtIso,
       post,
@@ -37,11 +48,12 @@ export function useFeed(activeTab: FeedTab) {
     setError(null);
 
     try {
-      const [runs, matchPosts] = await Promise.all([
+      const [runs, matchPosts, soloMatchPosts] = await Promise.all([
         fetchFeedPosts(activeTab, viewerUserId),
         fetchTeamMatchFeedPosts(viewerUserId),
+        fetchSoloMatchFeedPosts(viewerUserId),
       ]);
-      setItems(toFeedItems(runs, matchPosts));
+      setItems(toFeedItems(runs, matchPosts, soloMatchPosts));
     } catch (refreshError) {
       const message =
         refreshError instanceof Error ? refreshError.message : 'Could not load feed.';
@@ -73,9 +85,14 @@ export function useFeed(activeTab: FeedTab) {
 
       function applyLike(item: FeedItem, likedByMe: boolean, likes: number): FeedItem {
         if (item.id !== postId) return item;
-        return item.kind === 'run'
-          ? { ...item, run: { ...item.run, likedByMe, likes } }
-          : { ...item, post: { ...item.post, likedByMe, likes } };
+        switch (item.kind) {
+          case 'run':
+            return { ...item, run: { ...item.run, likedByMe, likes } };
+          case 'match':
+            return { ...item, post: { ...item.post, likedByMe, likes } };
+          case 'soloMatch':
+            return { ...item, post: { ...item.post, likedByMe, likes } };
+        }
       }
 
       setItems((previous) => previous.map((item) => applyLike(item, !wasLiked, optimisticLikes)));
@@ -95,11 +112,16 @@ export function useFeed(activeTab: FeedTab) {
 
   const bumpCommentCount = useCallback((postId: string) => {
     setItems((previous) =>
-      previous.map((item) => {
+      previous.map((item): FeedItem => {
         if (item.id !== postId) return item;
-        return item.kind === 'run'
-          ? { ...item, run: { ...item.run, comments: item.run.comments + 1 } }
-          : { ...item, post: { ...item.post, comments: item.post.comments + 1 } };
+        switch (item.kind) {
+          case 'run':
+            return { ...item, run: { ...item.run, comments: item.run.comments + 1 } };
+          case 'match':
+            return { ...item, post: { ...item.post, comments: item.post.comments + 1 } };
+          case 'soloMatch':
+            return { ...item, post: { ...item.post, comments: item.post.comments + 1 } };
+        }
       }),
     );
   }, []);

@@ -1,0 +1,2 @@
+-- Rollback for 20260721000002_solo_match_feed_backfill_timestamp_fix.sql
+-- Data repair is not automatically reversible; nothing to undo.

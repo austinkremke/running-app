@@ -310,6 +310,24 @@ export type TeamMatchFeedPost = {
   likedByMe: boolean;
 };
 
+/** A completed 1v1 solo match's feed post — reuses feed_posts likes/comments. */
+export type SoloMatchFeedPost = {
+  /** feed_posts.id — used for likes/comments, same as a run's post id. */
+  id: string;
+  matchId: string;
+  endsAt: string;
+  postedAtIso: string;
+  homeRunner: SoloMatchRunner;
+  awayRunner: SoloMatchRunner;
+  homePoints: number;
+  awayPoints: number;
+  /** Absolute result (not viewer-relative) — who actually won. */
+  result: 'home' | 'away' | 'tie';
+  likes: number;
+  comments: number;
+  likedByMe: boolean;
+};
+
 export type SoloMatchRunner = {
   id: string;
   name: string;

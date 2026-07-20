@@ -6,10 +6,11 @@ import {
   FindFriendsDrawer,
   FriendsFindBar,
   RunCard,
+  SoloMatchFeedCard,
   TeamMatchFeedCard,
 } from '../components/feed';
 import { useAuth } from '../context';
-import type { FeedTab, Run, TeamMatchFeedPost } from '../mock';
+import type { FeedTab, Run, SoloMatchFeedPost, TeamMatchFeedPost } from '../mock';
 import { useAchievementUnlockPresentation } from '../hooks/useAchievementUnlockPresentation';
 import { useFeed } from '../hooks/useFeed';
 import { useFriends } from '../hooks/useFriends';
@@ -71,6 +72,24 @@ export function FeedScreen({ activeTab, onOpenRun, onOpenProfile }: FeedScreenPr
         post.result === 'tie'
           ? `${post.homeTeam.name} Tied ${post.awayTeam.name}`
           : `${post.result === 'home' ? post.homeTeam.name : post.awayTeam.name} Defeated ${post.result === 'home' ? post.awayTeam.name : post.homeTeam.name}`;
+      await Share.share({
+        message: `${headline} (${post.homePoints} - ${post.awayPoints})`,
+      });
+      await recordEvent('share_feed_post');
+    } catch (shareError) {
+      if (shareError instanceof Error && shareError.message.includes('User did not share')) {
+        return;
+      }
+      console.warn('Share failed', shareError);
+    }
+  }
+
+  async function handleShareSoloMatch(post: SoloMatchFeedPost) {
+    try {
+      const headline =
+        post.result === 'tie'
+          ? `${post.homeRunner.name} Tied ${post.awayRunner.name}`
+          : `${post.result === 'home' ? post.homeRunner.name : post.awayRunner.name} Defeated ${post.result === 'home' ? post.awayRunner.name : post.homeRunner.name}`;
       await Share.share({
         message: `${headline} (${post.homePoints} - ${post.awayPoints})`,
       });
@@ -156,6 +175,19 @@ export function FeedScreen({ activeTab, onOpenRun, onOpenProfile }: FeedScreenPr
               onOpenComments={() => setCommentsPostId(item.id)}
               onShare={() => {
                 void handleShareMatch(item.post);
+              }}
+              onToggleLike={() => {
+                void handleToggleLike(item.id);
+              }}
+              post={item.post}
+              postedAt={formatRelativeTime(item.post.postedAtIso)}
+            />
+          ) : item.kind === 'soloMatch' ? (
+            <SoloMatchFeedCard
+              engagementDisabled={likingPostId === item.id}
+              onOpenComments={() => setCommentsPostId(item.id)}
+              onShare={() => {
+                void handleShareSoloMatch(item.post);
               }}
               onToggleLike={() => {
                 void handleToggleLike(item.id);

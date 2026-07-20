@@ -29,6 +29,7 @@ export type {
   SoloMatchmaking,
   SoloMatchActivity,
   SoloMatchComparisonStat,
+  SoloMatchFeedPost,
   SoloMatchInfo,
   SoloMatchRunner,
   SoloSeasonRecord,

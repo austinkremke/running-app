@@ -2,6 +2,8 @@ import type {
   ActiveSoloMatch,
   ActiveTeamMatch,
   Run,
+  SoloMatchFeedPost,
+  SoloMatchRunner,
   TeamLogoAccent,
   TeamMatchActivity,
   TeamMatchFeedPost,
@@ -510,6 +512,142 @@ export async function fetchTeamMatchFeedPosts(
       };
     })
     .filter((entry): entry is TeamMatchFeedPost => entry !== null);
+}
+
+/** Resolves each user's rank_tiers.id from their player_rank.competitive_rating. */
+async function fetchPlayerRankTierIds(userIds: string[]): Promise<Map<string, string>> {
+  if (!supabase || userIds.length === 0) return new Map();
+
+  const [tierRows, { data: playerRanks, error }] = await Promise.all([
+    fetchRankTiers(),
+    supabase.from('player_rank').select('user_id, competitive_rating').in('user_id', userIds),
+  ]);
+
+  if (error) throw error;
+
+  const tiers = tierRows.map(mapRankTierRow);
+  return new Map(
+    (playerRanks ?? []).map((row) => [row.user_id, tierFromRating(row.competitive_rating, tiers).id]),
+  );
+}
+
+export async function fetchSoloMatchFeedPosts(
+  viewerUserId: string | null,
+  limit = 20,
+): Promise<SoloMatchFeedPost[]> {
+  if (!supabase) return [];
+
+  // RLS (feed_posts_select_solo_match) already restricts these rows to
+  // matches the viewer participated in, or where a friend participated —
+  // no client-side scoping needed.
+  const { data: posts, error } = await supabase
+    .from('feed_posts')
+    .select('*, matches:match_id (*)')
+    .not('match_id', 'is', null)
+    .order('created_at', { ascending: false })
+    .limit(limit);
+
+  if (error) throw error;
+  if (!posts || posts.length === 0) return [];
+
+  const soloPosts = posts.filter((post) => {
+    const match = post.matches as Tables<'matches'> | null;
+    return match?.kind === 'solo';
+  });
+  if (soloPosts.length === 0) return [];
+
+  const matchIds = soloPosts.map((post) => (post.matches as Tables<'matches'>).id);
+
+  const [{ data: participants, error: participantsError }, engagementByPostId] = await Promise.all([
+    supabase.from('match_participants').select('*').in('match_id', matchIds),
+    fetchFeedEngagementSummaries(
+      soloPosts.map((post) => post.id),
+      viewerUserId,
+    ),
+  ]);
+
+  if (participantsError) throw participantsError;
+
+  const userIds = [
+    ...new Set((participants ?? []).map((p) => p.user_id).filter((id): id is string => id != null)),
+  ];
+
+  const [
+    { data: profiles, error: profilesError },
+    { data: progress, error: progressError },
+    rankTierIdsByUser,
+  ] = await Promise.all([
+    supabase.from('profiles').select('*').in('id', userIds),
+    supabase.from('player_progress').select('user_id, total_xp').in('user_id', userIds),
+    fetchPlayerRankTierIds(userIds),
+  ]);
+
+  if (profilesError) throw profilesError;
+  if (progressError) throw progressError;
+
+  const profilesById = new Map((profiles ?? []).map((profile) => [profile.id, profile]));
+  const totalXpByUser = new Map((progress ?? []).map((p) => [p.user_id, p.total_xp ?? 0]));
+  const participantsByMatch = new Map<string, Tables<'match_participants'>[]>();
+  for (const participant of participants ?? []) {
+    const list = participantsByMatch.get(participant.match_id) ?? [];
+    list.push(participant);
+    participantsByMatch.set(participant.match_id, list);
+  }
+
+  function toRunner(
+    profile: Tables<'profiles'>,
+    accent: SoloMatchRunner['accent'],
+  ): SoloMatchRunner {
+    return {
+      id: profile.id,
+      name: profile.display_name,
+      level: levelFromTotalXp(totalXpByUser.get(profile.id) ?? 0),
+      avatarUrl: profile.avatar_url ?? '',
+      totalPoints: 0,
+      accent,
+      rankTierId: rankTierIdsByUser.get(profile.id),
+    };
+  }
+
+  return soloPosts
+    .map((post): SoloMatchFeedPost | null => {
+      const match = post.matches as Tables<'matches'>;
+      const sides = participantsByMatch.get(match.id) ?? [];
+      const home = sides.find((p) => p.side === 'home');
+      const away = sides.find((p) => p.side === 'away');
+      if (!home?.user_id || !away?.user_id) return null;
+
+      const homeProfile = profilesById.get(home.user_id);
+      const awayProfile = profilesById.get(away.user_id);
+      if (!homeProfile || !awayProfile) return null;
+
+      const state = (match.state_json ?? {}) as {
+        home_points?: number;
+        away_points?: number;
+        result?: 'home' | 'away' | 'tie';
+      };
+      const engagement = engagementByPostId[post.id] ?? {
+        likeCount: 0,
+        commentCount: 0,
+        likedByMe: false,
+      };
+
+      return {
+        id: post.id,
+        matchId: match.id,
+        endsAt: match.ends_at,
+        postedAtIso: post.created_at,
+        homeRunner: toRunner(homeProfile, 'lime'),
+        awayRunner: toRunner(awayProfile, 'purple'),
+        homePoints: state.home_points ?? 0,
+        awayPoints: state.away_points ?? 0,
+        result: state.result ?? 'tie',
+        likes: engagement.likeCount,
+        comments: engagement.commentCount,
+        likedByMe: engagement.likedByMe,
+      };
+    })
+    .filter((entry): entry is SoloMatchFeedPost => entry !== null);
 }
 
 type SoloMatchEnrollment = {
