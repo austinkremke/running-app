@@ -631,8 +631,13 @@ export async function fetchSoloMatchFeedPosts(
 
   const matchIds = soloPosts.map((post) => (post.matches as Tables<'matches'>).id);
 
-  const [{ data: participants, error: participantsError }, engagementByPostId] = await Promise.all([
+  const [
+    { data: participants, error: participantsError },
+    { data: activities, error: activitiesError },
+    engagementByPostId,
+  ] = await Promise.all([
     supabase.from('match_participants').select('*').in('match_id', matchIds),
+    supabase.from('activities').select('*').in('match_id', matchIds),
     fetchFeedEngagementSummaries(
       soloPosts.map((post) => post.id),
       viewerUserId,
@@ -640,6 +645,31 @@ export async function fetchSoloMatchFeedPosts(
   ]);
 
   if (participantsError) throw participantsError;
+  if (activitiesError) throw activitiesError;
+
+  const activitiesByMatch = new Map<string, Tables<'activities'>[]>();
+  for (const activity of activities ?? []) {
+    if (!activity.match_id) continue;
+    const list = activitiesByMatch.get(activity.match_id) ?? [];
+    list.push(activity);
+    activitiesByMatch.set(activity.match_id, list);
+  }
+
+  // Points are recomputed fresh from activities rather than trusted from
+  // matches.state_json / match_participants.points — historical matches
+  // finalized before the finalize_solo_match points-recompute fix
+  // (20260720000003_finalize_solo_match_recompute_points.sql) can still
+  // carry stale/wrong stored values, which is why the feed card could show
+  // a different score than the (always fresh) match detail screen.
+  function sidePoints(activitiesForMatch: Tables<'activities'>[], userId: string): number {
+    return activitiesForMatch
+      .filter((activity) => activity.user_id === userId)
+      .reduce(
+        (sum, activity) =>
+          sum + matchPointsForActivity(activity.distance_meters ?? 0, activity.duration_seconds ?? 0),
+        0,
+      );
+  }
 
   const userIds = [
     ...new Set((participants ?? []).map((p) => p.user_id).filter((id): id is string => id != null)),
@@ -694,11 +724,11 @@ export async function fetchSoloMatchFeedPosts(
       const awayProfile = profilesById.get(away.user_id);
       if (!homeProfile || !awayProfile) return null;
 
-      const state = (match.state_json ?? {}) as {
-        home_points?: number;
-        away_points?: number;
-        result?: 'home' | 'away' | 'tie';
-      };
+      const matchActivities = activitiesByMatch.get(match.id) ?? [];
+      const homePoints = sidePoints(matchActivities, home.user_id!);
+      const awayPoints = sidePoints(matchActivities, away.user_id!);
+      const result: 'home' | 'away' | 'tie' =
+        homePoints === awayPoints ? 'tie' : homePoints > awayPoints ? 'home' : 'away';
       const engagement = engagementByPostId[post.id] ?? {
         likeCount: 0,
         commentCount: 0,
@@ -712,9 +742,9 @@ export async function fetchSoloMatchFeedPosts(
         postedAtIso: post.created_at,
         homeRunner: toRunner(homeProfile, 'lime'),
         awayRunner: toRunner(awayProfile, 'purple'),
-        homePoints: state.home_points ?? 0,
-        awayPoints: state.away_points ?? 0,
-        result: state.result ?? 'tie',
+        homePoints,
+        awayPoints,
+        result,
         likes: engagement.likeCount,
         comments: engagement.commentCount,
         likedByMe: engagement.likedByMe,
