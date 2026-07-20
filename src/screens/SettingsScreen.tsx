@@ -84,6 +84,7 @@ export function SettingsScreen({ onBack }: SettingsScreenProps) {
       const parts = [`Synced ${result.syncedCount}`];
       if (result.skippedDuplicateCount > 0) parts.push(`${result.skippedDuplicateCount} duplicate(s) skipped`);
       if (result.skippedTooShortCount > 0) parts.push(`${result.skippedTooShortCount} too short skipped`);
+      if (result.skippedTooOldCount > 0) parts.push(`${result.skippedTooOldCount} too old skipped`);
       if (result.errorCount > 0) parts.push(`${result.errorCount} failed`);
       setHealthKitSyncStatus(parts.join(' · '));
     } catch (error) {

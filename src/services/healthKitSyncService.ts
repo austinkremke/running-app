@@ -24,16 +24,50 @@ const DEDUP_LOOKBACK_DAYS = 14;
  */
 const MIN_SYNCABLE_DISTANCE_METERS = 100;
 const MIN_SYNCABLE_DURATION_SECONDS = 60;
+/** A run this stale is almost certainly a backfill/forgotten sync, not "just finished" — don't import it. */
+const MAX_IMPORT_AGE_HOURS = 24;
 
 export type HealthKitSyncResult = {
   syncedCount: number;
   skippedDuplicateCount: number;
   skippedTooShortCount: number;
+  skippedTooOldCount: number;
   errorCount: number;
 };
 
 function trackStoragePath(userId: string, activityId: string): string {
   return `${userId}/${activityId}/track.json`;
+}
+
+/**
+ * Only credits a synced run to the match that was actually active while the
+ * run happened — not whatever match happens to be active right now. Without
+ * this, a run synced late (e.g. the next day, after that match already ended
+ * and a new one started) would get credited to the new match instead of
+ * being correctly excluded, which could flip a match's outcome after the
+ * fact. `fetchActiveSoloMatchId` already returns null once a match's own
+ * ends_at has passed (it finalizes due matches internally), which handles
+ * "synced after the match ended" — this additionally guards against
+ * "synced after a *new* match started".
+ */
+async function creditableSoloMatchIdForRun(userId: string, runEndedAt: Date): Promise<string | null> {
+  if (!supabase) return null;
+
+  const matchId = await fetchActiveSoloMatchId(userId).catch(() => null);
+  if (!matchId) return null;
+
+  const { data: match } = await supabase
+    .from('matches')
+    .select('created_at, ends_at')
+    .eq('id', matchId)
+    .maybeSingle();
+  if (!match) return null;
+
+  const matchStart = new Date(match.created_at).getTime();
+  const matchEnd = new Date(match.ends_at).getTime();
+  const runEndMs = runEndedAt.getTime();
+
+  return runEndMs >= matchStart && runEndMs <= matchEnd ? matchId : null;
 }
 
 function externalSourceFromAppName(sourceName: string): ActivityExternalSource | undefined {
@@ -77,7 +111,13 @@ async function uploadWorkoutTrack(userId: string, activityId: string, records: u
  */
 export async function syncHealthKitWorkouts(userId: string): Promise<HealthKitSyncResult> {
   if (!supabase) {
-    return { syncedCount: 0, skippedDuplicateCount: 0, skippedTooShortCount: 0, errorCount: 0 };
+    return {
+      syncedCount: 0,
+      skippedDuplicateCount: 0,
+      skippedTooShortCount: 0,
+      skippedTooOldCount: 0,
+      errorCount: 0,
+    };
   }
 
   const syncSince = new Date(Date.now() - SYNC_WINDOW_DAYS * 24 * 60 * 60 * 1000);
@@ -103,6 +143,7 @@ export async function syncHealthKitWorkouts(userId: string): Promise<HealthKitSy
   let syncedCount = 0;
   let skippedDuplicateCount = 0;
   let skippedTooShortCount = 0;
+  let skippedTooOldCount = 0;
   let errorCount = 0;
 
   for (const workout of workouts) {
@@ -114,6 +155,12 @@ export async function syncHealthKitWorkouts(userId: string): Promise<HealthKitSy
         summary.durationSeconds < MIN_SYNCABLE_DURATION_SECONDS
       ) {
         skippedTooShortCount += 1;
+        continue;
+      }
+
+      const hoursSinceEnded = (Date.now() - summary.endDate.getTime()) / (60 * 60 * 1000);
+      if (hoursSinceEnded > MAX_IMPORT_AGE_HOURS) {
+        skippedTooOldCount += 1;
         continue;
       }
 
@@ -152,7 +199,7 @@ export async function syncHealthKitWorkouts(userId: string): Promise<HealthKitSy
       };
 
       const postRunSummary = buildPostRunSummary(session, records, session.endedAt!);
-      const matchId = await fetchActiveSoloMatchId(userId).catch(() => null);
+      const matchId = await creditableSoloMatchIdForRun(userId, summary.endDate);
 
       const importMetadata = {
         sourceName: summary.sourceName,
@@ -207,6 +254,7 @@ export async function syncHealthKitWorkouts(userId: string): Promise<HealthKitSy
           userId,
           activityId: workout.uuid,
           description: `Synced from ${summary.sourceName}`,
+          createdAt: session.endedAt,
         });
       } catch {
         // Non-fatal — the activity itself already synced successfully.
@@ -223,5 +271,5 @@ export async function syncHealthKitWorkouts(userId: string): Promise<HealthKitSy
     }
   }
 
-  return { syncedCount, skippedDuplicateCount, skippedTooShortCount, errorCount };
+  return { syncedCount, skippedDuplicateCount, skippedTooShortCount, skippedTooOldCount, errorCount };
 }

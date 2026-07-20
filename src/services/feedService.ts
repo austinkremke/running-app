@@ -17,6 +17,8 @@ export type CreateFeedPostInput = {
   location?: string;
   photoUrl?: string | null;
   audiences?: FeedTab[];
+  /** Defaults to now() (a fresh post) — pass the run's own completion time for backdated imports (e.g. HealthKit sync) so the feed doesn't show a months-old run as "just posted". */
+  createdAt?: string;
 };
 
 export async function createFeedPost(input: CreateFeedPostInput): Promise<void> {
@@ -35,6 +37,7 @@ export async function createFeedPost(input: CreateFeedPostInput): Promise<void> 
       location: input.location ?? '',
       photo_url: input.photoUrl ?? null,
       audiences,
+      ...(input.createdAt ? { created_at: input.createdAt } : {}),
     },
     { onConflict: 'activity_id' },
   );
