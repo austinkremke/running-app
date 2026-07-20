@@ -6,6 +6,7 @@ import {
   metersToMiles,
 } from './distanceService';
 import {
+  averageHeartRateBpm,
   averagePaceSecondsPerMile,
   elevationGainFeet,
   estimateCalories,
@@ -14,6 +15,7 @@ import {
 } from './activityMetrics';
 import {
   buildElevationChartFromRecords,
+  buildHeartRateChartFromRecords,
   buildPaceChartFromRecords,
   computeMileSplits,
 } from './activityStreams';
@@ -40,6 +42,7 @@ export function buildPostRunSummary(
   const duration = formatDurationParts(durationSeconds);
   const paceChart = buildPaceChartFromRecords(records);
   const elevationChart = buildElevationChartFromRecords(records);
+  const heartRateChart = buildHeartRateChartFromRecords(records);
 
   return {
     completedAtLabel: formatCompletedAtLabel(endedAt),
@@ -50,7 +53,7 @@ export function buildPostRunSummary(
     avgPaceUnit: '/mi',
     calories: estimateCalories(distanceMiles),
     caloriesUnit: 'cal',
-    avgHeartRate: 0,
+    avgHeartRate: averageHeartRateBpm(records),
     avgHeartRateUnit: 'bpm',
     elevationGain: elevationGainFeet(records),
     elevationGainUnit: 'ft',
@@ -58,7 +61,7 @@ export function buildPostRunSummary(
     chartData: {
       pace: paceChart,
       elevation: elevationChart,
-      heartRate: [],
+      heartRate: heartRateChart,
     },
     chartReferenceLines: {
       pace: avgPaceSeconds > 0 ? avgPaceSeconds : undefined,

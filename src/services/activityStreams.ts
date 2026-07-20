@@ -11,6 +11,7 @@ const METERS_TO_FEET = 3.28084;
 type InterpolatedSample = {
   elapsedSeconds: number;
   altitudeMeters: number | null;
+  heartRateBpm: number | null;
 };
 
 function interpolateAtDistance(
@@ -20,7 +21,11 @@ function interpolateAtDistance(
   if (records.length === 0) return null;
 
   if (distanceMeters <= 0) {
-    return { elapsedSeconds: 0, altitudeMeters: records[0].altitudeMeters ?? null };
+    return {
+      elapsedSeconds: 0,
+      altitudeMeters: records[0].altitudeMeters ?? null,
+      heartRateBpm: records[0].heartRateBpm ?? null,
+    };
   }
 
   const last = records[records.length - 1];
@@ -28,6 +33,7 @@ function interpolateAtDistance(
     return {
       elapsedSeconds: last.elapsedSeconds,
       altitudeMeters: last.altitudeMeters ?? null,
+      heartRateBpm: last.heartRateBpm ?? null,
     };
   }
 
@@ -42,6 +48,7 @@ function interpolateAtDistance(
       return {
         elapsedSeconds: current.elapsedSeconds,
         altitudeMeters: current.altitudeMeters ?? null,
+        heartRateBpm: current.heartRateBpm ?? null,
       };
     }
 
@@ -57,7 +64,14 @@ function interpolateAtDistance(
       altitudeMeters = current.altitudeMeters ?? previous.altitudeMeters ?? null;
     }
 
-    return { elapsedSeconds, altitudeMeters };
+    let heartRateBpm: number | null = null;
+    if (previous.heartRateBpm != null && current.heartRateBpm != null) {
+      heartRateBpm = previous.heartRateBpm + ratio * (current.heartRateBpm - previous.heartRateBpm);
+    } else {
+      heartRateBpm = current.heartRateBpm ?? previous.heartRateBpm ?? null;
+    }
+
+    return { elapsedSeconds, altitudeMeters, heartRateBpm };
   }
 
   return null;
@@ -157,6 +171,28 @@ export function buildPaceChartFromRecords(records: ActivityRecord[]): PostRunCha
   }
 
   return chart;
+}
+
+export function buildHeartRateChartFromRecords(records: ActivityRecord[]): PostRunChartPoint[] {
+  const hasHeartRate = records.some((record) => record.heartRateBpm != null);
+  if (!hasHeartRate) return [];
+
+  const totalMiles = metersToMiles(records[records.length - 1]?.distanceMeters ?? 0);
+  if (totalMiles <= 0) return [];
+
+  const grid = buildChartSampleGrid(totalMiles);
+
+  return grid
+    .map((distanceMiles) => {
+      const sample = interpolateAtDistance(records, milesToMeters(distanceMiles));
+      if (sample?.heartRateBpm == null) return null;
+
+      return {
+        distanceMiles: Number(distanceMiles.toFixed(4)),
+        value: Math.round(sample.heartRateBpm),
+      };
+    })
+    .filter((point): point is PostRunChartPoint => point != null);
 }
 
 export function buildElevationChartFromRecords(records: ActivityRecord[]): PostRunChartPoint[] {

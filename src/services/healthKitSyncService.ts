@@ -17,10 +17,18 @@ import type { TablesInsert } from '../types/database';
 const SYNC_WINDOW_DAYS = 7;
 /** Widen the dedup comparison a bit beyond the sync window in case an older duplicate already exists. */
 const DEDUP_LOOKBACK_DAYS = 14;
+/**
+ * Skips obviously-junk HKWorkouts — e.g. a Watch workout started and stopped
+ * within seconds while testing — that would otherwise each land as their own
+ * tiny "activity" on every sync. Real runs are well above both thresholds.
+ */
+const MIN_SYNCABLE_DISTANCE_METERS = 100;
+const MIN_SYNCABLE_DURATION_SECONDS = 60;
 
 export type HealthKitSyncResult = {
   syncedCount: number;
   skippedDuplicateCount: number;
+  skippedTooShortCount: number;
   errorCount: number;
 };
 
@@ -68,7 +76,9 @@ async function uploadWorkoutTrack(userId: string, activityId: string, records: u
  * that point (fetch/map/verify/dedup) is already a clean, reusable pipeline.
  */
 export async function syncHealthKitWorkouts(userId: string): Promise<HealthKitSyncResult> {
-  if (!supabase) return { syncedCount: 0, skippedDuplicateCount: 0, errorCount: 0 };
+  if (!supabase) {
+    return { syncedCount: 0, skippedDuplicateCount: 0, skippedTooShortCount: 0, errorCount: 0 };
+  }
 
   const syncSince = new Date(Date.now() - SYNC_WINDOW_DAYS * 24 * 60 * 60 * 1000);
   const dedupSince = new Date(Date.now() - DEDUP_LOOKBACK_DAYS * 24 * 60 * 60 * 1000);
@@ -92,11 +102,21 @@ export async function syncHealthKitWorkouts(userId: string): Promise<HealthKitSy
 
   let syncedCount = 0;
   let skippedDuplicateCount = 0;
+  let skippedTooShortCount = 0;
   let errorCount = 0;
 
   for (const workout of workouts) {
     try {
       const summary = summarizeHealthKitWorkout(workout);
+
+      if (
+        (summary.distanceMeters ?? 0) < MIN_SYNCABLE_DISTANCE_METERS ||
+        summary.durationSeconds < MIN_SYNCABLE_DURATION_SECONDS
+      ) {
+        skippedTooShortCount += 1;
+        continue;
+      }
+
       // Case-insensitive: HealthKit UUIDs come back uppercase, Postgres returns uuid columns lowercase.
       const alreadyImportedById = existingByStartAndDistance.some(
         (e) => e.id.toLowerCase() === workout.uuid.toLowerCase(),
@@ -203,5 +223,5 @@ export async function syncHealthKitWorkouts(userId: string): Promise<HealthKitSy
     }
   }
 
-  return { syncedCount, skippedDuplicateCount, errorCount };
+  return { syncedCount, skippedDuplicateCount, skippedTooShortCount, errorCount };
 }

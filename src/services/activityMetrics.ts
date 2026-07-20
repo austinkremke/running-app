@@ -19,6 +19,14 @@ export function averagePaceSecondsPerMile(records: ActivityRecord[]): number {
   return elapsed / miles;
 }
 
+export function averageHeartRateBpm(records: ActivityRecord[]): number {
+  const samples = records
+    .map((record) => record.heartRateBpm)
+    .filter((bpm): bpm is number => bpm != null && bpm > 0);
+  if (samples.length === 0) return 0;
+  return Math.round(samples.reduce((sum, bpm) => sum + bpm, 0) / samples.length);
+}
+
 export function elevationGainFeet(records: ActivityRecord[]): number {
   const METERS_TO_FEET = 3.28084;
   let gain = 0;
