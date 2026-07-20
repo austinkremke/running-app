@@ -1,6 +1,5 @@
 import { buildActivityPolyline } from './activityPolyline';
 import { buildPostRunSummary } from './buildPostRunSummary';
-import { createFeedPost } from './feedService';
 import { isDuplicateOfExisting } from './healthKitDedup';
 import {
   buildActivityRecordsForWorkout,
@@ -32,6 +31,9 @@ const MIN_SYNCABLE_DURATION_SECONDS = 60;
  */
 const MAX_IMPORT_AGE_HOURS = __DEV__ ? 24 * 7 : 24;
 
+/** A synced activity awaiting the user's "Lock in your run" confirmation — same shape PostRunScreen already renders, plus enough to label the feed post once confirmed. */
+export type PendingSyncedActivity = StoredActivity & { sourceName: string };
+
 export type HealthKitSyncResult = {
   syncedCount: number;
   skippedDuplicateCount: number;
@@ -39,14 +41,15 @@ export type HealthKitSyncResult = {
   skippedTooOldCount: number;
   errorCount: number;
   /**
-   * One entry per newly-synced activity, in sync order — XP is deliberately
-   * NOT awarded here. award_run_xp is not idempotent for "show the drawer"
-   * purposes (a second call after it already ran here would report
-   * xp_earned: 0 / already_awarded: true), so the caller awards XP exactly
-   * once via the normal presentRunAward/awardRunXp path, which both credits
-   * XP and drives the same post-run drawer UX a phone-tracked run gets.
+   * One entry per newly-synced activity, in sync order — neither XP nor the
+   * feed post happen here. Both wait for the user to confirm via the same
+   * "Lock in your run" screen a phone-tracked run goes through
+   * (PendingActivityConfirmationProvider), one activity at a time. The
+   * `activities` row and match credit are still written automatically above
+   * (mirrors a phone-tracked run: stopRun() already syncs+credits before
+   * Lock-In is ever shown — only the feed post and XP wait for confirmation).
    */
-  syncedActivities: StoredActivity[];
+  syncedActivities: PendingSyncedActivity[];
 };
 
 function trackStoragePath(userId: string, activityId: string): string {
@@ -108,21 +111,24 @@ async function uploadWorkoutTrack(userId: string, activityId: string, records: u
 
 /**
  * Pulls recent HealthKit workouts, maps them into ActivityRecord[], computes
- * their verification tier, and auto-publishes them as activities — same
- * pipeline as a phone-tracked run (feed, match crediting), except match
- * credit is gated server-side on verification_status (see the migration
- * gating award_run_xp / credit_match_activity). XP is deliberately NOT
- * awarded here — see `syncedActivities` on the return type.
+ * their verification tier, and writes them into `activities` + credits any
+ * currently-active match — same as a phone-tracked run's stopRun(), which
+ * already does both before the user ever sees "Lock in your run". Match
+ * credit is additionally gated server-side on verification_status (see the
+ * migration gating award_run_xp / credit_match_activity).
+ *
+ * The feed post and XP award are deliberately NOT done here — see
+ * `syncedActivities` on the return type. The caller (currently
+ * `SettingsScreen`, eventually a background-sync trigger too) hands that
+ * list to `PendingActivityConfirmationProvider`, which shows the same
+ * "Lock in your run" screen a phone-tracked run gets, one activity at a
+ * time — confirming is what triggers the feed post + XP drawer.
  *
  * Cross-posting guard: skips a workout if an existing activity (any source)
  * has a close start time + close distance, since the same physical run can
  * land in Health twice via different apps (e.g. Garmin and Strava both
  * syncing to Apple Health) — each writes its own separate HKWorkout, so
  * UUID-based dedup alone wouldn't catch it.
- *
- * NOTE: this always auto-publishes. If review-before-publish is wanted later,
- * intercept right where `shouldPublish` is used below — everything before
- * that point (fetch/map/verify/dedup) is already a clean, reusable pipeline.
  */
 export async function syncHealthKitWorkouts(userId: string): Promise<HealthKitSyncResult> {
   if (!supabase) {
@@ -161,7 +167,7 @@ export async function syncHealthKitWorkouts(userId: string): Promise<HealthKitSy
   let skippedTooShortCount = 0;
   let skippedTooOldCount = 0;
   let errorCount = 0;
-  const syncedActivities: StoredActivity[] = [];
+  const syncedActivities: PendingSyncedActivity[] = [];
 
   for (const workout of workouts) {
     try {
@@ -257,27 +263,17 @@ export async function syncHealthKitWorkouts(userId: string): Promise<HealthKitSy
         }
       }
 
-      // Auto-publish to the feed — native phone-tracked runs require an explicit
-      // "Add to feed" tap, but per the auto-publish decision this happens for
-      // every synced import. createFeedPost upserts on activity_id, so this is
-      // safe to re-run on repeat syncs of the same workout.
-      try {
-        await createFeedPost({
-          userId,
-          activityId: workout.uuid,
-          description: `Synced from ${summary.sourceName}`,
-          createdAt: session.endedAt,
-        });
-      } catch {
-        // Non-fatal — the activity itself already synced successfully.
-      }
-
       existingByStartAndDistance.push({
         id: workout.uuid,
         startedAt: summary.startDate,
         distanceMeters: summary.distanceMeters ?? 0,
       });
-      syncedActivities.push({ session, records, summary: postRunSummary });
+      syncedActivities.push({
+        session,
+        records,
+        summary: postRunSummary,
+        sourceName: summary.sourceName,
+      });
       syncedCount += 1;
     } catch {
       errorCount += 1;

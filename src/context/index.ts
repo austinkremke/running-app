@@ -3,6 +3,10 @@ export { OnboardingProvider, useOnboarding } from './OnboardingContext';
 export type { OnboardingStep } from './OnboardingContext';
 export { PlayerProgressProvider, usePlayerProgress } from './PlayerProgressContext';
 export type { XpGainEvent } from './PlayerProgressContext';
+export {
+  PendingActivityConfirmationProvider,
+  usePendingActivityConfirmation,
+} from './PendingActivityConfirmationContext';
 export { RunProvider, useRun } from './RunContext';
 export { SoloMatchCompletionProvider, useSoloMatchCompletion } from './SoloMatchCompletionContext';
 export { TeamMatchCompletionProvider, useTeamMatchCompletion } from './TeamMatchCompletionContext';
