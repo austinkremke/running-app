@@ -24,8 +24,13 @@ const DEDUP_LOOKBACK_DAYS = 14;
  */
 const MIN_SYNCABLE_DISTANCE_METERS = 100;
 const MIN_SYNCABLE_DURATION_SECONDS = 60;
-/** A run this stale is almost certainly a backfill/forgotten sync, not "just finished" — don't import it. */
-const MAX_IMPORT_AGE_HOURS = 24;
+/**
+ * A run this stale is almost certainly a backfill/forgotten sync, not "just
+ * finished" — don't import it. Widened in dev builds so test runs made
+ * during a debugging session (which can span more than a day) are still
+ * syncable without loosening the real production cutoff.
+ */
+const MAX_IMPORT_AGE_HOURS = __DEV__ ? 24 * 7 : 24;
 
 export type HealthKitSyncResult = {
   syncedCount: number;
