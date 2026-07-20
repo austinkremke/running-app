@@ -10,7 +10,7 @@ import {
 import { computeVerificationTier } from './healthKitVerification';
 import { fetchActiveSoloMatchId } from './matchService';
 import { supabase } from './supabase';
-import type { ActivityExternalSource, ActivitySession } from '../types/activity';
+import type { ActivityExternalSource, ActivitySession, StoredActivity } from '../types/activity';
 import type { TablesInsert } from '../types/database';
 
 /** How far back to pull workouts — matches the verification tier's own recency window, no point fetching further. */
@@ -38,6 +38,15 @@ export type HealthKitSyncResult = {
   skippedTooShortCount: number;
   skippedTooOldCount: number;
   errorCount: number;
+  /**
+   * One entry per newly-synced activity, in sync order — XP is deliberately
+   * NOT awarded here. award_run_xp is not idempotent for "show the drawer"
+   * purposes (a second call after it already ran here would report
+   * xp_earned: 0 / already_awarded: true), so the caller awards XP exactly
+   * once via the normal presentRunAward/awardRunXp path, which both credits
+   * XP and drives the same post-run drawer UX a phone-tracked run gets.
+   */
+  syncedActivities: StoredActivity[];
 };
 
 function trackStoragePath(userId: string, activityId: string): string {
@@ -100,9 +109,10 @@ async function uploadWorkoutTrack(userId: string, activityId: string, records: u
 /**
  * Pulls recent HealthKit workouts, maps them into ActivityRecord[], computes
  * their verification tier, and auto-publishes them as activities — same
- * pipeline as a phone-tracked run (feed, XP, match crediting), except XP/match
- * credit are gated server-side on verification_status (see the migration
- * gating award_run_xp / credit_match_activity).
+ * pipeline as a phone-tracked run (feed, match crediting), except match
+ * credit is gated server-side on verification_status (see the migration
+ * gating award_run_xp / credit_match_activity). XP is deliberately NOT
+ * awarded here — see `syncedActivities` on the return type.
  *
  * Cross-posting guard: skips a workout if an existing activity (any source)
  * has a close start time + close distance, since the same physical run can
@@ -122,6 +132,7 @@ export async function syncHealthKitWorkouts(userId: string): Promise<HealthKitSy
       skippedTooShortCount: 0,
       skippedTooOldCount: 0,
       errorCount: 0,
+      syncedActivities: [],
     };
   }
 
@@ -150,6 +161,7 @@ export async function syncHealthKitWorkouts(userId: string): Promise<HealthKitSy
   let skippedTooShortCount = 0;
   let skippedTooOldCount = 0;
   let errorCount = 0;
+  const syncedActivities: StoredActivity[] = [];
 
   for (const workout of workouts) {
     try {
@@ -244,11 +256,6 @@ export async function syncHealthKitWorkouts(userId: string): Promise<HealthKitSy
           // Non-fatal — the activity itself already synced successfully.
         }
       }
-      try {
-        await supabase.rpc('award_run_xp', { p_activity_id: workout.uuid });
-      } catch {
-        // Non-fatal — the activity itself already synced successfully.
-      }
 
       // Auto-publish to the feed — native phone-tracked runs require an explicit
       // "Add to feed" tap, but per the auto-publish decision this happens for
@@ -270,11 +277,19 @@ export async function syncHealthKitWorkouts(userId: string): Promise<HealthKitSy
         startedAt: summary.startDate,
         distanceMeters: summary.distanceMeters ?? 0,
       });
+      syncedActivities.push({ session, records, summary: postRunSummary });
       syncedCount += 1;
     } catch {
       errorCount += 1;
     }
   }
 
-  return { syncedCount, skippedDuplicateCount, skippedTooShortCount, skippedTooOldCount, errorCount };
+  return {
+    syncedCount,
+    skippedDuplicateCount,
+    skippedTooShortCount,
+    skippedTooOldCount,
+    errorCount,
+    syncedActivities,
+  };
 }

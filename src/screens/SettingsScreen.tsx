@@ -15,7 +15,8 @@ import {
 
 import { NotificationPreferenceRow, SettingsRow, SettingsSection, UnitToggle } from '../components/settings';
 import { APP_VERSION, LEGAL_LINKS } from '../config/appMeta';
-import { useAuth } from '../context';
+import { useAuth, usePlayerProgress } from '../context';
+import { useAchievementUnlockPresentation } from '../hooks/useAchievementUnlockPresentation';
 import { useNotificationPreferences } from '../hooks/useNotificationPreferences';
 import { useUserPreferences } from '../hooks/useUserPreferences';
 import type { NotificationCategory } from '../services/pushNotifications';
@@ -57,6 +58,8 @@ export function SettingsScreen({ onBack }: SettingsScreenProps) {
     setCategory: setNotificationCategory,
   } = useNotificationPreferences();
   const userId = session?.user?.id ?? null;
+  const { awardRunXp } = usePlayerProgress();
+  const { presentRunAward } = useAchievementUnlockPresentation();
   const [notificationCategoriesExpanded, setNotificationCategoriesExpanded] = useState(false);
   const [healthKitSyncStatus, setHealthKitSyncStatus] = useState('Tap to sync');
 
@@ -87,6 +90,18 @@ export function SettingsScreen({ onBack }: SettingsScreenProps) {
       if (result.skippedTooOldCount > 0) parts.push(`${result.skippedTooOldCount} too old skipped`);
       if (result.errorCount > 0) parts.push(`${result.errorCount} failed`);
       setHealthKitSyncStatus(parts.join(' · '));
+
+      // Award XP + present the same post-run drawer UX a phone-tracked run
+      // gets, once per synced activity, in sync order — presentRunAward's
+      // showXpGain queues internally, so calling it repeatedly here is what
+      // produces "one drawer closes, then the next opens" for a multi-run sync.
+      for (const activity of result.syncedActivities) {
+        try {
+          await presentRunAward(() => awardRunXp(activity));
+        } catch (xpError) {
+          console.warn('[SettingsScreen] Failed to award XP for synced activity', xpError);
+        }
+      }
     } catch (error) {
       setHealthKitSyncStatus(error instanceof Error ? error.message : 'Sync failed');
     }
