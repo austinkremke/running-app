@@ -26,6 +26,7 @@ const AVATARS = {
 export const MOCK_ACTIVE_TEAM_MATCH: ActiveTeamMatch = {
   id: 'match-road-warriors-pacers',
   endsAt: '2026-06-14T12:00:00.000Z',
+  status: 'active',
   homeTeam: {
     id: 'team-road-warriors',
     name: 'Road Warriors',

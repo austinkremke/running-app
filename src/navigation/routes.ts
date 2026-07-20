@@ -9,6 +9,8 @@ export type AppRoute =
   | 'match'
   | 'teamMatch'
   | 'soloMatch'
+  | 'teamMatchDetail'
+  | 'soloMatchDetail'
   | 'team'
   | 'topTeams'
   | 'me'
@@ -42,6 +44,16 @@ export const ROUTES: Record<AppRoute, RouteConfig> = {
     showHeaderBorder: true,
   },
   soloMatch: {
+    title: '1V1 MATCH',
+    showFeedTabs: false,
+    showHeaderBorder: true,
+  },
+  teamMatchDetail: {
+    title: 'MATCH',
+    showFeedTabs: false,
+    showHeaderBorder: true,
+  },
+  soloMatchDetail: {
     title: '1V1 MATCH',
     showFeedTabs: false,
     showHeaderBorder: true,

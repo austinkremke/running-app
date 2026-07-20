@@ -15,13 +15,16 @@ type TeamMatchScoreboardProps = {
 
 export function TeamMatchScoreboard({ match }: TeamMatchScoreboardProps) {
   const { homeTeam, awayTeam } = match;
-  const countdown = useLiveCountdown(match.endsAt);
+  const isCompleted = match.status === 'completed';
+  const countdown = useLiveCountdown(isCompleted ? null : match.endsAt);
   const pointDiff = homeTeam.totalPoints - awayTeam.totalPoints;
   const isTied = pointDiff === 0;
   const leadingTeam = pointDiff > 0 ? homeTeam : awayTeam;
   const leadColor = getTeamMatchAccentColor(leadingTeam.accent);
   const tiedLabel =
-    homeTeam.totalPoints === 0 ? 'MATCH TIED' : `TIED AT ${formatMatchPoints(homeTeam.totalPoints)} PTS`;
+    homeTeam.totalPoints === 0
+      ? 'MATCH TIED'
+      : `TIED AT ${formatMatchPoints(homeTeam.totalPoints)} PTS${isCompleted ? ' — FINAL' : ''}`;
 
   return (
     <View style={styles.container}>
@@ -40,9 +43,15 @@ export function TeamMatchScoreboard({ match }: TeamMatchScoreboardProps) {
             </>
           ) : (
             <>
-              <Ionicons color={leadColor} name="trending-up" size={12} />
+              <Ionicons
+                color={leadColor}
+                name={isCompleted ? 'trophy' : 'trending-up'}
+                size={12}
+              />
               <Text style={[styles.leadText, { color: leadColor }]}>
-                {leadingTeam.name.toUpperCase()} LEADS BY {formatMatchPoints(Math.abs(pointDiff))} PTS
+                {isCompleted
+                  ? `${leadingTeam.name.toUpperCase()} WON`
+                  : `${leadingTeam.name.toUpperCase()} LEADS BY ${formatMatchPoints(Math.abs(pointDiff))} PTS`}
               </Text>
             </>
           )}
@@ -51,8 +60,14 @@ export function TeamMatchScoreboard({ match }: TeamMatchScoreboardProps) {
         <View style={styles.divider} />
 
         <View style={styles.countdownRow}>
-          <Ionicons color={colors.textSecondary} name="time-outline" size={13} />
-          <Text style={styles.countdownText}>{formatMatchCountdownLabel(countdown)}</Text>
+          <Ionicons
+            color={colors.textSecondary}
+            name={isCompleted ? 'checkmark-circle-outline' : 'time-outline'}
+            size={13}
+          />
+          <Text style={styles.countdownText}>
+            {isCompleted ? 'MATCH COMPLETE' : formatMatchCountdownLabel(countdown)}
+          </Text>
         </View>
       </View>
     </View>

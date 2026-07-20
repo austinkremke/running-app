@@ -10,6 +10,7 @@ const AVATARS = {
 export const MOCK_ACTIVE_SOLO_MATCH: ActiveSoloMatch = {
   id: 'solo-austin-jordan',
   endsAt: '2026-06-14T12:00:00.000Z',
+  status: 'active',
   homeRunner: {
     id: 'runner-austin',
     name: 'Austin',

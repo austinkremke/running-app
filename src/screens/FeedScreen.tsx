@@ -22,9 +22,17 @@ type FeedScreenProps = {
   activeTab: FeedTab;
   onOpenRun?: (run: Run) => void;
   onOpenProfile?: (userId: string) => void;
+  onOpenSoloMatch?: (matchId: string) => void;
+  onOpenTeamMatch?: (matchId: string) => void;
 };
 
-export function FeedScreen({ activeTab, onOpenRun, onOpenProfile }: FeedScreenProps) {
+export function FeedScreen({
+  activeTab,
+  onOpenRun,
+  onOpenProfile,
+  onOpenSoloMatch,
+  onOpenTeamMatch,
+}: FeedScreenProps) {
   const { session } = useAuth();
   const viewerUserId = session?.user?.id ?? null;
   const { items, loading, error, refresh, toggleLike, bumpCommentCount, likingPostId } =
@@ -173,6 +181,7 @@ export function FeedScreen({ activeTab, onOpenRun, onOpenProfile }: FeedScreenPr
             <TeamMatchFeedCard
               engagementDisabled={likingPostId === item.id}
               onOpenComments={() => setCommentsPostId(item.id)}
+              onOpenDetail={onOpenTeamMatch ? () => onOpenTeamMatch(item.post.matchId) : undefined}
               onShare={() => {
                 void handleShareMatch(item.post);
               }}
@@ -186,6 +195,7 @@ export function FeedScreen({ activeTab, onOpenRun, onOpenProfile }: FeedScreenPr
             <SoloMatchFeedCard
               engagementDisabled={likingPostId === item.id}
               onOpenComments={() => setCommentsPostId(item.id)}
+              onOpenDetail={onOpenSoloMatch ? () => onOpenSoloMatch(item.post.matchId) : undefined}
               onShare={() => {
                 void handleShareSoloMatch(item.post);
               }}

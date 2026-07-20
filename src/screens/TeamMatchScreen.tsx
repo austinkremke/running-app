@@ -10,16 +10,24 @@ import {
   TeamMatchScoreboard,
 } from '../components/match/team';
 import { useActiveTeamMatch } from '../hooks/useActiveTeamMatch';
+import { useTeamMatchById } from '../hooks/useTeamMatchById';
 import type { Run } from '../mock';
 import { colors, spacing } from '../theme';
 
 type TeamMatchScreenProps = {
   onRunPress?: () => void;
   onOpenRunDetail?: (run: Run) => void;
+  /** When set, shows this specific (usually completed) match read-only instead of the viewer's live match. */
+  matchId?: string;
 };
 
-export function TeamMatchScreen({ onRunPress, onOpenRunDetail }: TeamMatchScreenProps) {
-  const { match, loading, fromServer } = useActiveTeamMatch();
+export function TeamMatchScreen({ onRunPress, onOpenRunDetail, matchId }: TeamMatchScreenProps) {
+  const readOnly = matchId != null;
+  const liveMatchState = useActiveTeamMatch();
+  const detailMatchState = useTeamMatchById(matchId ?? null);
+  const { match, loading, fromServer } = readOnly
+    ? { ...detailMatchState, fromServer: true }
+    : liveMatchState;
   const [chatVisible, setChatVisible] = useState(false);
   const [activityFeedVisible, setActivityFeedVisible] = useState(false);
 
@@ -39,9 +47,13 @@ export function TeamMatchScreen({ onRunPress, onOpenRunDetail }: TeamMatchScreen
   if (!match) {
     return (
       <View style={styles.centered}>
-        <Text style={styles.emptyTitle}>No active team match</Text>
+        <Text style={styles.emptyTitle}>
+          {readOnly ? 'Match not found' : 'No active team match'}
+        </Text>
         <Text style={styles.emptyBody}>
-          Your team’s next matchup will show up here. Team matchmaking is on the way.
+          {readOnly
+            ? 'This match could not be loaded.'
+            : 'Your team’s next matchup will show up here. Team matchmaking is on the way.'}
         </Text>
       </View>
     );
@@ -66,13 +78,17 @@ export function TeamMatchScreen({ onRunPress, onOpenRunDetail }: TeamMatchScreen
         <View style={styles.bottomSpacer} />
       </ScrollView>
 
-      <TeamMatchActions onRun={onRunPress} onTeamChat={() => setChatVisible(true)} />
-      <TeamChatDrawer
-        matchId={fromServer ? match.id : null}
-        onClose={() => setChatVisible(false)}
-        subtitle={`${match.homeTeam.name} match thread`}
-        visible={chatVisible}
-      />
+      {!readOnly ? (
+        <>
+          <TeamMatchActions onRun={onRunPress} onTeamChat={() => setChatVisible(true)} />
+          <TeamChatDrawer
+            matchId={fromServer ? match.id : null}
+            onClose={() => setChatVisible(false)}
+            subtitle={`${match.homeTeam.name} match thread`}
+            visible={chatVisible}
+          />
+        </>
+      ) : null}
       <TeamMatchActivityFeedModal
         activities={match.activities}
         onClose={() => setActivityFeedVisible(false)}

@@ -330,6 +330,78 @@ export async function fetchActiveTeamMatch(userId: string): Promise<ActiveTeamMa
   );
 }
 
+/** Reads any team match by id (active or completed), for read-only viewing from the feed. */
+export async function fetchTeamMatchById(matchId: string): Promise<ActiveTeamMatch | null> {
+  if (!supabase) return null;
+
+  const { data: match, error } = await supabase
+    .from('matches')
+    .select('*')
+    .eq('id', matchId)
+    .eq('kind', 'team')
+    .maybeSingle();
+
+  if (error) throw error;
+  if (!match?.home_team_id || !match.away_team_id) return null;
+
+  const [{ data: homeTeam, error: homeError }, { data: awayTeam, error: awayError }] =
+    await Promise.all([
+      supabase.from('teams').select('*').eq('id', match.home_team_id).maybeSingle(),
+      supabase.from('teams').select('*').eq('id', match.away_team_id).maybeSingle(),
+    ]);
+
+  if (homeError) throw homeError;
+  if (awayError) throw awayError;
+  if (!homeTeam || !awayTeam) return null;
+
+  const [liveHomeMembers, liveAwayMembers, { data: homeRank }, { data: awayRank }, tiers] =
+    await Promise.all([
+      fetchLiveTeamMembers(match.home_team_id),
+      fetchLiveTeamMembers(match.away_team_id),
+      supabase.from('team_rank').select('competitive_rating').eq('team_id', match.home_team_id).maybeSingle(),
+      supabase.from('team_rank').select('competitive_rating').eq('team_id', match.away_team_id).maybeSingle(),
+      fetchRankTiers(),
+    ]);
+
+  const resolvedTiers = tiers.map(mapRankTierRow);
+  const homeRankTierId =
+    homeRank?.competitive_rating != null && resolvedTiers.length > 0
+      ? tierFromRating(homeRank.competitive_rating, resolvedTiers).id
+      : undefined;
+  const awayRankTierId =
+    awayRank?.competitive_rating != null && resolvedTiers.length > 0
+      ? tierFromRating(awayRank.competitive_rating, resolvedTiers).id
+      : undefined;
+
+  const allMemberIds = [...liveHomeMembers, ...liveAwayMembers].map((member) => member.user_id);
+  const matchActivities = await fetchTeamMatchActivities(
+    allMemberIds,
+    match.created_at,
+    match.ends_at,
+  );
+
+  const liveHomeMembersWithStats = withActivityStats(liveHomeMembers, matchActivities);
+  const liveAwayMembersWithStats = withActivityStats(liveAwayMembers, matchActivities);
+  const activityFeed = buildTeamMatchActivityFeed(
+    matchActivities,
+    liveHomeMembersWithStats,
+    liveAwayMembersWithStats,
+    homeTeam.name,
+    awayTeam.name,
+  );
+
+  return mapTeamMatchRow(
+    match,
+    homeTeam,
+    awayTeam,
+    liveHomeMembersWithStats,
+    liveAwayMembersWithStats,
+    homeRankTierId,
+    awayRankTierId,
+    activityFeed,
+  );
+}
+
 const HISTORY_LOGO_ACCENTS = new Set<TeamLogoAccent>([
   'lime',
   'purple',
@@ -827,6 +899,81 @@ export async function fetchActiveSoloMatch(
     selfRank?.competitive_rating ?? 1000,
     selfRankTierId,
     opponentRankTierId,
+  );
+}
+
+/** Reads any solo match by id (active or completed), for read-only viewing from the feed. */
+export async function fetchSoloMatchById(matchId: string): Promise<ActiveSoloMatch | null> {
+  if (!supabase) return null;
+
+  const { data: match, error: matchError } = await supabase
+    .from('matches')
+    .select('*')
+    .eq('id', matchId)
+    .eq('kind', 'solo')
+    .maybeSingle();
+
+  if (matchError) throw matchError;
+  if (!match) return null;
+
+  const { data: participants, error: participantsError } = await supabase
+    .from('match_participants')
+    .select('*, profiles:user_id (*)')
+    .eq('match_id', matchId);
+
+  if (participantsError) throw participantsError;
+
+  const rows = (participants ?? []) as ParticipantRow[];
+  const home = rows.find((row) => row.side === 'home');
+  const away = rows.find((row) => row.side === 'away');
+  if (!home?.profiles || !away?.profiles) return null;
+
+  const [
+    { data: activities, error: activitiesError },
+    { data: matchType, error: matchTypeError },
+    { data: homeProgress },
+    { data: awayProgress },
+    { data: homeRank },
+    { data: awayRank },
+    tiers,
+  ] = await Promise.all([
+    supabase
+      .from('activities')
+      .select('*')
+      .eq('match_id', matchId)
+      .order('started_at', { ascending: false }),
+    supabase.from('match_types').select('*').eq('id', match.match_type_id).maybeSingle(),
+    supabase.from('player_progress').select('total_xp, streak_days').eq('user_id', home.user_id!).maybeSingle(),
+    supabase.from('player_progress').select('total_xp, streak_days').eq('user_id', away.user_id!).maybeSingle(),
+    supabase.from('player_rank').select('competitive_rating').eq('user_id', home.user_id!).maybeSingle(),
+    supabase.from('player_rank').select('competitive_rating').eq('user_id', away.user_id!).maybeSingle(),
+    fetchRankTiers(),
+  ]);
+
+  if (activitiesError) throw activitiesError;
+  if (matchTypeError) throw matchTypeError;
+
+  const resolvedTiers = tiers.map(mapRankTierRow);
+  const homeRankTierId =
+    homeRank?.competitive_rating != null && resolvedTiers.length > 0
+      ? tierFromRating(homeRank.competitive_rating, resolvedTiers).id
+      : undefined;
+  const awayRankTierId =
+    awayRank?.competitive_rating != null && resolvedTiers.length > 0
+      ? tierFromRating(awayRank.competitive_rating, resolvedTiers).id
+      : undefined;
+
+  return mapSoloMatchRow(
+    match,
+    home.profiles,
+    homeProgress,
+    away.profiles,
+    awayProgress,
+    activities ?? [],
+    matchType ?? null,
+    homeRank?.competitive_rating ?? 1000,
+    homeRankTierId,
+    awayRankTierId,
   );
 }
 

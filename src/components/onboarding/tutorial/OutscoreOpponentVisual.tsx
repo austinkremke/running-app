@@ -54,6 +54,7 @@ function buildInitialMatch(): ActiveSoloMatch {
   return {
     id: 'tutorial-match',
     endsAt,
+    status: 'active',
     homeRunner: {
       id: 'tutorial-user',
       name: TUTORIAL_USER.name,

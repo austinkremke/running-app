@@ -267,6 +267,7 @@ export type TeamMatchCountdown = {
 export type ActiveTeamMatch = {
   id: string;
   endsAt: string;
+  status: 'active' | 'completed';
   homeTeam: TeamMatchTeam;
   awayTeam: TeamMatchTeam;
   countdown: TeamMatchCountdown;
@@ -370,6 +371,7 @@ export type SoloMatchActivity = {
 export type ActiveSoloMatch = {
   id: string;
   endsAt: string;
+  status: 'active' | 'completed';
   homeRunner: SoloMatchRunner;
   awayRunner: SoloMatchRunner;
   countdown: TeamMatchCountdown;

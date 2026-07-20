@@ -1,4 +1,4 @@
-import { StyleSheet, Text, View } from 'react-native';
+import { Pressable, StyleSheet, Text, View } from 'react-native';
 
 import type { TeamMatchFeedPost } from '../../mock';
 import { colors, spacing } from '../../theme';
@@ -17,6 +17,7 @@ type TeamMatchFeedCardProps = {
   onToggleLike?: () => void;
   onOpenComments?: () => void;
   onShare?: () => void;
+  onOpenDetail?: () => void;
 };
 
 function headlineFor(post: TeamMatchFeedPost): string {
@@ -36,10 +37,16 @@ export function TeamMatchFeedCard({
   onToggleLike,
   onOpenComments,
   onShare,
+  onOpenDetail,
 }: TeamMatchFeedCardProps) {
   return (
     <View style={styles.card}>
-      <View style={styles.body}>
+      <Pressable
+        accessibilityRole={onOpenDetail ? 'button' : undefined}
+        disabled={!onOpenDetail}
+        onPress={onOpenDetail}
+        style={styles.body}
+      >
         <View style={styles.header}>
           <Text style={styles.headline}>{headlineFor(post)}</Text>
           <Text style={styles.postedAt}>{postedAt}</Text>
@@ -87,7 +94,7 @@ export function TeamMatchFeedCard({
           <View style={styles.divider} />
           <Text style={styles.matchLabel}>Team Match</Text>
         </View>
-      </View>
+      </Pressable>
 
       <View style={styles.footerBox}>
         <RunCardEngagement

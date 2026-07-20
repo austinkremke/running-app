@@ -218,6 +218,7 @@ export function mapTeamMatchRow(
   return {
     id: match.id,
     endsAt: match.ends_at,
+    status: match.status === 'completed' ? 'completed' : 'active',
     homeTeam: buildTeamSide(
       homeTeam,
       homeMembers,
@@ -279,6 +280,7 @@ export function mapSoloMatchRow(
   return {
     id: match.id,
     endsAt: match.ends_at,
+    status: match.status === 'completed' ? 'completed' : 'active',
     homeRunner: buildSoloRunner(homeProfile, homeLevel, homePoints, 'lime', homeRankTierId),
     awayRunner: buildSoloRunner(awayProfile, awayLevel, awayPoints, 'purple', awayRankTierId),
     countdown: countdownFromEndsAt(match.ends_at),

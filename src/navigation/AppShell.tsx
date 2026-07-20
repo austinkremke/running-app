@@ -76,11 +76,25 @@ export function AppShell() {
   const [feedReloadKey, setFeedReloadKey] = useState(0);
   const [detailUserId, setDetailUserId] = useState<string | null>(null);
   const [profileReturnRoute, setProfileReturnRoute] = useState<AppRoute>('feed');
+  const [detailMatchId, setDetailMatchId] = useState<string | null>(null);
+  const [matchDetailReturnRoute, setMatchDetailReturnRoute] = useState<AppRoute>('feed');
 
   function openRunDetail(run: Run) {
     setDetailRun(run);
     setDetailReturnRoute(activeRoute === 'runDetail' ? detailReturnRoute : activeRoute);
     setActiveRoute('runDetail');
+  }
+
+  function openSoloMatchDetail(matchId: string) {
+    setDetailMatchId(matchId);
+    setMatchDetailReturnRoute(activeRoute === 'soloMatchDetail' ? matchDetailReturnRoute : activeRoute);
+    setActiveRoute('soloMatchDetail');
+  }
+
+  function openTeamMatchDetail(matchId: string) {
+    setDetailMatchId(matchId);
+    setMatchDetailReturnRoute(activeRoute === 'teamMatchDetail' ? matchDetailReturnRoute : activeRoute);
+    setActiveRoute('teamMatchDetail');
   }
 
   function openUserProfile(profileUserId: string) {
@@ -210,6 +224,8 @@ export function AppShell() {
           key={feedReloadKey}
           onOpenProfile={openUserProfile}
           onOpenRun={openRunDetail}
+          onOpenSoloMatch={openSoloMatchDetail}
+          onOpenTeamMatch={openTeamMatchDetail}
         />
       );
     }
@@ -261,6 +277,14 @@ export function AppShell() {
       );
     }
 
+    if (activeRoute === 'teamMatchDetail' && detailMatchId) {
+      return <TeamMatchScreen matchId={detailMatchId} onOpenRunDetail={openRunDetail} />;
+    }
+
+    if (activeRoute === 'soloMatchDetail' && detailMatchId) {
+      return <SoloMatchScreen matchId={detailMatchId} onOpenRunDetail={openRunDetail} />;
+    }
+
     if (activeRoute === 'team') {
       return (
         <TeamScreen
@@ -305,7 +329,15 @@ export function AppShell() {
   }
 
   function renderHeaderLeft() {
-    if (activeRoute === 'match' || activeRoute === 'teamMatch' || activeRoute === 'soloMatch' || activeRoute === 'topTeams' || activeRoute === 'settings') {
+    if (
+      activeRoute === 'match' ||
+      activeRoute === 'teamMatch' ||
+      activeRoute === 'soloMatch' ||
+      activeRoute === 'teamMatchDetail' ||
+      activeRoute === 'soloMatchDetail' ||
+      activeRoute === 'topTeams' ||
+      activeRoute === 'settings'
+    ) {
       return (
         <HeaderIconButton
           accessibilityLabel="Go back"
@@ -313,6 +345,12 @@ export function AppShell() {
           onPress={() => {
             if (activeRoute === 'settings') {
               setActiveRoute(settingsReturnRoute);
+              return;
+            }
+
+            if (activeRoute === 'teamMatchDetail' || activeRoute === 'soloMatchDetail') {
+              setDetailMatchId(null);
+              setActiveRoute(matchDetailReturnRoute);
               return;
             }
 
@@ -402,6 +440,10 @@ export function AppShell() {
           onPress={() => {}}
         />
       );
+    }
+
+    if (activeRoute === 'teamMatchDetail' || activeRoute === 'soloMatchDetail') {
+      return undefined;
     }
 
     if (activeRoute === 'team') {

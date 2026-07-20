@@ -16,7 +16,10 @@ type SoloMatchScoreboardProps = {
 
 export function SoloMatchScoreboard({ match, onMatchExpired }: SoloMatchScoreboardProps) {
   const { homeRunner, awayRunner } = match;
-  const countdown = useLiveCountdown(match.endsAt, { onExpired: onMatchExpired });
+  const isCompleted = match.status === 'completed';
+  const countdown = useLiveCountdown(isCompleted ? null : match.endsAt, {
+    onExpired: isCompleted ? undefined : onMatchExpired,
+  });
   const pointDiff = homeRunner.totalPoints - awayRunner.totalPoints;
   const isTied = pointDiff === 0;
   const leadingRunner = pointDiff > 0 ? homeRunner : awayRunner;
@@ -24,7 +27,9 @@ export function SoloMatchScoreboard({ match, onMatchExpired }: SoloMatchScoreboa
   const totalPoints = homeRunner.totalPoints + awayRunner.totalPoints;
   const homeShare = isTied ? 0.5 : totalPoints > 0 ? homeRunner.totalPoints / totalPoints : 0.5;
   const tiedLabel =
-    homeRunner.totalPoints === 0 ? 'MATCH TIED' : `TIED AT ${formatMatchPoints(homeRunner.totalPoints)} PTS`;
+    homeRunner.totalPoints === 0
+      ? 'MATCH TIED'
+      : `TIED AT ${formatMatchPoints(homeRunner.totalPoints)} PTS${isCompleted ? ' — FINAL' : ''}`;
 
   return (
     <View style={styles.container}>
@@ -45,9 +50,15 @@ export function SoloMatchScoreboard({ match, onMatchExpired }: SoloMatchScoreboa
             </>
           ) : (
             <>
-              <Ionicons color={leadColor} name="trending-up" size={12} />
+              <Ionicons
+                color={leadColor}
+                name={isCompleted ? 'trophy' : 'trending-up'}
+                size={12}
+              />
               <Text style={[styles.leadText, { color: leadColor }]}>
-                {leadingRunner.name.toUpperCase()} LEADS BY {formatMatchPoints(Math.abs(pointDiff))} PTS
+                {isCompleted
+                  ? `${leadingRunner.name.toUpperCase()} WON`
+                  : `${leadingRunner.name.toUpperCase()} LEADS BY ${formatMatchPoints(Math.abs(pointDiff))} PTS`}
               </Text>
             </>
           )}
@@ -56,8 +67,14 @@ export function SoloMatchScoreboard({ match, onMatchExpired }: SoloMatchScoreboa
         <View style={styles.divider} />
 
         <View style={styles.countdownRow}>
-          <Ionicons color={colors.textSecondary} name="time-outline" size={13} />
-          <Text style={styles.countdownText}>{formatMatchCountdownLabel(countdown)}</Text>
+          <Ionicons
+            color={colors.textSecondary}
+            name={isCompleted ? 'checkmark-circle-outline' : 'time-outline'}
+            size={13}
+          />
+          <Text style={styles.countdownText}>
+            {isCompleted ? 'MATCH COMPLETE' : formatMatchCountdownLabel(countdown)}
+          </Text>
         </View>
 
         <View style={[styles.progressTrack, isTied && styles.progressTrackTied]}>

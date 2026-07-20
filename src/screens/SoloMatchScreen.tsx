@@ -11,6 +11,7 @@ import {
   SoloMatchStatsSection,
 } from '../components/match/solo';
 import { useActiveSoloMatch } from '../hooks/useActiveSoloMatch';
+import { useSoloMatchById } from '../hooks/useSoloMatchById';
 import { useAuth, useSoloMatchCompletion } from '../context';
 import type { Run } from '../mock';
 import { forfeitSoloMatch } from '../services/matchmakingService';
@@ -24,15 +25,36 @@ type SoloMatchScreenProps = {
   onQuit?: () => void;
   onOpenRunDetail?: (run: Run) => void;
   embedded?: boolean;
+  /** When set, shows this specific (usually completed) match read-only instead of the viewer's live match. */
+  matchId?: string;
 };
 
 function getErrorMessage(error: unknown, fallback: string): string {
   return error instanceof Error ? error.message : fallback;
 }
 
-export function SoloMatchScreen({ onRunPress, onQuit, onOpenRunDetail, embedded = false }: SoloMatchScreenProps) {
+export function SoloMatchScreen({
+  onRunPress,
+  onQuit,
+  onOpenRunDetail,
+  embedded = false,
+  matchId,
+}: SoloMatchScreenProps) {
+  const readOnly = matchId != null;
   const { refreshGameState } = useAuth();
-  const { match, loading, refresh } = useActiveSoloMatch();
+  const liveMatchState = useActiveSoloMatch();
+  const detailMatchState = useSoloMatchById(matchId ?? null);
+  const { match, loading } = readOnly ? detailMatchState : liveMatchState;
+  const refresh = useCallback(
+    async (options?: { silent?: boolean }) => {
+      if (readOnly) {
+        await detailMatchState.refresh();
+        return;
+      }
+      await liveMatchState.refresh(options);
+    },
+    [readOnly, detailMatchState.refresh, liveMatchState.refresh],
+  );
   const { syncCompletions } = useSoloMatchCompletion();
   const [chatVisible, setChatVisible] = useState(false);
   const [optionsVisible, setOptionsVisible] = useState(false);
@@ -45,10 +67,13 @@ export function SoloMatchScreen({ onRunPress, onQuit, onOpenRunDetail, embedded 
   }
 
   useEffect(() => {
+    if (readOnly) return;
     void syncCompletions();
-  }, [syncCompletions]);
+  }, [readOnly, syncCompletions]);
 
   useEffect(() => {
+    if (readOnly) return;
+
     registerSoloMatchMenuListener(() => {
       setOptionsVisible(true);
     });
@@ -56,7 +81,7 @@ export function SoloMatchScreen({ onRunPress, onQuit, onOpenRunDetail, embedded 
     return () => {
       registerSoloMatchMenuListener(null);
     };
-  }, []);
+  }, [readOnly]);
 
   const confirmQuitMatch = useCallback(() => {
     if (!match || forfeiting) {
@@ -109,8 +134,14 @@ export function SoloMatchScreen({ onRunPress, onQuit, onOpenRunDetail, embedded 
   if (!match) {
     return (
       <View style={styles.centered}>
-        <Text style={styles.emptyTitle}>No active solo match</Text>
-        <Text style={styles.emptyBody}>Find a match from the Solo tab to start a ranked duel.</Text>
+        <Text style={styles.emptyTitle}>
+          {readOnly ? 'Match not found' : 'No active solo match'}
+        </Text>
+        <Text style={styles.emptyBody}>
+          {readOnly
+            ? 'This match could not be loaded.'
+            : 'Find a match from the Solo tab to start a ranked duel.'}
+        </Text>
       </View>
     );
   }
@@ -124,10 +155,14 @@ export function SoloMatchScreen({ onRunPress, onQuit, onOpenRunDetail, embedded 
       >
         <SoloMatchScoreboard
           match={match}
-          onMatchExpired={() => {
-            notifySoloMatchCompletionSync();
-            void refresh({ silent: true });
-          }}
+          onMatchExpired={
+            readOnly
+              ? undefined
+              : () => {
+                  notifySoloMatchCompletionSync();
+                  void refresh({ silent: true });
+                }
+          }
         />
 
         <SoloMatchStatsSection match={match} />
@@ -140,25 +175,29 @@ export function SoloMatchScreen({ onRunPress, onQuit, onOpenRunDetail, embedded 
         <View style={styles.bottomSpacer} />
       </ScrollView>
 
-      {!embedded ? (
+      {!embedded && !readOnly ? (
         <SoloActiveMatchActions onMessage={() => setChatVisible(true)} onRun={onRunPress} />
       ) : null}
 
-      <SoloMatchChatDrawer
-        matchId={match.id}
-        onClose={() => setChatVisible(false)}
-        opponentName={match.awayRunner.name}
-        visible={chatVisible}
-      />
+      {!readOnly ? (
+        <>
+          <SoloMatchChatDrawer
+            matchId={match.id}
+            onClose={() => setChatVisible(false)}
+            opponentName={match.awayRunner.name}
+            visible={chatVisible}
+          />
 
-      <SoloMatchOptionsDrawer
-        onClose={() => setOptionsVisible(false)}
-        onQuitMatch={() => {
-          setOptionsVisible(false);
-          confirmQuitMatch();
-        }}
-        visible={optionsVisible}
-      />
+          <SoloMatchOptionsDrawer
+            onClose={() => setOptionsVisible(false)}
+            onQuitMatch={() => {
+              setOptionsVisible(false);
+              confirmQuitMatch();
+            }}
+            visible={optionsVisible}
+          />
+        </>
+      ) : null}
 
       <SoloMatchActivityFeedModal
         activities={match.activities}
