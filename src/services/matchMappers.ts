@@ -13,6 +13,7 @@ import type {
   TeamLogoAccent,
 } from '../mock';
 import type { Tables } from '../types/database';
+import { polylineToGpsPoints } from './activityAdapters';
 import { formatDurationParts, formatPace, metersToMiles } from './distanceService';
 import { experienceFromTotalXp, levelFromTotalXp } from './levelCurve';
 import {
@@ -361,7 +362,7 @@ function buildRunFromSoloMatchActivity(
       duration: duration.value,
       durationUnit: duration.unit,
     },
-    routePoints: [],
+    routePoints: polylineToGpsPoints(activity.polyline, activity.started_at),
     likes: 0,
     comments: 0,
     likedByMe: false,

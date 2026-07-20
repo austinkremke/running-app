@@ -12,6 +12,7 @@ import type {
 } from '../mock';
 import { MOCK_ACTIVE_SOLO_MATCH } from '../mock/soloActiveMatch';
 import type { Tables } from '../types/database';
+import { polylineToGpsPoints } from './activityAdapters';
 import { mapSoloMatchRow, mapTeamMatchRow, isMatchTimerExpired } from './matchMappers';
 import { matchPointsForActivity } from './match/matchScoring';
 import { finalizeDueSoloMatches } from './matchmakingService';
@@ -130,7 +131,7 @@ function buildRunFromTeamMatchActivity(
       duration: duration.value,
       durationUnit: duration.unit,
     },
-    routePoints: [],
+    routePoints: polylineToGpsPoints(activity.polyline, activity.started_at),
     likes: 0,
     comments: 0,
     likedByMe: false,
