@@ -13,8 +13,11 @@ import type { UnlockedAchievementPayload } from '../services/achievementService'
 import { buildAchievementXpGainEvent } from '../services/progression/buildAchievementXpGainEvent';
 import type { XpGainEvent } from '../types/progression';
 
+type QueuedXpGain = { event: XpGainEvent; onClose?: () => void };
+
 type XpGainContextValue = {
-  showXpGain: (event: XpGainEvent) => void;
+  /** `onClose` fires once, exactly when this specific event's drawer is dismissed — use it to sequence work that must wait for the user to actually see this drawer (e.g. advancing a queue of pending runs to confirm). Not called at all if there's nothing to show (empty breakdown, no XP). */
+  showXpGain: (event: XpGainEvent, onClose?: () => void) => void;
   showAchievementUnlocks: (
     beforeTotalXp: number,
     unlocks: UnlockedAchievementPayload[],
@@ -26,20 +29,23 @@ const XpGainContext = createContext<XpGainContextValue | null>(null);
 export function XpGainProvider({ children }: { children: ReactNode }) {
   const [visible, setVisible] = useState(false);
   const [currentEvent, setCurrentEvent] = useState<XpGainEvent | null>(null);
-  const queueRef = useRef<XpGainEvent[]>([]);
+  const queueRef = useRef<QueuedXpGain[]>([]);
   const isShowingRef = useRef(false);
+  const currentOnCloseRef = useRef<(() => void) | undefined>(undefined);
 
-  const showXpGain = useCallback((event: XpGainEvent) => {
+  const showXpGain = useCallback((event: XpGainEvent, onClose?: () => void) => {
     if (event.breakdown.length === 0 && event.xpEarned <= 0) {
+      onClose?.();
       return;
     }
 
     if (isShowingRef.current) {
-      queueRef.current.push(event);
+      queueRef.current.push({ event, onClose });
       return;
     }
 
     isShowingRef.current = true;
+    currentOnCloseRef.current = onClose;
     setCurrentEvent(event);
     setVisible(true);
   }, []);
@@ -56,13 +62,17 @@ export function XpGainProvider({ children }: { children: ReactNode }) {
   );
 
   const closeXpGain = useCallback(() => {
+    const finishedOnClose = currentOnCloseRef.current;
+    currentOnCloseRef.current = undefined;
     setVisible(false);
     setCurrentEvent(null);
+    finishedOnClose?.();
 
     setTimeout(() => {
       const next = queueRef.current.shift();
       if (next) {
-        setCurrentEvent(next);
+        currentOnCloseRef.current = next.onClose;
+        setCurrentEvent(next.event);
         setVisible(true);
         return;
       }

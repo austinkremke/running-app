@@ -50,7 +50,7 @@ export function useAchievementUnlockPresentation() {
   );
 
   const presentRunAward = useCallback(
-    async (awardRun: () => Promise<AwardRunXpResult>) => {
+    async (awardRun: () => Promise<AwardRunXpResult>, onXpGainClose?: () => void) => {
       const beforeTotalXp = getBeforeTotalXp();
       const xpResult = await awardRun();
       let unlocks: Awaited<ReturnType<typeof evaluateAchievements>> = [];
@@ -67,9 +67,9 @@ export function useAchievementUnlockPresentation() {
         achievementUnlocks: unlocks,
       });
 
-      if (event.xpEarned > 0 || event.breakdown.length > 0) {
-        showXpGain(event);
-      }
+      // showXpGain calls onXpGainClose itself — either when the drawer it
+      // shows is dismissed, or immediately if there's nothing to show.
+      showXpGain(event, onXpGainClose);
 
       if (unlocks.length > 0) {
         await refreshGameState();

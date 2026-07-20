@@ -24,6 +24,10 @@ export function PendingActivityConfirmationProvider({ children }: { children: Re
   const { awardRunXp } = usePlayerProgress();
   const { presentRunAward } = useAchievementUnlockPresentation();
   const [queue, setQueue] = useState<PendingSyncedActivity[]>([]);
+  // True from the moment a run is locked in until its XP drawer is actually
+  // dismissed — the Lock-In screen for the *next* queued activity must not
+  // appear until then, or it would stack on top of/race the drawer.
+  const [awaitingXpClose, setAwaitingXpClose] = useState(false);
 
   const pushPendingActivities = useCallback((activities: PendingSyncedActivity[]) => {
     if (activities.length === 0) return;
@@ -31,9 +35,11 @@ export function PendingActivityConfirmationProvider({ children }: { children: Re
   }, []);
 
   const current = queue[0] ?? null;
+  const lockInVisible = current != null && !awaitingXpClose;
 
   function dequeue() {
     setQueue((prev) => prev.slice(1));
+    setAwaitingXpClose(false);
   }
 
   async function handleAddToFeed(title: string) {
@@ -58,13 +64,18 @@ export function PendingActivityConfirmationProvider({ children }: { children: Re
       return;
     }
 
+    // Hide this Lock-In screen now; the XP drawer takes over next. The next
+    // queued activity's Lock-In screen only appears once dequeue() runs, and
+    // that only happens once presentRunAward's onClose fires — i.e. once the
+    // user has actually seen and dismissed this run's drawer (or there was
+    // nothing to show, in which case it fires immediately).
+    setAwaitingXpClose(true);
     try {
-      await presentRunAward(() => awardRunXp(current));
+      await presentRunAward(() => awardRunXp(current), dequeue);
     } catch (error) {
       Alert.alert('XP award failed', getErrorMessage(error, 'Could not award XP for this run.'));
+      dequeue();
     }
-
-    dequeue();
   }
 
   const value = useMemo(() => ({ pushPendingActivities }), [pushPendingActivities]);
@@ -73,9 +84,10 @@ export function PendingActivityConfirmationProvider({ children }: { children: Re
     <PendingActivityConfirmationContext.Provider value={value}>
       {children}
       {current ? (
-        <Modal animationType="slide" presentationStyle="fullScreen" visible>
+        <Modal animationType="slide" presentationStyle="fullScreen" visible={lockInVisible}>
           <SafeAreaProvider>
             <PostRunScreen
+              key={current.session.id}
               onAddToFeed={(title) => void handleAddToFeed(title)}
               onBack={dequeue}
               routePoints={recordsToGpsPoints(current.records)}
