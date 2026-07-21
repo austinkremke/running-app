@@ -1,4 +1,3 @@
-import { Ionicons } from '@expo/vector-icons';
 import { Image, Pressable, StyleSheet, Text, View } from 'react-native';
 
 import type { RunUser } from '../../mock';
@@ -75,7 +74,6 @@ export function RunCardHeader({
             {postedAt} • {location}
           </Text>
           <View style={styles.teamRow}>
-            <Ionicons color={colors.accentLime} name="shield-outline" size={11} />
             <Text style={styles.teamName}>{user.teamName}</Text>
           </View>
         </View>

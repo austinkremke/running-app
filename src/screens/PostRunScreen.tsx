@@ -17,11 +17,12 @@ import { colors, spacing } from '../theme';
 type PostRunScreenProps = {
   summary: PostRunSummary;
   routePoints: GpsPoint[];
+  sourceName?: string;
   onBack?: () => void;
   onAddToFeed?: (title: string) => void;
 };
 
-export function PostRunScreen({ summary, routePoints, onBack, onAddToFeed }: PostRunScreenProps) {
+export function PostRunScreen({ summary, routePoints, sourceName, onBack, onAddToFeed }: PostRunScreenProps) {
   const [title, setTitle] = useState('');
   const primaryStats = [
     {
@@ -58,7 +59,7 @@ export function PostRunScreen({ summary, routePoints, onBack, onAddToFeed }: Pos
 
   return (
     <SafeAreaView edges={['top']} style={styles.container}>
-      <PostRunHeader completedAtLabel={summary.completedAtLabel} onBack={onBack} />
+      <PostRunHeader completedAtLabel={summary.completedAtLabel} onBack={onBack} sourceName={sourceName} />
 
       <ScrollView
         contentContainerStyle={styles.scrollContent}

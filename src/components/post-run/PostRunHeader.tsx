@@ -5,10 +5,11 @@ import { colors, layout, spacing } from '../../theme';
 
 type PostRunHeaderProps = {
   completedAtLabel: string;
+  sourceName?: string;
   onBack?: () => void;
 };
 
-export function PostRunHeader({ completedAtLabel, onBack }: PostRunHeaderProps) {
+export function PostRunHeader({ completedAtLabel, sourceName, onBack }: PostRunHeaderProps) {
   return (
     <View style={styles.container}>
       <View style={styles.side}>
@@ -22,6 +23,7 @@ export function PostRunHeader({ completedAtLabel, onBack }: PostRunHeaderProps) 
       <View style={styles.center}>
         <Text style={styles.title}>RUN COMPLETE</Text>
         <Text style={styles.subtitle}>{completedAtLabel}</Text>
+        {sourceName ? <Text style={styles.subtitle}>Synced from {sourceName}</Text> : null}
       </View>
 
       <View style={[styles.side, styles.sideRight]}>

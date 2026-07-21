@@ -1,10 +1,12 @@
-import { createContext, useCallback, useContext, useMemo, useState, type ReactNode } from 'react';
+import { createContext, useCallback, useContext, useEffect, useMemo, useRef, useState, type ReactNode } from 'react';
 import { Alert, Modal } from 'react-native';
 import { SafeAreaProvider } from 'react-native-safe-area-context';
 
 import type { PendingSyncedActivity } from '../services/healthKitSyncService';
 import { recordsToGpsPoints } from '../services/activityAdapters';
 import { createFeedPost } from '../services/feedService';
+import { isHealthKitAvailable, requestHealthKitReadAccess } from '../services/healthKitService';
+import { syncHealthKitWorkouts } from '../services/healthKitSyncService';
 import { PostRunScreen } from '../screens/PostRunScreen';
 import { getErrorMessage } from '../utils/errors';
 import { useAchievementUnlockPresentation } from '../hooks/useAchievementUnlockPresentation';
@@ -33,6 +35,26 @@ export function PendingActivityConfirmationProvider({ children }: { children: Re
     if (activities.length === 0) return;
     setQueue((current) => [...current, ...activities]);
   }, []);
+
+  // Auto-sync once per session on app open, so the user isn't required to
+  // manually trigger this from Settings — any new HealthKit workouts pop the
+  // same "Lock in your run" confirmation a manual sync would queue.
+  const userId = session?.user?.id ?? gameState?.profile.id ?? null;
+  const autoSyncedUserIdRef = useRef<string | null>(null);
+  useEffect(() => {
+    if (!userId || autoSyncedUserIdRef.current === userId) return;
+    autoSyncedUserIdRef.current = userId;
+
+    if (!isHealthKitAvailable()) return;
+
+    (async () => {
+      const granted = await requestHealthKitReadAccess().catch(() => false);
+      if (!granted) return;
+
+      const result = await syncHealthKitWorkouts(userId).catch(() => null);
+      if (result) pushPendingActivities(result.syncedActivities);
+    })();
+  }, [userId, pushPendingActivities]);
 
   const current = queue[0] ?? null;
   const lockInVisible = current != null && !awaitingXpClose;
@@ -91,6 +113,7 @@ export function PendingActivityConfirmationProvider({ children }: { children: Re
               onAddToFeed={(title) => void handleAddToFeed(title)}
               onBack={dequeue}
               routePoints={recordsToGpsPoints(current.records)}
+              sourceName={current.sourceName}
               summary={current.summary}
             />
           </SafeAreaProvider>

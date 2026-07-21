@@ -192,15 +192,18 @@ export async function syncHealthKitWorkouts(userId: string): Promise<HealthKitSy
         (e) => e.id.toLowerCase() === workout.uuid.toLowerCase(),
       );
 
-      if (!alreadyImportedById) {
-        const isDuplicate = isDuplicateOfExisting(
-          { startedAt: summary.startDate, distanceMeters: summary.distanceMeters ?? 0 },
-          existingByStartAndDistance,
-        );
-        if (isDuplicate) {
-          skippedDuplicateCount += 1;
-          continue;
-        }
+      if (alreadyImportedById) {
+        skippedDuplicateCount += 1;
+        continue;
+      }
+
+      const isDuplicate = isDuplicateOfExisting(
+        { startedAt: summary.startDate, distanceMeters: summary.distanceMeters ?? 0 },
+        existingByStartAndDistance,
+      );
+      if (isDuplicate) {
+        skippedDuplicateCount += 1;
+        continue;
       }
 
       const records = await buildActivityRecordsForWorkout(workout);

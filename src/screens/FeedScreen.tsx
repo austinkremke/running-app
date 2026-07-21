@@ -15,6 +15,7 @@ import { useAchievementUnlockPresentation } from '../hooks/useAchievementUnlockP
 import { useFeed } from '../hooks/useFeed';
 import { useFriends } from '../hooks/useFriends';
 import type { FriendSearchResult } from '../services/friendService';
+import { buildMatchShareUrl, buildRunShareUrl } from '../services/shareLinks';
 import { colors, spacing } from '../theme';
 import { formatRelativeTime } from '../utils/formatRelativeTime';
 
@@ -63,7 +64,7 @@ export function FeedScreen({
   async function handleShare(run: Run) {
     try {
       await Share.share({
-        message: `${run.user.name} ran ${run.stats.distanceMiles.toFixed(1)} mi — ${run.title}`,
+        message: `${run.user.name} ran ${run.stats.distanceMiles.toFixed(1)} mi — ${run.title}\n${buildRunShareUrl(run.id)}`,
       });
       await recordEvent('share_feed_post');
     } catch (shareError) {
@@ -81,7 +82,7 @@ export function FeedScreen({
           ? `${post.homeTeam.name} Tied ${post.awayTeam.name}`
           : `${post.result === 'home' ? post.homeTeam.name : post.awayTeam.name} Defeated ${post.result === 'home' ? post.awayTeam.name : post.homeTeam.name}`;
       await Share.share({
-        message: `${headline} (${post.homePoints} - ${post.awayPoints})`,
+        message: `${headline} (${post.homePoints} - ${post.awayPoints})\n${buildMatchShareUrl(post.matchId)}`,
       });
       await recordEvent('share_feed_post');
     } catch (shareError) {
@@ -99,7 +100,7 @@ export function FeedScreen({
           ? `${post.homeRunner.name} Tied ${post.awayRunner.name}`
           : `${post.result === 'home' ? post.homeRunner.name : post.awayRunner.name} Defeated ${post.result === 'home' ? post.awayRunner.name : post.homeRunner.name}`;
       await Share.share({
-        message: `${headline} (${post.homePoints} - ${post.awayPoints})`,
+        message: `${headline} (${post.homePoints} - ${post.awayPoints})\n${buildMatchShareUrl(post.matchId)}`,
       });
       await recordEvent('share_feed_post');
     } catch (shareError) {

@@ -1,3 +1,4 @@
+Initialising login role...
 export type Json =
   | string
   | number
@@ -1633,6 +1634,8 @@ export type Database = {
         Args: { p_limit?: number; p_user_id?: string }
         Returns: Json
       }
+      get_public_match_share: { Args: { p_match_id: string }; Returns: Json }
+      get_public_run_share: { Args: { p_feed_post_id: string }; Returns: Json }
       get_solo_match_challenge_status: { Args: never; Returns: Json }
       get_solo_matchmaking_status: { Args: never; Returns: Json }
       get_team_matchmaking_status: { Args: never; Returns: Json }
@@ -1679,6 +1682,10 @@ export type Database = {
       }
       match_points_for_distance: {
         Args: { p_distance_meters: number }
+        Returns: number
+      }
+      match_side_points: {
+        Args: { p_match_id: string; p_user_id: string }
         Returns: number
       }
       persist_solo_match_completions: {
@@ -1895,3 +1902,5 @@ export const Constants = {
     Enums: {},
   },
 } as const
+A new version of Supabase CLI is available: v2.109.1 (currently installed v2.84.2)
+We recommend updating regularly for new features and bug fixes: https://supabase.com/docs/guides/cli/getting-started#updating-the-supabase-cli

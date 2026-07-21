@@ -59,35 +59,25 @@ export function SettingsScreen({ onBack }: SettingsScreenProps) {
   const userId = session?.user?.id ?? null;
   const { pushPendingActivities } = usePendingActivityConfirmation();
   const [notificationCategoriesExpanded, setNotificationCategoriesExpanded] = useState(false);
-  const [healthKitSyncStatus, setHealthKitSyncStatus] = useState('Tap to sync');
 
   async function handleSyncHealthKit() {
     if (!isHealthKitAvailable()) {
-      setHealthKitSyncStatus('Not available on this device');
+      Alert.alert('Sync failed', 'Apple Health is not available on this device.');
       return;
     }
     if (!userId) {
-      setHealthKitSyncStatus('Sign in required');
+      Alert.alert('Sync failed', 'Sign in required.');
       return;
     }
 
-    setHealthKitSyncStatus('Requesting access…');
     try {
       const granted = await requestHealthKitReadAccess();
       if (!granted) {
-        setHealthKitSyncStatus('Access denied');
+        Alert.alert('Sync failed', 'Apple Health access was denied.');
         return;
       }
 
-      setHealthKitSyncStatus('Syncing…');
       const result = await syncHealthKitWorkouts(userId);
-
-      const parts = [`Synced ${result.syncedCount}`];
-      if (result.skippedDuplicateCount > 0) parts.push(`${result.skippedDuplicateCount} duplicate(s) skipped`);
-      if (result.skippedTooShortCount > 0) parts.push(`${result.skippedTooShortCount} too short skipped`);
-      if (result.skippedTooOldCount > 0) parts.push(`${result.skippedTooOldCount} too old skipped`);
-      if (result.errorCount > 0) parts.push(`${result.errorCount} failed`);
-      setHealthKitSyncStatus(parts.join(' · '));
 
       // Queue the same "Lock in your run" confirmation a phone-tracked run
       // goes through, one activity at a time — confirming is what awards XP
@@ -95,7 +85,7 @@ export function SettingsScreen({ onBack }: SettingsScreenProps) {
       // at the app root so this queue works regardless of what triggers it).
       pushPendingActivities(result.syncedActivities);
     } catch (error) {
-      setHealthKitSyncStatus(error instanceof Error ? error.message : 'Sync failed');
+      Alert.alert('Sync failed', error instanceof Error ? error.message : 'Sync failed');
     }
   }
 
@@ -337,14 +327,9 @@ export function SettingsScreen({ onBack }: SettingsScreenProps) {
       <SettingsSection title="Apple Health">
         <SettingsRow
           icon="fitness-outline"
-          label="Sync Apple Watch & Garmin runs"
+          label="Sync Workouts from Apple Health"
           onPress={() => void handleSyncHealthKit()}
-          value={healthKitSyncStatus}
         />
-        <Text style={styles.helper}>
-          Pulls in recent workouts synced to Apple Health from Apple Watch or Garmin. Runs without
-          heart-rate data won't earn XP or count in matches.
-        </Text>
       </SettingsSection>
 
       {__DEV__ ? (
