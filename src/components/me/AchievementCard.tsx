@@ -2,7 +2,7 @@ import { Ionicons } from '@expo/vector-icons';
 import { Pressable, StyleSheet, Text, View } from 'react-native';
 
 import type { AchievementListItem } from '../../services/achievementService';
-import { colors, spacing } from '../../theme';
+import { cardShadow, colors, spacing } from '../../theme';
 import { HexBadge } from './HexBadge';
 
 type IoniconsName = React.ComponentProps<typeof Ionicons>['name'];
@@ -134,6 +134,7 @@ const styles = StyleSheet.create({
     paddingHorizontal: spacing.sm,
     paddingVertical: spacing.md,
     gap: spacing.xs,
+    ...cardShadow,
   },
   compactCardLocked: {
     borderColor: colors.divider,
@@ -172,6 +173,7 @@ const styles = StyleSheet.create({
     borderWidth: 1,
     borderColor: colors.border,
     padding: spacing.md,
+    ...cardShadow,
   },
   detailCardLocked: {
     borderColor: colors.divider,

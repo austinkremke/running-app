@@ -1,5 +1,5 @@
-import { useState } from 'react';
-import { ActivityIndicator, ScrollView, StyleSheet, Text, View } from 'react-native';
+import { useEffect, useState } from 'react';
+import { ActivityIndicator, ScrollView, Share, StyleSheet, Text, View } from 'react-native';
 
 import {
   TeamChatDrawer,
@@ -10,8 +10,11 @@ import {
   TeamMatchScoreboard,
 } from '../components/match/team';
 import { useActiveTeamMatch } from '../hooks/useActiveTeamMatch';
+import { useAchievementUnlockPresentation } from '../hooks/useAchievementUnlockPresentation';
 import { useTeamMatchById } from '../hooks/useTeamMatchById';
 import type { Run } from '../mock';
+import { registerMatchDetailShareListener } from '../services/matchDetailShareBus';
+import { buildMatchShareUrl } from '../services/shareLinks';
 import { colors, spacing } from '../theme';
 
 type TeamMatchScreenProps = {
@@ -30,11 +33,51 @@ export function TeamMatchScreen({ onRunPress, onOpenRunDetail, matchId }: TeamMa
     : liveMatchState;
   const [chatVisible, setChatVisible] = useState(false);
   const [activityFeedVisible, setActivityFeedVisible] = useState(false);
+  const { recordEvent } = useAchievementUnlockPresentation();
 
   function handleSelectActivity(run: Run | undefined) {
     if (!run) return;
     onOpenRunDetail?.(run);
   }
+
+  // Only registered for a completed, read-only match — this screen only ever
+  // shows a completed match via matchId (reached by tapping a feed card,
+  // which only exists once a match is finalized), so sharing is naturally
+  // restricted to completed matches without needing an extra status check.
+  useEffect(() => {
+    if (!readOnly || !match || match.status !== 'completed') {
+      registerMatchDetailShareListener(null);
+      return () => registerMatchDetailShareListener(null);
+    }
+
+    registerMatchDetailShareListener(() => {
+      void (async () => {
+        try {
+          const winner =
+            match.homeTeam.totalPoints === match.awayTeam.totalPoints
+              ? null
+              : match.homeTeam.totalPoints > match.awayTeam.totalPoints
+                ? match.homeTeam
+                : match.awayTeam;
+          const loser = winner === match.homeTeam ? match.awayTeam : match.homeTeam;
+          const headline = winner
+            ? `${winner.name} Defeated ${loser.name}`
+            : `${match.homeTeam.name} Tied ${match.awayTeam.name}`;
+          await Share.share({
+            message: `${headline} (${match.homeTeam.totalPoints} - ${match.awayTeam.totalPoints})\n${buildMatchShareUrl(match.id)}`,
+          });
+          await recordEvent('share_feed_post');
+        } catch (error) {
+          if (error instanceof Error && error.message.includes('User did not share')) {
+            return;
+          }
+          console.warn('Share failed', error);
+        }
+      })();
+    });
+
+    return () => registerMatchDetailShareListener(null);
+  }, [match, readOnly, recordEvent]);
 
   if (loading) {
     return (

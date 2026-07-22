@@ -5,6 +5,7 @@ import {
   Image,
   NativeScrollEvent,
   NativeSyntheticEvent,
+  Pressable,
   ScrollView,
   StyleSheet,
   Text,
@@ -18,9 +19,11 @@ import { regionFromRoutePoints } from '../../maps/mapCamera';
 import { colors, spacing } from '../../theme';
 
 type PostRunMediaCarouselProps = {
-  photos: string[];
+  photoUri?: string | null;
   routePoints: GpsPoint[];
   weatherTempF?: number;
+  onAddPhoto?: () => void;
+  onRemovePhoto?: () => void;
 };
 
 const SCREEN_WIDTH = Dimensions.get('window').width;
@@ -30,9 +33,11 @@ const CARD_GAP = spacing.sm;
 const SNAP_INTERVAL = CARD_WIDTH + CARD_GAP;
 
 export function PostRunMediaCarousel({
-  photos,
+  photoUri,
   routePoints,
   weatherTempF,
+  onAddPhoto,
+  onRemovePhoto,
 }: PostRunMediaCarouselProps) {
   const { region: initialRegion } = useInitialMapRegion();
   const region = useMemo(
@@ -41,7 +46,7 @@ export function PostRunMediaCarousel({
   );
   const MapView = activeMapProvider.MapView;
   const [activeIndex, setActiveIndex] = useState(0);
-  const slideCount = 1 + photos.length;
+  const slideCount = photoUri ? 2 : 1;
 
   function handleScroll(event: NativeSyntheticEvent<NativeScrollEvent>) {
     const index = Math.round(event.nativeEvent.contentOffset.x / SNAP_INTERVAL);
@@ -79,21 +84,45 @@ export function PostRunMediaCarousel({
           ) : null}
         </View>
 
-        {photos.map((photoUrl) => (
-          <View key={photoUrl} style={styles.card}>
-            <Image resizeMode="cover" source={{ uri: photoUrl }} style={styles.photo} />
+        {photoUri ? (
+          <View style={styles.card}>
+            <Image resizeMode="cover" source={{ uri: photoUri }} style={styles.photo} />
           </View>
-        ))}
+        ) : null}
       </ScrollView>
 
-      <View style={styles.dots}>
-        {Array.from({ length: slideCount }, (_, index) => (
-          <View
-            key={`dot-${index}`}
-            style={[styles.dot, index === activeIndex && styles.dotActive]}
-          />
-        ))}
-      </View>
+      {slideCount > 1 ? (
+        <View style={styles.dots}>
+          {Array.from({ length: slideCount }, (_, index) => (
+            <View
+              key={`dot-${index}`}
+              style={[styles.dot, index === activeIndex && styles.dotActive]}
+            />
+          ))}
+        </View>
+      ) : null}
+
+      {photoUri ? (
+        <Pressable
+          accessibilityLabel="Remove photo"
+          accessibilityRole="button"
+          onPress={onRemovePhoto}
+          style={styles.photoActionButton}
+        >
+          <Ionicons color={colors.textSecondary} name="trash-outline" size={14} />
+          <Text style={styles.photoActionText}>Remove photo</Text>
+        </Pressable>
+      ) : (
+        <Pressable
+          accessibilityLabel="Add a photo to this run"
+          accessibilityRole="button"
+          onPress={onAddPhoto}
+          style={styles.photoActionButton}
+        >
+          <Ionicons color={colors.accentLime} name="camera-outline" size={14} />
+          <Text style={[styles.photoActionText, styles.photoActionTextAccent]}>Add photo</Text>
+        </Pressable>
+      )}
     </View>
   );
 }
@@ -165,5 +194,25 @@ const styles = StyleSheet.create({
   },
   dotActive: {
     backgroundColor: colors.accentLime,
+  },
+  photoActionButton: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: 6,
+    marginTop: spacing.sm,
+    marginHorizontal: spacing.lg,
+    paddingVertical: spacing.xs,
+    borderRadius: 10,
+    borderWidth: 1,
+    borderColor: colors.border,
+  },
+  photoActionText: {
+    color: colors.textSecondary,
+    fontSize: 13,
+    fontWeight: '600',
+  },
+  photoActionTextAccent: {
+    color: colors.accentLime,
   },
 });

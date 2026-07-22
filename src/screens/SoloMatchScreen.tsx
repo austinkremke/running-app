@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useState } from 'react';
-import { ActivityIndicator, Alert, ScrollView, StyleSheet, Text, View } from 'react-native';
+import { ActivityIndicator, Alert, ScrollView, Share, StyleSheet, Text, View } from 'react-native';
 
 import {
   SoloActiveMatchActions,
@@ -11,13 +11,16 @@ import {
   SoloMatchStatsSection,
 } from '../components/match/solo';
 import { useActiveSoloMatch } from '../hooks/useActiveSoloMatch';
+import { useAchievementUnlockPresentation } from '../hooks/useAchievementUnlockPresentation';
 import { useSoloMatchById } from '../hooks/useSoloMatchById';
 import { useAuth, useSoloMatchCompletion } from '../context';
 import type { Run } from '../mock';
 import { forfeitSoloMatch } from '../services/matchmakingService';
+import { registerMatchDetailShareListener } from '../services/matchDetailShareBus';
 import { notifyMatchRefresh } from '../services/matchRefreshBus';
 import { notifySoloMatchCompletionSync } from '../services/soloMatchCompletionBus';
 import { registerSoloMatchMenuListener } from '../services/soloMatchMenuBus';
+import { buildMatchShareUrl } from '../services/shareLinks';
 import { colors, spacing } from '../theme';
 
 type SoloMatchScreenProps = {
@@ -56,10 +59,50 @@ export function SoloMatchScreen({
     [readOnly, detailMatchState.refresh, liveMatchState.refresh],
   );
   const { syncCompletions } = useSoloMatchCompletion();
+  const { recordEvent } = useAchievementUnlockPresentation();
   const [chatVisible, setChatVisible] = useState(false);
   const [optionsVisible, setOptionsVisible] = useState(false);
   const [forfeiting, setForfeiting] = useState(false);
   const [activityFeedVisible, setActivityFeedVisible] = useState(false);
+
+  // Only registered for a completed, read-only match — this screen only ever
+  // shows a completed match via matchId (reached by tapping a feed card,
+  // which only exists once a match is finalized), so sharing is naturally
+  // restricted to completed matches without needing an extra status check.
+  useEffect(() => {
+    if (!readOnly || !match || match.status !== 'completed') {
+      registerMatchDetailShareListener(null);
+      return () => registerMatchDetailShareListener(null);
+    }
+
+    registerMatchDetailShareListener(() => {
+      void (async () => {
+        try {
+          const winner =
+            match.homeRunner.totalPoints === match.awayRunner.totalPoints
+              ? null
+              : match.homeRunner.totalPoints > match.awayRunner.totalPoints
+                ? match.homeRunner
+                : match.awayRunner;
+          const loser = winner === match.homeRunner ? match.awayRunner : match.homeRunner;
+          const headline = winner
+            ? `${winner.name} Defeated ${loser.name}`
+            : `${match.homeRunner.name} Tied ${match.awayRunner.name}`;
+          await Share.share({
+            message: `${headline} (${match.homeRunner.totalPoints} - ${match.awayRunner.totalPoints})\n${buildMatchShareUrl(match.id)}`,
+          });
+          await recordEvent('share_feed_post');
+        } catch (error) {
+          if (error instanceof Error && error.message.includes('User did not share')) {
+            return;
+          }
+          console.warn('Share failed', error);
+        }
+      })();
+    });
+
+    return () => registerMatchDetailShareListener(null);
+  }, [match, readOnly, recordEvent]);
 
   function handleSelectActivity(run: Run | undefined) {
     if (!run) return;

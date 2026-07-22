@@ -46,6 +46,13 @@ export async function readProgression(userId: string): Promise<StoredProgression
   }
 }
 
+/** Dev-only escape hatch: the server-merge logic (progressionService) never lets the
+ * displayed XP drop below whatever's cached here, so a server-side XP edit (e.g. for
+ * testing level gates) has no visible effect until this local cache is cleared too. */
+export async function clearProgression(userId: string): Promise<void> {
+  await AsyncStorage.removeItem(progressionKey(userId));
+}
+
 export async function writeProgression(
   userId: string,
   progression: StoredProgression,

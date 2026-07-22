@@ -15,6 +15,7 @@ import { useAchievementUnlockPresentation } from '../hooks/useAchievementUnlockP
 import { recordsToGpsPoints } from '../services/activityAdapters';
 import { publishActivityToFeed } from '../services/feedService';
 import { makeMockRunActivity } from '../services/progression/mockRunActivity';
+import { uploadRunPhoto } from '../services/runPhotoUpload';
 import { getErrorMessage } from '../utils/errors';
 import { PostRunScreen } from './PostRunScreen';
 import { colors } from '../theme';
@@ -77,7 +78,7 @@ export function RunScreen({ onBack }: RunScreenProps) {
     }
   }
 
-  async function handleAddToFeed(title: string) {
+  async function handleAddToFeed(title: string, photoUri?: string) {
     const finishedRun = lastFinishedRun;
     const activityId = finishedRun?.session.id;
     const userId = session?.user?.id ?? gameState?.profile.id;
@@ -97,12 +98,23 @@ export function RunScreen({ onBack }: RunScreenProps) {
       audiences.push('team');
     }
 
+    let photoUrl: string | undefined;
+    if (photoUri) {
+      try {
+        photoUrl = await uploadRunPhoto(userId, activityId, photoUri);
+      } catch (error) {
+        Alert.alert('Photo upload failed', getErrorMessage(error, 'Could not upload photo.'));
+        return;
+      }
+    }
+
     try {
       await publishActivityToFeed({
         userId,
         activityId,
         title,
         audiences,
+        photoUrl,
       });
     } catch (error) {
       Alert.alert('Feed post failed', getErrorMessage(error, 'Could not post to feed.'));

@@ -34,6 +34,9 @@ import {
 import { fetchTeamNameById } from '../services/teamService';
 import { colors, spacing } from '../theme';
 
+/** How far the scrollable card's rounded top rides up over the static header. */
+const SCROLL_OVERLAP = -8;
+
 type MeScreenProps = {
   onOpenDevScreenshotMock?: () => void;
   onOpenDevTeamScreenshotMock?: () => void;
@@ -62,6 +65,7 @@ export function MeScreen({
   const [overallStatsRange, setOverallStatsRange] = useState<OverallStatsRange>('all');
   const [competitiveStats, setCompetitiveStats] = useState<CompetitiveStats | null>(null);
   const [statDetailTarget, setStatDetailTarget] = useState<StatDetailTarget | null>(null);
+  const [headerHeight, setHeaderHeight] = useState(0);
   const carouselAchievements = useMemo(
     () => sortAchievementsForMeCarousel(allAchievements),
     [allAchievements],
@@ -170,84 +174,93 @@ export function MeScreen({
 
   return (
     <>
-      <ScrollView
-        contentContainerStyle={styles.content}
-        showsVerticalScrollIndicator={false}
-        style={styles.scroll}
-      >
-        <View style={styles.profileGroup}>
-          <ProfileTopSection onEditAvatar={onOpenSettings} profile={profile} />
+      <View style={styles.container}>
+        <View onLayout={(event) => setHeaderHeight(event.nativeEvent.layout.height)} style={styles.profileGroup}>
+          <ProfileTopSection profile={profile} />
           <ExperienceCard experience={profile.experience} />
         </View>
 
-        {loading ? (
-          <AchievementsSkeleton />
-        ) : carouselAchievements.length > 0 ? (
-          <AchievementsSection
-            achievements={carouselAchievements}
-            onAchievementPress={handleAchievementPress}
-            onViewAll={() => setViewAllVisible(true)}
-          />
-        ) : (
-          <View style={styles.emptyAchievements}>
-            <SectionHeader
-              actionLabel="VIEW ALL"
-              onActionPress={() => setViewAllVisible(true)}
-              title="ACHIEVEMENTS"
-            />
-            <Text style={styles.emptyCopy}>Complete your first run to start earning badges.</Text>
+        {headerHeight > 0 ? (
+          <ScrollView
+            contentContainerStyle={[
+              styles.content,
+              { paddingTop: Math.max(headerHeight - SCROLL_OVERLAP, 0) },
+            ]}
+            showsVerticalScrollIndicator={false}
+            style={styles.scroll}
+          >
+          <View style={styles.scrollCard}>
+            {loading ? (
+              <AchievementsSkeleton />
+            ) : carouselAchievements.length > 0 ? (
+              <AchievementsSection
+                achievements={carouselAchievements}
+                onAchievementPress={handleAchievementPress}
+                onViewAll={() => setViewAllVisible(true)}
+              />
+            ) : (
+              <View style={styles.emptyAchievements}>
+                <SectionHeader
+                  actionLabel="VIEW ALL"
+                  onActionPress={() => setViewAllVisible(true)}
+                  title="ACHIEVEMENTS"
+                />
+                <Text style={styles.emptyCopy}>Complete your first run to start earning badges.</Text>
+              </View>
+            )}
+
+            {overallStats ? (
+              <OverallStatsSection
+                headerAccessory={
+                  <OverallStatsRangeTabs onChange={setOverallStatsRange} value={overallStatsRange} />
+                }
+                onStatPress={handleStatPress}
+                stats={buildOverallStats(overallStats)}
+              />
+            ) : null}
+
+            {competitiveStats ? <CompetitiveStatsSection stats={competitiveStats} /> : null}
+
+            {/* Dev-only screenshot mockup buttons — commented out for now, not removed.
+            {onOpenDevScreenshotMock ? (
+              <Pressable
+                accessibilityLabel="Dev: 1v1 screenshot mockup"
+                accessibilityRole="button"
+                onPress={onOpenDevScreenshotMock}
+                style={styles.devButton}
+              >
+                <Text style={styles.devButtonLabel}>DEV: 1V1 SCREENSHOT MOCKUP</Text>
+              </Pressable>
+            ) : null}
+
+            {__DEV__ ? (
+              <Pressable
+                accessibilityLabel="Dev: rank up screenshot mockup"
+                accessibilityRole="button"
+                onPress={() => setRankUpMockVisible(true)}
+                style={styles.devButton}
+              >
+                <Text style={styles.devButtonLabel}>DEV: RANK UP SCREENSHOT MOCKUP</Text>
+              </Pressable>
+            ) : null}
+
+            {onOpenDevTeamScreenshotMock ? (
+              <Pressable
+                accessibilityLabel="Dev: team screenshot mockup"
+                accessibilityRole="button"
+                onPress={onOpenDevTeamScreenshotMock}
+                style={styles.devButton}
+              >
+                <Text style={styles.devButtonLabel}>DEV: TEAM SCREENSHOT MOCKUP</Text>
+              </Pressable>
+            ) : null}
+            */}
+
+            <View style={styles.bottomSpacer} />
           </View>
-        )}
-
-        {overallStats ? (
-          <OverallStatsSection
-            headerAccessory={
-              <OverallStatsRangeTabs onChange={setOverallStatsRange} value={overallStatsRange} />
-            }
-            onStatPress={handleStatPress}
-            stats={buildOverallStats(overallStats)}
-          />
+          </ScrollView>
         ) : null}
-
-        {competitiveStats ? <CompetitiveStatsSection stats={competitiveStats} /> : null}
-
-        {/* Dev-only screenshot mockup buttons — commented out for now, not removed.
-        {onOpenDevScreenshotMock ? (
-          <Pressable
-            accessibilityLabel="Dev: 1v1 screenshot mockup"
-            accessibilityRole="button"
-            onPress={onOpenDevScreenshotMock}
-            style={styles.devButton}
-          >
-            <Text style={styles.devButtonLabel}>DEV: 1V1 SCREENSHOT MOCKUP</Text>
-          </Pressable>
-        ) : null}
-
-        {__DEV__ ? (
-          <Pressable
-            accessibilityLabel="Dev: rank up screenshot mockup"
-            accessibilityRole="button"
-            onPress={() => setRankUpMockVisible(true)}
-            style={styles.devButton}
-          >
-            <Text style={styles.devButtonLabel}>DEV: RANK UP SCREENSHOT MOCKUP</Text>
-          </Pressable>
-        ) : null}
-
-        {onOpenDevTeamScreenshotMock ? (
-          <Pressable
-            accessibilityLabel="Dev: team screenshot mockup"
-            accessibilityRole="button"
-            onPress={onOpenDevTeamScreenshotMock}
-            style={styles.devButton}
-          >
-            <Text style={styles.devButtonLabel}>DEV: TEAM SCREENSHOT MOCKUP</Text>
-          </Pressable>
-        ) : null}
-        */}
-
-        <View style={styles.bottomSpacer} />
-      </ScrollView>
+      </View>
 
       <AchievementsAllModal
         achievements={allAchievements}
@@ -277,17 +290,37 @@ export function MeScreen({
 }
 
 const styles = StyleSheet.create({
-  scroll: {
+  container: {
     flex: 1,
     backgroundColor: colors.background,
   },
+  scroll: {
+    position: 'absolute',
+    top: 0,
+    left: 0,
+    right: 0,
+    bottom: 0,
+    zIndex: 10,
+    elevation: 10,
+  },
   content: {
-    paddingHorizontal: spacing.sm,
-    paddingTop: spacing.md,
-    gap: spacing.xl,
+    flexGrow: 1,
   },
   profileGroup: {
+    zIndex: 0,
     gap: spacing.md,
+    paddingHorizontal: spacing.sm,
+    paddingTop: spacing.md,
+    paddingBottom: spacing.md,
+  },
+  scrollCard: {
+    flexGrow: 1,
+    gap: spacing.xl,
+    backgroundColor: colors.surface,
+    borderTopLeftRadius: 24,
+    borderTopRightRadius: 24,
+    paddingHorizontal: spacing.sm,
+    paddingTop: spacing.lg,
   },
   emptyAchievements: {
     gap: spacing.xs,

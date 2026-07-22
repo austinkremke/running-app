@@ -5,7 +5,7 @@ import { colors, spacing } from '../../theme';
 import { MatchVsIndicator } from '../match/MatchVsIndicator';
 import { formatMatchPoints } from '../match/team/matchTheme';
 import { RankBorderAvatar } from '../team/RankBorderAvatar';
-import { RunCardEngagement } from './RunCardEngagement';
+import { RunCardEngagementMini } from './RunCardEngagementMini';
 
 const AVATAR_SIZE = 48;
 
@@ -15,7 +15,6 @@ type SoloMatchFeedCardProps = {
   engagementDisabled?: boolean;
   onToggleLike?: () => void;
   onOpenComments?: () => void;
-  onShare?: () => void;
   onOpenDetail?: () => void;
 };
 
@@ -35,7 +34,6 @@ export function SoloMatchFeedCard({
   engagementDisabled = false,
   onToggleLike,
   onOpenComments,
-  onShare,
   onOpenDetail,
 }: SoloMatchFeedCardProps) {
   return (
@@ -47,8 +45,18 @@ export function SoloMatchFeedCard({
         style={styles.body}
       >
         <View style={styles.header}>
-          <Text style={styles.headline}>{headlineFor(post)}</Text>
-          <Text style={styles.postedAt}>{postedAt}</Text>
+          <View style={styles.headerLeft}>
+            <Text style={styles.headline}>{headlineFor(post)}</Text>
+            <Text style={styles.postedAt}>{postedAt}</Text>
+          </View>
+          <RunCardEngagementMini
+            comments={post.comments}
+            disabled={engagementDisabled}
+            likedByMe={post.likedByMe}
+            likes={post.likes}
+            onOpenComments={onOpenComments}
+            onToggleLike={onToggleLike}
+          />
         </View>
 
         <View style={styles.scoreboard}>
@@ -84,18 +92,6 @@ export function SoloMatchFeedCard({
           <Text style={styles.matchLabel}>1v1 Match</Text>
         </View>
       </Pressable>
-
-      <View style={styles.footerBox}>
-        <RunCardEngagement
-          comments={post.comments}
-          disabled={engagementDisabled}
-          likedByMe={post.likedByMe}
-          likes={post.likes}
-          onOpenComments={onOpenComments}
-          onShare={onShare}
-          onToggleLike={onToggleLike}
-        />
-      </View>
     </View>
   );
 }
@@ -115,11 +111,15 @@ const styles = StyleSheet.create({
   },
   header: {
     flexDirection: 'row',
-    alignItems: 'center',
+    alignItems: 'flex-start',
     justifyContent: 'space-between',
+    gap: spacing.sm,
+  },
+  headerLeft: {
+    flex: 1,
+    gap: 2,
   },
   headline: {
-    flex: 1,
     color: colors.textPrimary,
     fontSize: 15,
     fontWeight: '800',
@@ -128,6 +128,7 @@ const styles = StyleSheet.create({
   postedAt: {
     color: colors.textSecondary,
     fontSize: 11,
+    textAlign: 'left',
   },
   scoreboard: {
     gap: spacing.sm,
@@ -172,14 +173,5 @@ const styles = StyleSheet.create({
     letterSpacing: 0.4,
     textAlign: 'center',
     textTransform: 'uppercase',
-  },
-  footerBox: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    borderWidth: 1,
-    borderColor: colors.border,
-    borderRadius: 10,
-    paddingHorizontal: spacing.md,
-    paddingVertical: spacing.sm,
   },
 });

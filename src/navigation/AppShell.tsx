@@ -1,5 +1,7 @@
 import { useEffect, useState } from 'react';
 import { StyleSheet, View } from 'react-native';
+// Alert kept for Level 10 Boost promo CTA when re-enabled
+// import { Alert, StyleSheet, View } from 'react-native';
 
 import { BottomAppBar } from '../components/app-bar';
 import {
@@ -9,16 +11,20 @@ import {
   TabAppHeader,
 } from '../components/header';
 import { NotificationCenterDrawer } from '../components/notification';
+// import { PromoCard } from '../components/promo';
 import {
   useAuth,
   useSoloMatchCompletion,
   useTeamMatchCompletion,
   useUserId,
   useInAppNotification,
+  // usePromoOffer,
 } from '../context';
 import { useMatchTabIndicators } from '../hooks/useHasActiveMatch';
+// import { useLevelGateProgress } from '../hooks/useLevelGateProgress';
 import { useTeamNotifications } from '../hooks/useTeamNotifications';
 import type { FeedTab, MatchTab, Run } from '../mock';
+import { triggerMatchDetailShare } from '../services/matchDetailShareBus';
 import { initialsFromDisplayName } from '../services/profileAvatar';
 import { openSoloMatchMenu } from '../services/soloMatchMenuBus';
 import { openTeamMenu } from '../services/teamMenuBus';
@@ -58,6 +64,13 @@ export function AppShell() {
   const { syncCompletions: syncTeamCompletions } = useTeamMatchCompletion();
   const { showMatchTabBadge, showSoloTabBadge } = useMatchTabIndicators();
   const { registerHandlers } = useInAppNotification();
+  // Level 10 Boost promo temporarily disabled
+  // const { activeOffer, dismiss: dismissPromoOffer } = usePromoOffer();
+  // The Level 10 Boost offer is currently the only promo, so this ties its
+  // progress bar to the create_team gate specifically — once there are
+  // multiple offers, this should move onto the PromoOffer object itself
+  // (e.g. an optional gateFeatureId field) instead of being hardcoded here.
+  // const levelBoostProgress = useLevelGateProgress('create_team');
   const {
     notifications: teamNotifications,
     loading: teamNotificationsLoading,
@@ -443,7 +456,13 @@ export function AppShell() {
     }
 
     if (activeRoute === 'teamMatchDetail' || activeRoute === 'soloMatchDetail') {
-      return undefined;
+      return (
+        <HeaderIconButton
+          accessibilityLabel="Share match"
+          icon="share-outline"
+          onPress={triggerMatchDetailShare}
+        />
+      );
     }
 
     if (activeRoute === 'team') {
@@ -508,6 +527,29 @@ export function AppShell() {
 
         {renderScreen()}
       </View>
+
+      {/* Level 10 Boost promo temporarily disabled
+      {!hideChrome && activeOffer ? (
+        <PromoCard
+          ctaLabel={activeOffer.ctaLabel}
+          description={activeOffer.description}
+          icon={activeOffer.icon}
+          onDismiss={dismissPromoOffer}
+          onPressCta={() => {
+            Alert.alert('Coming soon', 'Purchases are not wired up yet.');
+          }}
+          progress={
+            levelBoostProgress
+              ? {
+                  ratio: levelBoostProgress.ratio,
+                  label: `~${levelBoostProgress.estimatedRuns} more run${levelBoostProgress.estimatedRuns === 1 ? '' : 's'} to level ${levelBoostProgress.minLevel}`,
+                }
+              : undefined
+          }
+          title={activeOffer.title}
+        />
+      ) : null}
+      */}
 
       {!hideChrome ? (
         <BottomAppBar

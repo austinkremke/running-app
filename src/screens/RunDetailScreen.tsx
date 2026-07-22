@@ -1,9 +1,9 @@
 import { Ionicons } from '@expo/vector-icons';
 import { useEffect, useState } from 'react';
-import { Alert, Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
+import { Alert, Pressable, ScrollView, Share, StyleSheet, Text, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
-import { FullscreenRouteMap, StaticRouteMapPreview } from '../components/map';
+import { FullscreenRouteMap } from '../components/map';
 import {
   ClimbingAnalysisCard,
   HeartRateAnalysisCard,
@@ -12,9 +12,10 @@ import {
   PostRunChartSection,
   PostRunPrimaryStats,
 } from '../components/post-run';
-import { FeedCommentsDrawer, RunCardEngagement } from '../components/feed';
+import { FeedCommentsDrawer, RunCardEngagement, RunMediaCarousel } from '../components/feed';
 import { HeaderIconButton } from '../components/header';
 import { useUserId } from '../context';
+import { useAchievementUnlockPresentation } from '../hooks/useAchievementUnlockPresentation';
 import type { Run } from '../mock';
 import {
   deleteActivity,
@@ -27,6 +28,7 @@ import { buildHeartRateAnalysis } from '../services/heartRateAnalysisService';
 import { buildPaceDistribution } from '../services/paceDistributionService';
 import { getPaceProfile } from '../services/paceProfileService';
 import { toggleFeedLike } from '../services/feedEngagementService';
+import { buildRunShareUrl } from '../services/shareLinks';
 import { colors, spacing } from '../theme';
 import type { ClimbingAnalysisResult } from '../types/climbingAnalysis';
 import type { HeartRateAnalysisResult } from '../types/heartRateAnalysis';
@@ -40,6 +42,7 @@ type RunDetailScreenProps = {
 
 export function RunDetailScreen({ run, onBack, onDeleted }: RunDetailScreenProps) {
   const viewerId = useUserId();
+  const { recordEvent } = useAchievementUnlockPresentation();
   const [extras, setExtras] = useState<RunExtras | null>(null);
   const [paceDistribution, setPaceDistribution] = useState<PaceDistributionResult | null>(null);
   const [climbingAnalysis, setClimbingAnalysis] = useState<ClimbingAnalysisResult | null>(null);
@@ -134,6 +137,20 @@ export function RunDetailScreen({ run, onBack, onDeleted }: RunDetailScreenProps
     }
   }
 
+  async function handleShare() {
+    try {
+      await Share.share({
+        message: `${run.user.name} ran ${run.stats.distanceMiles.toFixed(1)} mi — ${run.title}\n${buildRunShareUrl(run.id)}`,
+      });
+      await recordEvent('share_feed_post');
+    } catch (error) {
+      if (error instanceof Error && error.message.includes('User did not share')) {
+        return;
+      }
+      console.warn('Share failed', error);
+    }
+  }
+
   function confirmDelete() {
     Alert.alert('Delete run', 'This permanently deletes this run and its feed post.', [
       { text: 'Cancel', style: 'cancel' },
@@ -181,27 +198,35 @@ export function RunDetailScreen({ run, onBack, onDeleted }: RunDetailScreenProps
         showsVerticalScrollIndicator={false}
         style={styles.scroll}
       >
-        {run.routePoints.length >= 2 ? (
-          <Pressable
-            accessibilityHint="Opens the route full screen"
-            accessibilityLabel="View route full screen"
-            accessibilityRole="button"
-            onPress={() => setMapFullscreen(true)}
-            style={styles.mapCard}
-          >
-            <StaticRouteMapPreview routePoints={run.routePoints} style={styles.map} />
-            <View style={styles.expandBadge}>
-              <Ionicons color={colors.textPrimary} name="expand" size={14} />
-            </View>
-          </Pressable>
+        {run.routePoints.length >= 2 || run.photoUrl ? (
+          <View style={styles.mapCard}>
+            <RunMediaCarousel
+              height={240}
+              onPressMap={run.routePoints.length >= 2 ? () => setMapFullscreen(true) : undefined}
+              photoUrl={run.photoUrl}
+              routePoints={run.routePoints}
+              showMapExpandBadge
+            />
+          </View>
         ) : null}
 
-        <View style={styles.titleBlock}>
-          <Text style={styles.title}>{run.title}</Text>
-          <Text style={styles.meta}>
-            {extras?.dateLabel || run.postedAt}
-            {run.location ? ` · ${run.location}` : ''}
-          </Text>
+        <View style={styles.titleRow}>
+          <View style={styles.titleBlock}>
+            <Text style={styles.title}>{run.title}</Text>
+            <Text style={styles.meta}>
+              {extras?.dateLabel || run.postedAt}
+              {run.location ? ` · ${run.location}` : ''}
+            </Text>
+          </View>
+          <Pressable
+            accessibilityLabel="Share this run"
+            accessibilityRole="button"
+            hitSlop={8}
+            onPress={() => void handleShare()}
+            style={({ pressed }) => [styles.shareButton, pressed && styles.pressed]}
+          >
+            <Ionicons color={colors.textPrimary} name="share-outline" size={20} />
+          </Pressable>
         </View>
 
         <PostRunPrimaryStats stats={primaryStats} />
@@ -274,31 +299,29 @@ const styles = StyleSheet.create({
   },
   mapCard: {
     marginHorizontal: spacing.lg,
-    height: 240,
-    borderRadius: 16,
-    overflow: 'hidden',
-    borderWidth: 1,
-    borderColor: colors.border,
   },
-  map: {
-    flex: 1,
-  },
-  expandBadge: {
-    position: 'absolute',
-    right: spacing.sm,
-    bottom: spacing.sm,
-    width: 30,
-    height: 30,
-    borderRadius: 15,
-    alignItems: 'center',
-    justifyContent: 'center',
-    backgroundColor: colors.surface,
-    borderWidth: 1,
-    borderColor: colors.border,
+  titleRow: {
+    flexDirection: 'row',
+    alignItems: 'flex-start',
+    justifyContent: 'space-between',
+    paddingHorizontal: spacing.lg,
+    gap: spacing.sm,
   },
   titleBlock: {
-    paddingHorizontal: spacing.lg,
+    flex: 1,
     gap: 4,
+  },
+  shareButton: {
+    width: 36,
+    height: 36,
+    borderRadius: 18,
+    alignItems: 'center',
+    justifyContent: 'center',
+    borderWidth: 1,
+    borderColor: colors.border,
+  },
+  pressed: {
+    opacity: 0.7,
   },
   title: {
     color: colors.textPrimary,

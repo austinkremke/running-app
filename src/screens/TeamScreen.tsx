@@ -14,6 +14,7 @@ import {
 import { useAuth, useUserId } from '../context';
 import { useAchievementUnlockPresentation } from '../hooks/useAchievementUnlockPresentation';
 import { useFeatureGate } from '../hooks/useFeatureGate';
+// import { useLevelGateProgress } from '../hooks/useLevelGateProgress';
 import { useMyTeam } from '../hooks/useMyTeam';
 import type { Run, TeamMatchHistoryEntry, TeamMember, TopTeamListing } from '../mock';
 import { fetchFeedPosts } from '../services/feedService';
@@ -54,6 +55,8 @@ export function TeamScreen({
   const { runEvaluation } = useAchievementUnlockPresentation();
   const { team, loading, error, refresh } = useMyTeam();
   const createGate = useFeatureGate('create_team');
+  // Level 10 Boost section temporarily disabled
+  // const createGateProgress = useLevelGateProgress('create_team');
   const [joiningTeamId, setJoiningTeamId] = useState<string | null>(null);
   const [joinableTeams, setJoinableTeams] = useState<TopTeamListing[]>([]);
   const [joinableLoading, setJoinableLoading] = useState(false);
@@ -343,6 +346,8 @@ export function TeamScreen({
     return (
       <>
         <TeamJoinPrompt
+          // Level 10 Boost section temporarily disabled
+          // createGateProgress={createGateProgress}
           createLockedLabel={createGate.lockedLabel}
           joiningTeamId={joiningTeamId}
           loadingTeams={joinableLoading}
@@ -350,6 +355,9 @@ export function TeamScreen({
             setFormMode('create');
             setFormVisible(true);
           }}
+          // onSkipGate={() => {
+          //   Alert.alert('Coming soon', 'Purchases are not wired up yet.');
+          // }}
           onJoinTeam={(teamId) => void handleRequestToJoin(teamId)}
           requestedTeamIds={requestedTeamIds}
           teams={joinableTeams}

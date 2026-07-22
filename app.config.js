@@ -106,7 +106,9 @@ export default () => {
         NSLocationAlwaysUsageDescription:
           'Run Off tracks your route in the background so your run keeps recording when your phone is locked.',
         NSPhotoLibraryUsageDescription:
-          'Run Off needs access to your photos to set a profile picture.',
+          'Run Off needs access to your photos to set a profile picture or attach a photo to a run.',
+        NSCameraUsageDescription:
+          'Run Off needs access to your camera to take a photo to attach to a run.',
         ...(googleIosClientId ? { GIDClientID: googleIosClientId } : {}),
         ...(googleIosUrlScheme
           ? {

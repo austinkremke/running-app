@@ -1,6 +1,7 @@
 import { Ionicons } from '@expo/vector-icons';
 import { ActivityIndicator, Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
 
+import type { LevelGateProgress } from '../../hooks/useLevelGateProgress';
 import type { TopTeamListing } from '../../mock';
 import { colors, spacing } from '../../theme';
 import { TeamAvatar } from './TeamAvatar';
@@ -16,6 +17,10 @@ type TeamJoinPromptProps = {
   onCreate?: () => void;
   /** Level-gate CTA, e.g. "Reach level 10" — locks the create button when set. */
   createLockedLabel?: string | null;
+  /** Makes the grind concrete on the locked card — omit to just show createLockedLabel with no bar. */
+  createGateProgress?: LevelGateProgress | null;
+  /** Surfaces the level-boost offer — omit to hide the skip button entirely. */
+  onSkipGate?: () => void;
 };
 
 export function TeamJoinPrompt({
@@ -26,9 +31,14 @@ export function TeamJoinPrompt({
   onJoinTeam,
   onCreate,
   createLockedLabel = null,
+  createGateProgress = null,
+  onSkipGate,
 }: TeamJoinPromptProps) {
   const createLocked = Boolean(createLockedLabel);
   const joining = Boolean(joiningTeamId);
+  const progressRatio = createGateProgress
+    ? Math.min(1, Math.max(0, createGateProgress.ratio))
+    : 0;
 
   return (
     <View style={styles.container}>
@@ -121,6 +131,29 @@ export function TeamJoinPrompt({
             <Text style={styles.createLabel}>CREATE A TEAM</Text>
           )}
         </Pressable>
+      ) : null}
+
+      {createLocked && createGateProgress ? (
+        <View style={styles.gateProgress}>
+          <View style={styles.gateProgressTrack}>
+            <View style={[styles.gateProgressFill, { width: `${progressRatio * 100}%` }]} />
+          </View>
+          <Text style={styles.gateProgressLabel}>
+            ~{createGateProgress.estimatedRuns} more run{createGateProgress.estimatedRuns === 1 ? '' : 's'} to go
+          </Text>
+
+          {onSkipGate ? (
+            <Pressable
+              accessibilityLabel="Skip the grind with Level 10 Boost"
+              accessibilityRole="button"
+              onPress={onSkipGate}
+              style={({ pressed }) => [styles.skipButton, pressed && styles.pressed]}
+            >
+              <Ionicons color={colors.accentLime} name="flash" size={14} />
+              <Text style={styles.skipLabel}>Skip it — Level 10 Boost</Text>
+            </Pressable>
+          ) : null}
+        </View>
       ) : null}
     </View>
   );
@@ -241,5 +274,41 @@ const styles = StyleSheet.create({
   },
   pressed: {
     opacity: 0.85,
+  },
+  gateProgress: {
+    gap: spacing.xs,
+  },
+  gateProgressTrack: {
+    height: 6,
+    borderRadius: 3,
+    backgroundColor: colors.surfaceElevated,
+    overflow: 'hidden',
+  },
+  gateProgressFill: {
+    height: '100%',
+    borderRadius: 3,
+    backgroundColor: colors.accentLime,
+  },
+  gateProgressLabel: {
+    color: colors.textSecondary,
+    fontSize: 11,
+    fontWeight: '600',
+    textAlign: 'center',
+  },
+  skipButton: {
+    marginTop: spacing.xs,
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: spacing.xs,
+    paddingVertical: spacing.sm,
+    borderRadius: 10,
+    backgroundColor: 'rgba(215, 255, 47, 0.12)',
+  },
+  skipLabel: {
+    color: colors.accentLime,
+    fontSize: 12,
+    fontWeight: '800',
+    fontStyle: 'italic',
   },
 });

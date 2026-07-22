@@ -1,4 +1,4 @@
-import { ActivityIndicator, Alert, FlatList, Share, StyleSheet, Text, View } from 'react-native';
+import { ActivityIndicator, Alert, FlatList, StyleSheet, Text, View } from 'react-native';
 import { useState } from 'react';
 
 import {
@@ -10,12 +10,11 @@ import {
   TeamMatchFeedCard,
 } from '../components/feed';
 import { useAuth } from '../context';
-import type { FeedTab, Run, SoloMatchFeedPost, TeamMatchFeedPost } from '../mock';
+import type { FeedTab, Run } from '../mock';
 import { useAchievementUnlockPresentation } from '../hooks/useAchievementUnlockPresentation';
 import { useFeed } from '../hooks/useFeed';
 import { useFriends } from '../hooks/useFriends';
 import type { FriendSearchResult } from '../services/friendService';
-import { buildMatchShareUrl, buildRunShareUrl } from '../services/shareLinks';
 import { colors, spacing } from '../theme';
 import { formatRelativeTime } from '../utils/formatRelativeTime';
 
@@ -39,7 +38,7 @@ export function FeedScreen({
   const { items, loading, error, refresh, toggleLike, bumpCommentCount, likingPostId } =
     useFeed(activeTab);
   const { isFriend, isPending, sendFriendRequestTo } = useFriends();
-  const { runEvaluation, recordEvent } = useAchievementUnlockPresentation();
+  const { runEvaluation } = useAchievementUnlockPresentation();
   const [commentsPostId, setCommentsPostId] = useState<string | null>(null);
   const [addingFriendId, setAddingFriendId] = useState<string | null>(null);
   const [findFriendsVisible, setFindFriendsVisible] = useState(false);
@@ -58,56 +57,6 @@ export function FeedScreen({
         'Like failed',
         likeError instanceof Error ? likeError.message : 'Could not update like.',
       );
-    }
-  }
-
-  async function handleShare(run: Run) {
-    try {
-      await Share.share({
-        message: `${run.user.name} ran ${run.stats.distanceMiles.toFixed(1)} mi — ${run.title}\n${buildRunShareUrl(run.id)}`,
-      });
-      await recordEvent('share_feed_post');
-    } catch (shareError) {
-      if (shareError instanceof Error && shareError.message.includes('User did not share')) {
-        return;
-      }
-      console.warn('Share failed', shareError);
-    }
-  }
-
-  async function handleShareMatch(post: TeamMatchFeedPost) {
-    try {
-      const headline =
-        post.result === 'tie'
-          ? `${post.homeTeam.name} Tied ${post.awayTeam.name}`
-          : `${post.result === 'home' ? post.homeTeam.name : post.awayTeam.name} Defeated ${post.result === 'home' ? post.awayTeam.name : post.homeTeam.name}`;
-      await Share.share({
-        message: `${headline} (${post.homePoints} - ${post.awayPoints})\n${buildMatchShareUrl(post.matchId)}`,
-      });
-      await recordEvent('share_feed_post');
-    } catch (shareError) {
-      if (shareError instanceof Error && shareError.message.includes('User did not share')) {
-        return;
-      }
-      console.warn('Share failed', shareError);
-    }
-  }
-
-  async function handleShareSoloMatch(post: SoloMatchFeedPost) {
-    try {
-      const headline =
-        post.result === 'tie'
-          ? `${post.homeRunner.name} Tied ${post.awayRunner.name}`
-          : `${post.result === 'home' ? post.homeRunner.name : post.awayRunner.name} Defeated ${post.result === 'home' ? post.awayRunner.name : post.homeRunner.name}`;
-      await Share.share({
-        message: `${headline} (${post.homePoints} - ${post.awayPoints})\n${buildMatchShareUrl(post.matchId)}`,
-      });
-      await recordEvent('share_feed_post');
-    } catch (shareError) {
-      if (shareError instanceof Error && shareError.message.includes('User did not share')) {
-        return;
-      }
-      console.warn('Share failed', shareError);
     }
   }
 
@@ -131,10 +80,6 @@ export function FeedScreen({
     } finally {
       setAddingFriendId(null);
     }
-  }
-
-  async function handleAddFriend(run: Run) {
-    await addFriendForUser(run.user.id);
   }
 
   async function handleAddFriendFromSearch(result: FriendSearchResult) {
@@ -183,9 +128,6 @@ export function FeedScreen({
               engagementDisabled={likingPostId === item.id}
               onOpenComments={() => setCommentsPostId(item.id)}
               onOpenDetail={onOpenTeamMatch ? () => onOpenTeamMatch(item.post.matchId) : undefined}
-              onShare={() => {
-                void handleShareMatch(item.post);
-              }}
               onToggleLike={() => {
                 void handleToggleLike(item.id);
               }}
@@ -197,9 +139,6 @@ export function FeedScreen({
               engagementDisabled={likingPostId === item.id}
               onOpenComments={() => setCommentsPostId(item.id)}
               onOpenDetail={onOpenSoloMatch ? () => onOpenSoloMatch(item.post.matchId) : undefined}
-              onShare={() => {
-                void handleShareSoloMatch(item.post);
-              }}
               onToggleLike={() => {
                 void handleToggleLike(item.id);
               }}
@@ -208,19 +147,10 @@ export function FeedScreen({
             />
           ) : (
             <RunCard
-              addFriendDisabled={addingFriendId === item.run.user.id}
               engagementDisabled={likingPostId === item.id}
-              isFriend={isFriend(item.run.user.id)}
-              isFriendPending={isPending(item.run.user.id)}
-              onAddFriend={() => {
-                void handleAddFriend(item.run);
-              }}
               onOpenComments={() => setCommentsPostId(item.id)}
               onOpenDetail={onOpenRun ? () => onOpenRun(item.run) : undefined}
               onOpenProfile={onOpenProfile ? () => onOpenProfile(item.run.user.id) : undefined}
-              onShare={() => {
-                void handleShare(item.run);
-              }}
               onToggleLike={() => {
                 void handleToggleLike(item.id);
               }}

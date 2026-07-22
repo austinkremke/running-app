@@ -7,6 +7,7 @@ import { recordsToGpsPoints } from '../services/activityAdapters';
 import { createFeedPost } from '../services/feedService';
 import { isHealthKitAvailable, requestHealthKitReadAccess } from '../services/healthKitService';
 import { syncHealthKitWorkouts } from '../services/healthKitSyncService';
+import { uploadRunPhoto } from '../services/runPhotoUpload';
 import { PostRunScreen } from '../screens/PostRunScreen';
 import { getErrorMessage } from '../utils/errors';
 import { useAchievementUnlockPresentation } from '../hooks/useAchievementUnlockPresentation';
@@ -64,13 +65,23 @@ export function PendingActivityConfirmationProvider({ children }: { children: Re
     setAwaitingXpClose(false);
   }
 
-  async function handleAddToFeed(title: string) {
+  async function handleAddToFeed(title: string, photoUri?: string) {
     if (!current) return;
     const userId = session?.user?.id ?? gameState?.profile.id;
 
     if (!userId) {
       Alert.alert('Feed post failed', 'Sign in to post to the feed.');
       return;
+    }
+
+    let photoUrl: string | undefined;
+    if (photoUri) {
+      try {
+        photoUrl = await uploadRunPhoto(userId, current.session.id, photoUri);
+      } catch (error) {
+        Alert.alert('Photo upload failed', getErrorMessage(error, 'Could not upload photo.'));
+        return;
+      }
     }
 
     try {
@@ -80,6 +91,7 @@ export function PendingActivityConfirmationProvider({ children }: { children: Re
         title,
         description: `Synced from ${current.sourceName}`,
         createdAt: current.session.endedAt,
+        photoUrl,
       });
     } catch (error) {
       Alert.alert('Feed post failed', getErrorMessage(error, 'Could not post to feed.'));
@@ -110,7 +122,7 @@ export function PendingActivityConfirmationProvider({ children }: { children: Re
           <SafeAreaProvider>
             <PostRunScreen
               key={current.session.id}
-              onAddToFeed={(title) => void handleAddToFeed(title)}
+              onAddToFeed={(title, photoUri) => void handleAddToFeed(title, photoUri)}
               onBack={dequeue}
               routePoints={recordsToGpsPoints(current.records)}
               sourceName={current.sourceName}

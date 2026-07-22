@@ -12,7 +12,7 @@ export function RunCardStats({ stats }: RunCardStatsProps) {
     <View style={styles.container}>
       <StatItem label="Distance" main={stats.distanceMiles.toFixed(2)} unit=" mi" />
       <StatItem label="Pace" main={stats.pacePerMile} unit=" /mi" />
-      <StatItem label="Time" main={stats.duration} unit={` ${stats.durationUnit ?? 'min'}`} />
+      <StatItem label="Duration" main={stats.duration} unit={` ${stats.durationUnit ?? 'min'}`} />
     </View>
   );
 }
@@ -44,13 +44,15 @@ const styles = StyleSheet.create({
   },
   valueMain: {
     color: colors.textPrimary,
-    fontSize: 16,
-    fontWeight: '600',
+    fontSize: 18,
+    fontWeight: '800',
+    fontStyle: 'italic',
   },
   valueUnit: {
     color: colors.textPrimary,
-    fontSize: 11,
-    fontWeight: '400',
+    fontSize: 12,
+    fontWeight: '800',
+    fontStyle: 'italic',
   },
   label: {
     color: colors.textSecondary,

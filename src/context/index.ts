@@ -11,4 +11,5 @@ export { RunProvider, useRun } from './RunContext';
 export { SoloMatchCompletionProvider, useSoloMatchCompletion } from './SoloMatchCompletionContext';
 export { TeamMatchCompletionProvider, useTeamMatchCompletion } from './TeamMatchCompletionContext';
 export { InAppNotificationProvider, useInAppNotification, useInAppNotificationOptional } from './InAppNotificationContext';
+export { PromoOfferProvider, usePromoOffer } from './PromoOfferContext';
 export { XpGainProvider, useXpGain } from './XpGainContext';

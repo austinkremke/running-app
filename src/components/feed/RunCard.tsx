@@ -3,22 +3,17 @@ import { Pressable, StyleSheet, View } from 'react-native';
 import type { Run } from '../../mock';
 import { colors, spacing } from '../../theme';
 import { RunCardContent } from './RunCardContent';
-import { RunCardEngagement } from './RunCardEngagement';
+import { RunCardEngagementMini } from './RunCardEngagementMini';
 import { RunCardHeader } from './RunCardHeader';
-import { RunCardMedia } from './RunCardMedia';
+import { RunMediaCarousel } from './RunMediaCarousel';
 import { RunCardStats } from './RunCardStats';
 
 type RunCardProps = {
   run: Run;
   viewerUserId?: string | null;
-  isFriend?: boolean;
-  isFriendPending?: boolean;
   engagementDisabled?: boolean;
-  addFriendDisabled?: boolean;
-  onAddFriend?: () => void;
   onToggleLike?: () => void;
   onOpenComments?: () => void;
-  onShare?: () => void;
   /** Opens the run detail screen — the card body (not the engagement row) is the tap target. */
   onOpenDetail?: () => void;
   /** Opens the runner's profile — the avatar/name specifically, not the rest of the card. */
@@ -27,57 +22,55 @@ type RunCardProps = {
 
 export function RunCard({
   run,
-  viewerUserId = null,
-  isFriend = false,
-  isFriendPending = false,
   engagementDisabled = false,
-  addFriendDisabled = false,
-  onAddFriend,
   onToggleLike,
   onOpenComments,
-  onShare,
   onOpenDetail,
   onOpenProfile,
 }: RunCardProps) {
-  const canAddFriend = Boolean(
-    viewerUserId && viewerUserId !== run.user.id && !isFriend && onAddFriend,
-  );
-
   return (
     <View style={styles.card}>
-      <Pressable
-        accessibilityHint="Opens run details"
-        accessibilityRole="button"
-        disabled={!onOpenDetail}
-        onPress={onOpenDetail}
-        style={({ pressed }) => [styles.body, pressed && onOpenDetail ? styles.pressed : null]}
-      >
-        <RunCardHeader
-          addFriendDisabled={addFriendDisabled}
-          addFriendPending={isFriendPending}
-          location={run.location}
-          onAddFriend={onAddFriend}
-          onOpenProfile={onOpenProfile}
-          postedAt={run.postedAt}
-          showAddFriend={canAddFriend}
-          user={run.user}
-        />
-        <RunCardContent description={run.description} title={run.title} />
-        <RunCardMedia photoUrl={run.photoUrl} routePoints={run.routePoints} />
-      </Pressable>
+      <View style={styles.topRow}>
+        <Pressable
+          accessibilityHint="Opens run details"
+          accessibilityRole="button"
+          disabled={!onOpenDetail}
+          onPress={onOpenDetail}
+          style={({ pressed }) => [styles.body, pressed && onOpenDetail ? styles.pressed : null]}
+        >
+          <RunCardHeader
+            location={run.location}
+            onOpenProfile={onOpenProfile}
+            postedAt={run.postedAt}
+            user={run.user}
+          />
+          <RunCardContent description={run.description} title={run.title} />
+        </Pressable>
 
-      <View style={styles.footerBox}>
-        <RunCardStats stats={run.stats} />
-        <View style={styles.footerDivider} />
-        <RunCardEngagement
+        <RunCardEngagementMini
           comments={run.comments}
           disabled={engagementDisabled}
           likedByMe={run.likedByMe}
           likes={run.likes}
           onOpenComments={onOpenComments}
-          onShare={onShare}
           onToggleLike={onToggleLike}
         />
+      </View>
+
+      {/* Kept out of the tap-to-open Pressable above — nesting a horizontal
+          swipe carousel inside a tap target makes small swipe gestures
+          misfire as a tap and open run details instead of scrolling. Each
+          card inside the carousel gets its own tap-to-open handler instead. */}
+      <RunMediaCarousel
+        height={152}
+        onPressMap={onOpenDetail}
+        onPressPhoto={onOpenDetail}
+        photoUrl={run.photoUrl}
+        routePoints={run.routePoints}
+      />
+
+      <View style={styles.footerBox}>
+        <RunCardStats stats={run.stats} />
       </View>
     </View>
   );
@@ -93,7 +86,13 @@ const styles = StyleSheet.create({
     paddingVertical: spacing.md,
     gap: spacing.sm,
   },
+  topRow: {
+    flexDirection: 'row',
+    alignItems: 'flex-start',
+    gap: spacing.sm,
+  },
   body: {
+    flex: 1,
     gap: spacing.sm,
   },
   pressed: {
@@ -108,10 +107,5 @@ const styles = StyleSheet.create({
     paddingHorizontal: spacing.md,
     paddingVertical: spacing.sm,
     gap: spacing.sm,
-  },
-  footerDivider: {
-    width: 1,
-    alignSelf: 'stretch',
-    backgroundColor: colors.border,
   },
 });

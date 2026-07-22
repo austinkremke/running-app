@@ -179,6 +179,7 @@ export function AnimatedStreetRouteMap({
         pitchEnabled={false}
         projection="globe"
         rotateEnabled={false}
+        scaleBarEnabled={false}
         scrollEnabled={false}
         style={styles.map}
         styleURL={MAPBOX_STYLE_URL}

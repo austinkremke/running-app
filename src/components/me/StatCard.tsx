@@ -2,7 +2,7 @@ import { Ionicons } from '@expo/vector-icons';
 import { StyleSheet, Text, View } from 'react-native';
 
 import type { OverallStat } from '../../mock';
-import { colors, spacing } from '../../theme';
+import { cardShadow, colors, spacing } from '../../theme';
 
 type IoniconsName = React.ComponentProps<typeof Ionicons>['name'];
 
@@ -53,6 +53,7 @@ const styles = StyleSheet.create({
     paddingHorizontal: spacing.xs,
     paddingVertical: spacing.md,
     gap: 2,
+    ...cardShadow,
   },
   gridValue: {
     color: colors.textPrimary,
@@ -84,6 +85,7 @@ const styles = StyleSheet.create({
     borderColor: colors.border,
     padding: spacing.lg,
     gap: spacing.md,
+    ...cardShadow,
   },
   wideMeta: {
     flex: 1,

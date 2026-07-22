@@ -1,7 +1,7 @@
 import { StyleSheet, Text, View } from 'react-native';
 
 import type { CompetitiveStats } from '../../services/competitiveStatsService';
-import { colors, spacing } from '../../theme';
+import { cardShadow, colors, spacing } from '../../theme';
 import { SectionHeader } from './SectionHeader';
 
 type CompetitiveStatsSectionProps = {
@@ -54,6 +54,7 @@ const styles = StyleSheet.create({
     borderColor: colors.border,
     padding: spacing.lg,
     gap: 2,
+    ...cardShadow,
   },
   recordValue: {
     color: colors.textPrimary,
@@ -80,6 +81,7 @@ const styles = StyleSheet.create({
     paddingHorizontal: spacing.xs,
     paddingVertical: spacing.md,
     gap: 2,
+    ...cardShadow,
   },
   statValue: {
     color: colors.textPrimary,

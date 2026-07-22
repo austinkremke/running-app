@@ -6,6 +6,7 @@ import {
   OnboardingProvider,
   PendingActivityConfirmationProvider,
   PlayerProgressProvider,
+  PromoOfferProvider,
   RunProvider,
   XpGainProvider,
 } from './src/context';
@@ -18,12 +19,14 @@ export default function App() {
         <PlayerProgressProvider>
           <XpGainProvider>
             <PendingActivityConfirmationProvider>
-              <OnboardingProvider>
-                <RunProvider>
-                  <StatusBar style="light" />
-                  <RootNavigator />
-                </RunProvider>
-              </OnboardingProvider>
+              <PromoOfferProvider>
+                <OnboardingProvider>
+                  <RunProvider>
+                    <StatusBar style="light" />
+                    <RootNavigator />
+                  </RunProvider>
+                </OnboardingProvider>
+              </PromoOfferProvider>
             </PendingActivityConfirmationProvider>
           </XpGainProvider>
         </PlayerProgressProvider>

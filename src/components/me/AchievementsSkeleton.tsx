@@ -1,6 +1,6 @@
 import { ScrollView, StyleSheet, View } from 'react-native';
 
-import { colors, spacing } from '../../theme';
+import { cardShadow, colors, spacing } from '../../theme';
 import { ACHIEVEMENT_CARD_WIDTH } from './AchievementCard';
 import { SectionHeader } from './SectionHeader';
 
@@ -48,6 +48,7 @@ const styles = StyleSheet.create({
     paddingHorizontal: spacing.sm,
     paddingVertical: spacing.md,
     gap: spacing.sm,
+    ...cardShadow,
   },
   badge: {
     width: 52,

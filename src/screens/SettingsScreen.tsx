@@ -15,7 +15,7 @@ import {
 
 import { NotificationPreferenceRow, SettingsRow, SettingsSection, UnitToggle } from '../components/settings';
 import { APP_VERSION, LEGAL_LINKS } from '../config/appMeta';
-import { useAuth, usePendingActivityConfirmation } from '../context';
+import { useAuth, usePendingActivityConfirmation, usePlayerProgress } from '../context';
 import { useNotificationPreferences } from '../hooks/useNotificationPreferences';
 import { useUserPreferences } from '../hooks/useUserPreferences';
 import type { NotificationCategory } from '../services/pushNotifications';
@@ -31,6 +31,7 @@ import {
 import { syncHealthKitWorkouts } from '../services/healthKitSyncService';
 import { initialsFromDisplayName, pickProfilePhotoUri, uploadProfileAvatar } from '../services/profileAvatar';
 import { updateDisplayName } from '../services/profileService';
+import { clearProgression } from '../storage/progressionStorage';
 import { colors, spacing } from '../theme';
 
 type SettingsScreenProps = {
@@ -58,7 +59,16 @@ export function SettingsScreen({ onBack }: SettingsScreenProps) {
   } = useNotificationPreferences();
   const userId = session?.user?.id ?? null;
   const { pushPendingActivities } = usePendingActivityConfirmation();
+  const { refreshProgress } = usePlayerProgress();
   const [notificationCategoriesExpanded, setNotificationCategoriesExpanded] = useState(false);
+  const [isSyncingHealthKit, setIsSyncingHealthKit] = useState(false);
+
+  async function handleResetLocalXpCache() {
+    if (!userId) return;
+    await clearProgression(userId);
+    await refreshProgress();
+    Alert.alert('Done', 'Local XP cache cleared — now showing the server value.');
+  }
 
   async function handleSyncHealthKit() {
     if (!isHealthKitAvailable()) {
@@ -70,6 +80,7 @@ export function SettingsScreen({ onBack }: SettingsScreenProps) {
       return;
     }
 
+    setIsSyncingHealthKit(true);
     try {
       const granted = await requestHealthKitReadAccess();
       if (!granted) {
@@ -79,6 +90,11 @@ export function SettingsScreen({ onBack }: SettingsScreenProps) {
 
       const result = await syncHealthKitWorkouts(userId);
 
+      if (result.syncedActivities.length === 0) {
+        Alert.alert('Up to date', 'No new workouts to sync.');
+        return;
+      }
+
       // Queue the same "Lock in your run" confirmation a phone-tracked run
       // goes through, one activity at a time — confirming is what awards XP
       // and posts to the feed (PendingActivityConfirmationProvider, mounted
@@ -86,6 +102,8 @@ export function SettingsScreen({ onBack }: SettingsScreenProps) {
       pushPendingActivities(result.syncedActivities);
     } catch (error) {
       Alert.alert('Sync failed', error instanceof Error ? error.message : 'Sync failed');
+    } finally {
+      setIsSyncingHealthKit(false);
     }
   }
 
@@ -326,9 +344,11 @@ export function SettingsScreen({ onBack }: SettingsScreenProps) {
 
       <SettingsSection title="Apple Health">
         <SettingsRow
+          disabled={isSyncingHealthKit}
           icon="fitness-outline"
           label="Sync Workouts from Apple Health"
           onPress={() => void handleSyncHealthKit()}
+          value={isSyncingHealthKit ? 'Syncing…' : undefined}
         />
       </SettingsSection>
 
@@ -339,6 +359,17 @@ export function SettingsScreen({ onBack }: SettingsScreenProps) {
             label="Test HealthKit connection (debug log)"
             onPress={() => void handleTestHealthKit()}
             value={healthKitTestStatus}
+          />
+        </SettingsSection>
+      ) : null}
+
+      {__DEV__ ? (
+        <SettingsSection title="XP (Dev)">
+          <SettingsRow
+            icon="refresh-outline"
+            label="Reset local XP cache"
+            onPress={() => void handleResetLocalXpCache()}
+            value="Syncs display back to the server value"
           />
         </SettingsSection>
       ) : null}

@@ -230,6 +230,7 @@ export function MapboxMapView({
       zoomEnabled={!isRoutePreview}
       attributionEnabled={false}
       logoEnabled={false}
+      scaleBarEnabled={false}
       onDidFinishLoadingMap={handleMapReady}
     >
       <StyleImport
