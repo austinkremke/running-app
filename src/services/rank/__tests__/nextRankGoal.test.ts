@@ -9,18 +9,27 @@ const TIERS: ResolvedRankTier[] = [
 ];
 
 describe('buildNextRankGoal', () => {
-  it('returns points and progress toward the next tier', () => {
+  it('measures bronze progress from the starting rating (1000), not the tier floor (0)', () => {
     const goal = buildNextRankGoal(1000, TIERS);
 
     expect(goal).toEqual({
       nextTierId: 'silver',
       nextTierTitle: 'SILVER STRIDER',
       pointsNeeded: 200,
-      progress: 1000 / 1200,
+      progress: 0,
       currentRating: 1000,
       nextTierMinRating: 1200,
-      currentTierMinRating: 0,
+      currentTierMinRating: 1000,
     });
+  });
+
+  it('clamps bronze progress to 0 at or below the starting rating', () => {
+    expect(buildNextRankGoal(800, TIERS)?.progress).toBe(0);
+  });
+
+  it('shows partial bronze progress between the starting rating and silver', () => {
+    const goal = buildNextRankGoal(1100, TIERS);
+    expect(goal?.progress).toBeCloseTo(100 / 200, 5);
   });
 
   it('measures progress within the current tier bracket', () => {

@@ -636,6 +636,9 @@ export type Database = {
           match_id: string
           meta_json: Json
           points: number
+          rating_after: number | null
+          rating_before: number | null
+          rating_delta: number | null
           side: string
           team_id: string | null
           updated_at: string
@@ -648,6 +651,9 @@ export type Database = {
           match_id: string
           meta_json?: Json
           points?: number
+          rating_after?: number | null
+          rating_before?: number | null
+          rating_delta?: number | null
           side: string
           team_id?: string | null
           updated_at?: string
@@ -660,6 +666,9 @@ export type Database = {
           match_id?: string
           meta_json?: Json
           points?: number
+          rating_after?: number | null
+          rating_before?: number | null
+          rating_delta?: number | null
           side?: string
           team_id?: string | null
           updated_at?: string
@@ -1705,6 +1714,22 @@ export type Database = {
       get_public_run_share: { Args: { p_feed_post_id: string }; Returns: Json }
       get_solo_match_challenge_status: { Args: never; Returns: Json }
       get_solo_matchmaking_status: { Args: never; Returns: Json }
+      get_solo_rating_history: {
+        Args: { p_limit?: number; p_user_id?: string }
+        Returns: {
+          ended_at: string
+          match_id: string
+          my_points: number
+          opponent_avatar_url: string
+          opponent_id: string
+          opponent_name: string
+          opponent_points: number
+          rating_after: number
+          rating_before: number
+          rating_delta: number
+          result: string
+        }[]
+      }
       get_team_matchmaking_status: { Args: never; Returns: Json }
       get_team_notifications: { Args: never; Returns: Json }
       get_team_overview: { Args: { p_team_id: string }; Returns: Json }
@@ -1763,6 +1788,15 @@ export type Database = {
       record_achievement_event: {
         Args: { p_event_type: string; p_metadata?: Json }
         Returns: Json
+      }
+      record_match_rating_change: {
+        Args: {
+          p_delta: number
+          p_match_id: string
+          p_new_rating: number
+          p_user_id: string
+        }
+        Returns: undefined
       }
       remove_friend: { Args: { p_friend_user_id: string }; Returns: undefined }
       repair_solo_match_activity_credits: { Args: never; Returns: Json }

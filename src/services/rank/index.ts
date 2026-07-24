@@ -11,3 +11,4 @@ export {
   type EloMatchResult,
 } from './rankService';
 export { listTopPlayers } from './topPlayersService';
+export { fetchSoloRatingHistory, type SoloRatingHistoryEntry } from './ratingHistoryService';

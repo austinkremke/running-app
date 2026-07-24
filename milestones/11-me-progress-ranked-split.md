@@ -1,7 +1,7 @@
 # Me tab — Progress vs Ranked split
 
 > **Milestone:** 11  
-> **Status:** **Phase 1 shipped** — segmented `MeTabs` (Progress / Competitive) added to `MeScreen`; header chrome unchanged  
+> **Status:** **Phase 1 shipped (header now split too), Phase 2 partial** — Progress/Competitive switcher lives at the top of the header using the shared `TabAppHeader` tab style (same as Social's Feed/Leaderboards switcher); Competitive tab also has a premium Competitive History (rating-over-time) graph; header now shows a Progress-mode weekly summary in place of rank, and a Power Rating progress bar in place of the old "Next rank" callout  
 > **Depends on:** [03](./03-xp-and-ranking.md) (Level ≠ Rank), [05](./05-matchmaking-and-feed.md) Elo / competitive stats, [06](./06-account-gating-and-cosmetics.md) achievements  
 > **Unblocks:** clearer Me UX, room for season/rank deep-dives and progression polish without one endless scroll
 
@@ -102,11 +102,11 @@ Exact control (segmented control under the avatar, pills, or nested tabs) is an 
 
 | Phase | Work |
 |-------|------|
-| **1 — IA only** ✅ | `MeTabs` segmented control (`src/components/me/MeTabs.tsx`) in `MeScreen`'s scroll card. **Progress** tab: achievements, `PersonalRecordsSection`, `OverallStatsSection` + range tabs. **Competitive** tab: new `RankSummaryCard` (`src/components/me/RankSummaryCard.tsx` — tier + Power Rating + next-rank goal, same data `ProfileTopSection` already showed) + `CompetitiveStatsSection` (moved out of the always-visible scroll). Header (`ProfileTopSection` LEVEL\|RANK, `ExperienceCard`) is unchanged/shared — not split per-mode yet (open decision #2 below still open). |
-| **2 — Ranked depth** | Expand Ranked: recent matches, rating trend, clearer next-tier progress (no new backend required if data already exists) |
+| **1 — IA only** ✅ | Progress/Competitive switcher reuses the shared `TabAppHeader` (`src/components/header/TabAppHeader.tsx`, `accentActive` + `compact` — same underline-tab visual as Social's Feed/Leaderboards switcher) rendered at the very top of `MeScreen`'s header, above `ProfileTopSection` — not a separate sticky bar or a bespoke pill component (both tried and replaced). **Progress** tab: achievements, `PersonalRecordsSection`, `OverallStatsSection` + range tabs. **Competitive** tab: `RankSummaryCard` (tier + Power Rating + next-rank goal) + `CompetitiveHistorySection` + `CompetitiveStatsSection`. Header now **is** split per mode (open decision #2 resolved as "one component, `mode` prop"): `ProfileTopSection` takes `mode: 'progress' \| 'competitive'` — Competitive mode shows LEVEL + RANK; Progress mode shows LEVEL and, in place of the rank block, a "LAST WEEK" summary (`fetchWeeklyProgressSummary` — workouts completed via `activities`, XP gained via `xp_ledger` summed over the trailing 7 days, levels gained via `levelFromTotalXp(totalXp) - levelFromTotalXp(totalXp - xpGained)`) with a flame icon for workouts and a trending-up icon for XP/levels, or "No workouts in the past week / Log some workout to level up!" when empty. `bottomRow` has a fixed `minHeight` so switching tabs never shifts header height (no CLS). The XP progress bar (`ExperienceCard`) also swaps for a `RankProgressCard` on Competitive (same shape/height, `nextRankGoal.progress` toward the next tier) — the standalone "Next rank: 1200 Silver" text callout was removed since the bar conveys that now. |
+| **2 — Ranked depth** ✅ (rating trend) | `CompetitiveHistorySection`/`CompetitiveHistoryModal` — premium (`isPremium`-gated) rating-over-time graph, one point per completed solo match; tap-through to match detail. Required a real schema change (`match_participants.rating_before`/`rating_after`/`rating_delta`, `get_solo_rating_history` RPC) — see [supabase/SCHEMA.md § Solo rating history](../supabase/SCHEMA.md). Recent-matches list is the always-visible preview (`CompetitiveHistorySection`); clearer next-tier progress still lives in `RankSummaryCard` from Phase 1. |
 | **3 — Progress polish** | Optional streak / consistency block; achievement progress bars ([06](./06-account-gating-and-cosmetics.md) backlog) |
 
-No schema change required for Phase 1.
+No schema change required for Phase 1. Phase 2's Competitive History **did** require one (see above).
 
 ---
 

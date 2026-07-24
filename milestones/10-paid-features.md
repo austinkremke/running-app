@@ -38,6 +38,7 @@ Competitive **information** edge — not score inflation.
 - Predicted scores for the opposing player / team
 - Richer mid-match visibility than the free scoreboard summary
 - Suggested runs for you (and for your team) that close the gap
+- **Competitive History (shipped)** — solo ranked rating-over-time graph on the Me tab's Competitive tab, one point per completed match; tapping a point shows that match's result/rating change with a tap-through to the match detail screen. Gated by the same real RevenueCat entitlement as All-Time Bests (`isPremium`), not `__DEV__`. See [supabase/SCHEMA.md § Solo rating history](../supabase/SCHEMA.md).
 
 ### 2. Season pass (win-milestone cosmetics)
 
@@ -65,7 +66,7 @@ Depth beyond basic post-run / Me-tab stats.
 - Pace Distribution
 - Climbing Analysis
 - Heart Rate Analysis
-- **All-Time Personal Bests** — chronological PR progression per distance milestone (1/2 mile, 1k, 1 mile, 5k, 5 mile, 10k, half marathon, marathon): every run that set a new all-time best at the time it happened, oldest to newest, ending at the current record. Reached via "View All" from the Me tab's Personal Records section. Ships **dev-build-gated (`__DEV__`) only** for now, ahead of real entitlements — same seam as the other three cards above, just gated at the entry point instead of within the card.
+- **All-Time Personal Bests (shipped, real entitlement gate)** — chronological PR progression per distance milestone (1/2 mile, 1k, 1 mile, 5k, 5 mile, 10k, half marathon, marathon): every run that set a new all-time best at the time it happened, oldest to newest, ending at the current record. Reached via "View All" from the Me tab's Personal Records section. Gated by real RevenueCat entitlements (Milestone 06 Phase 5) via a full-screen `PaywallScreen`, not `__DEV__` — the other three cards below are still ungated pending the same wiring.
 - Later: cross-run trends, matched-climb history, interval / lap analysis
 
 **Team:**

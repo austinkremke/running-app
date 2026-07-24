@@ -6,21 +6,22 @@ import {
   AchievementsSection,
   AchievementsSkeleton,
   AllTimeBestsModal,
+  CompetitiveHistoryModal,
+  CompetitiveHistorySection,
   CompetitiveStatsSection,
   ExperienceCard,
-  MeTabs,
   OverallStatsRangeTabs,
   OverallStatsSection,
   PersonalRecordsSection,
   ProfileTopSection,
-  RankSummaryCard,
+  RankProgressCard,
   RankUpCelebrationDrawer,
   SectionHeader,
   StatDetailDrawer,
-  type MeTab,
   type StatDetailTarget,
 } from '../components/me';
 import { useAuth, usePlayerProgress, useUserId, useXpGain } from '../context';
+import { TabAppHeader } from '../components/header';
 import { useAchievements } from '../hooks/useAchievements';
 import { useAchievementUnlockPresentation } from '../hooks/useAchievementUnlockPresentation';
 import { useRankDisplay } from '../hooks/useRankDisplay';
@@ -33,6 +34,7 @@ import { fetchCompetitiveStats, type CompetitiveStats } from '../services/compet
 import type { DistanceMilestoneKey } from '../services/activityStreams';
 import { fetchPersonalRecords, type PersonalRecord } from '../services/distanceRecords';
 import { fetchRunByActivityId } from '../services/feedService';
+import { fetchSoloRatingHistory, type SoloRatingHistoryEntry } from '../services/rank';
 import type { Run } from '../mock';
 import {
   fetchProfileOverallStats,
@@ -41,14 +43,23 @@ import {
   type ProfileOverallStats,
 } from '../services/profileStatsService';
 import { fetchTeamNameById } from '../services/teamService';
+import { fetchWeeklyProgressSummary, type WeeklyProgressSummary } from '../services/weeklyProgressService';
 import { colors, spacing } from '../theme';
 
 /** How far the scrollable card's rounded top rides up over the static header. */
 const SCROLL_OVERLAP = -8;
 
+type MeTab = 'progress' | 'competitive';
+
+const ME_TABS = [
+  { key: 'progress', label: 'PROGRESS' },
+  { key: 'competitive', label: 'COMPETITIVE' },
+] as const;
+
 type MeScreenProps = {
   onOpenDevScreenshotMock?: () => void;
   onOpenDevTeamScreenshotMock?: () => void;
+  onOpenMatch?: (matchId: string) => void;
   onOpenRun?: (run: Run) => void;
   onOpenSettings?: () => void;
 };
@@ -56,12 +67,13 @@ type MeScreenProps = {
 export function MeScreen({
   onOpenDevScreenshotMock,
   onOpenDevTeamScreenshotMock,
+  onOpenMatch,
   onOpenRun,
   onOpenSettings,
 }: MeScreenProps) {
   const { gameState } = useAuth();
   const userId = useUserId();
-  const { level, experience } = usePlayerProgress();
+  const { level, experience, totalXp } = usePlayerProgress();
   const { showAchievementUnlocks } = useXpGain();
   const { recordEvent } = useAchievementUnlockPresentation();
   const { profileRank } = useRankDisplay();
@@ -78,9 +90,13 @@ export function MeScreen({
   const [overallStats, setOverallStats] = useState<ProfileOverallStats | null>(null);
   const [overallStatsRange, setOverallStatsRange] = useState<OverallStatsRange>('all');
   const [competitiveStats, setCompetitiveStats] = useState<CompetitiveStats | null>(null);
+  const [ratingHistory, setRatingHistory] = useState<SoloRatingHistoryEntry[]>([]);
+  const [competitiveHistoryVisible, setCompetitiveHistoryVisible] = useState(false);
   const [personalRecords, setPersonalRecords] = useState<PersonalRecord[]>([]);
   const [statDetailTarget, setStatDetailTarget] = useState<StatDetailTarget | null>(null);
+  const [weeklySummary, setWeeklySummary] = useState<WeeklyProgressSummary | null>(null);
   const [headerHeight, setHeaderHeight] = useState(0);
+  const [tabBarHeight, setTabBarHeight] = useState(0);
   const carouselAchievements = useMemo(
     () => sortAchievementsForMeCarousel(allAchievements),
     [allAchievements],
@@ -134,6 +150,28 @@ export function MeScreen({
 
   useEffect(() => {
     if (!userId) {
+      setRatingHistory([]);
+      return;
+    }
+
+    let cancelled = false;
+
+    fetchSoloRatingHistory(userId)
+      .then((entries) => {
+        if (!cancelled) setRatingHistory(entries);
+      })
+      .catch((error) => {
+        console.warn('Failed to load competitive history', error);
+        if (!cancelled) setRatingHistory([]);
+      });
+
+    return () => {
+      cancelled = true;
+    };
+  }, [userId]);
+
+  useEffect(() => {
+    if (!userId) {
       setPersonalRecords([]);
       return;
     }
@@ -153,6 +191,28 @@ export function MeScreen({
       cancelled = true;
     };
   }, [userId]);
+
+  useEffect(() => {
+    if (!userId) {
+      setWeeklySummary(null);
+      return;
+    }
+
+    let cancelled = false;
+
+    fetchWeeklyProgressSummary(userId, totalXp)
+      .then((summary) => {
+        if (!cancelled) setWeeklySummary(summary);
+      })
+      .catch((error) => {
+        console.warn('Failed to load weekly progress summary', error);
+        if (!cancelled) setWeeklySummary(null);
+      });
+
+    return () => {
+      cancelled = true;
+    };
+  }, [userId, totalXp]);
 
   useEffect(() => {
     if (!teamId) {
@@ -223,23 +283,41 @@ export function MeScreen({
   return (
     <>
       <View style={styles.container}>
+        <View onLayout={(event) => setTabBarHeight(event.nativeEvent.layout.height)} style={styles.header}>
+          <TabAppHeader
+            accentActive
+            activeTab={activeMeTab}
+            compact
+            onTabPress={(key) => setActiveMeTab(key as MeTab)}
+            tabs={[...ME_TABS]}
+          />
+        </View>
+
         <View onLayout={(event) => setHeaderHeight(event.nativeEvent.layout.height)} style={styles.profileGroup}>
-          <ProfileTopSection profile={profile} />
-          <ExperienceCard experience={profile.experience} />
+          <ProfileTopSection
+            competitiveStats={competitiveStats}
+            mode={activeMeTab}
+            profile={profile}
+            weeklySummary={weeklySummary}
+          />
+
+          {activeMeTab === 'progress' ? (
+            <ExperienceCard experience={profile.experience} />
+          ) : (
+            <RankProgressCard rank={profileRank} />
+          )}
         </View>
 
         {headerHeight > 0 ? (
           <ScrollView
             contentContainerStyle={[
               styles.content,
-              { paddingTop: Math.max(headerHeight - SCROLL_OVERLAP, 0) },
+              { paddingTop: Math.max(tabBarHeight + headerHeight - SCROLL_OVERLAP, 0) },
             ]}
             showsVerticalScrollIndicator={false}
             style={styles.scroll}
           >
           <View style={styles.scrollCard}>
-            <MeTabs onChange={setActiveMeTab} value={activeMeTab} />
-
             {activeMeTab === 'progress' ? (
               <>
                 {loading ? (
@@ -281,7 +359,12 @@ export function MeScreen({
               </>
             ) : (
               <>
-                <RankSummaryCard rank={profileRank} />
+                <CompetitiveHistorySection
+                  entries={ratingHistory}
+                  onOpen={() => setCompetitiveHistoryVisible(true)}
+                  viewerAvatarUrl={profile.avatarUrl}
+                  viewerRankTierId={profileRank.tierId}
+                />
                 {competitiveStats ? <CompetitiveStatsSection stats={competitiveStats} /> : null}
               </>
             )}
@@ -341,6 +424,15 @@ export function MeScreen({
         visible={allTimeBestsVisible}
       />
 
+      <CompetitiveHistoryModal
+        onClose={() => setCompetitiveHistoryVisible(false)}
+        onOpenMatch={onOpenMatch}
+        userId={userId}
+        viewerAvatarUrl={profile.avatarUrl}
+        viewerRankTierId={profileRank.tierId}
+        visible={competitiveHistoryVisible}
+      />
+
       <StatDetailDrawer
         onClose={() => setStatDetailTarget(null)}
         range={overallStatsRange}
@@ -377,6 +469,11 @@ const styles = StyleSheet.create({
   },
   content: {
     flexGrow: 1,
+  },
+  header: {
+    zIndex: 20,
+    elevation: 20,
+    backgroundColor: colors.background,
   },
   profileGroup: {
     zIndex: 0,

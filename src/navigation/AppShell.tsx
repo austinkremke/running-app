@@ -344,6 +344,7 @@ export function AppShell() {
         <MeScreen
           onOpenDevScreenshotMock={__DEV__ ? () => setActiveRoute('devSoloMatchScreenshot') : undefined}
           onOpenDevTeamScreenshotMock={__DEV__ ? () => setActiveRoute('devTeamScreenshot') : undefined}
+          onOpenMatch={openSoloMatchDetail}
           onOpenRun={openRunDetail}
           onOpenSettings={() => openSettings('me')}
         />

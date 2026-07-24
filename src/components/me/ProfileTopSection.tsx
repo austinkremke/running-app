@@ -2,13 +2,18 @@ import { Ionicons } from '@expo/vector-icons';
 import { StyleSheet, Text, View } from 'react-native';
 
 import type { UserProfile } from '../../mock';
+import type { CompetitiveStats } from '../../services/competitiveStatsService';
+import type { WeeklyProgressSummary } from '../../services/weeklyProgressService';
 import { colors, spacing } from '../../theme';
 import { ProfileAvatar } from './ProfileAvatar';
-import { ShimmerText } from './ShimmerText';
 import { rankTierColorForTier, shortRankTierName } from '../team/rankAvatarBorderTheme';
 
 type ProfileTopSectionProps = {
   profile: Pick<UserProfile, 'name' | 'avatarUrl' | 'clanName' | 'level' | 'rank'>;
+  /** Progress hides the rank block in favor of a last-7-days summary; Competitive shows rank as before. */
+  mode?: 'progress' | 'competitive';
+  weeklySummary?: WeeklyProgressSummary | null;
+  competitiveStats?: CompetitiveStats | null;
   onEditAvatar?: () => void;
 };
 
@@ -22,7 +27,23 @@ function formatRating(rank: UserProfile['rank']): string {
   return rank.subtitle.replace(/\s*(rating|points|power rating)$/i, '').trim();
 }
 
-export function ProfileTopSection({ profile, onEditAvatar }: ProfileTopSectionProps) {
+function xpGainedLine(summary: WeeklyProgressSummary): string {
+  if (summary.levelsGained > 0) {
+    const levelWord = summary.levelsGained === 1 ? 'level' : 'levels';
+    return `${summary.xpGained.toLocaleString()} XP and ${summary.levelsGained} ${levelWord} gained`;
+  }
+  return `${summary.xpGained.toLocaleString()} XP gained`;
+}
+
+export function ProfileTopSection({
+  profile,
+  mode = 'competitive',
+  weeklySummary,
+  competitiveStats,
+  onEditAvatar,
+}: ProfileTopSectionProps) {
+  const showRank = mode === 'competitive';
+
   return (
     <View style={styles.container}>
       <View style={styles.topRow}>
@@ -47,50 +68,68 @@ export function ProfileTopSection({ profile, onEditAvatar }: ProfileTopSectionPr
       </View>
 
       <View style={styles.bottomRow}>
-        <View style={styles.levelBlock}>
-          <Text style={[styles.label, styles.levelLabel, styles.centerText]}>LEVEL</Text>
-          <Text style={[styles.levelValue, styles.centerText]}>{profile.level}</Text>
-        </View>
+        {showRank ? (
+          <>
+            <View style={styles.rankBlock}>
+              <Text style={styles.label}>RANK</Text>
+              <Text style={[styles.rankValue, { color: rankTierColorForTier(profile.rank.tierId) }]}>
+                {shortRankTierName(profile.rank.tierId, profile.rank.title).toUpperCase()}
+              </Text>
+              <Text style={styles.ratingLine}>
+                <Text style={styles.ratingValue}>{formatRating(profile.rank)}</Text>
+                <Text style={styles.ratingSuffix}> Power Rating</Text>
+              </Text>
+            </View>
 
-        <View style={styles.divider} />
+            {competitiveStats && competitiveStats.totalMatches > 0 ? (
+              <>
+                <View style={styles.divider} />
 
-        <View style={styles.rankBlock}>
-          <Text style={styles.label}>RANK</Text>
-          <ShimmerText
-            color={rankTierColorForTier(profile.rank.tierId)}
-            fontSize={28}
-            letterSpacing={0.3}
-            text={shortRankTierName(profile.rank.tierId, profile.rank.title)}
-          />
-          <Text style={styles.ratingLine}>
-            <Text style={styles.ratingValue}>{formatRating(profile.rank)}</Text>
-            <Text style={styles.ratingSuffix}> Power Rating</Text>
-          </Text>
-        </View>
-      </View>
+                <View style={styles.recordBlock}>
+                  <Text style={styles.label}>RECORD</Text>
+                  <Text style={styles.recordValue}>
+                    {competitiveStats.wins}-{competitiveStats.losses}
+                  </Text>
+                  <Text style={styles.recordMeta}>{competitiveStats.totalMatches} matches</Text>
+                </View>
+              </>
+            ) : null}
+          </>
+        ) : (
+          <>
+            <View style={styles.levelBlock}>
+              <Text style={[styles.label, styles.levelLabel, styles.centerText]}>LEVEL</Text>
+              <Text style={[styles.levelValue, styles.centerText]}>{profile.level}</Text>
+            </View>
 
-      {profile.rank.nextRankGoal ? (
-        <View style={styles.nextRankBlock}>
-          <Text style={styles.nextRankLabel}>Next rank</Text>
-          <Text style={styles.nextRankLine}>
-            <Text style={styles.nextRankRating}>
-              {profile.rank.nextRankGoal.nextTierMinRating.toLocaleString()}
-            </Text>
-            <Text style={styles.nextRankLabel}> </Text>
-            <Text
-              style={[
-                styles.nextRankTier,
-                { color: rankTierColorForTier(profile.rank.nextRankGoal.nextTierId) },
-              ]}
-            >
-              {shortRankTierName(
-                profile.rank.nextRankGoal.nextTierId,
-                profile.rank.nextRankGoal.nextTierTitle,
+            <View style={styles.divider} />
+
+            <View style={styles.weeklyBlock}>
+              <Text style={styles.label}>LAST WEEK</Text>
+              {weeklySummary && weeklySummary.workoutsCompleted > 0 ? (
+                <>
+                  <View style={styles.weeklyRow}>
+                    <Ionicons color={colors.accentOrange} name="flame" size={14} />
+                    <Text style={styles.weeklyText}>
+                      {weeklySummary.workoutsCompleted} workout{weeklySummary.workoutsCompleted === 1 ? '' : 's'}{' '}
+                      completed
+                    </Text>
+                  </View>
+                  <View style={styles.weeklyRow}>
+                    <Ionicons color={colors.accentLime} name="trending-up" size={14} />
+                    <Text style={styles.weeklyText}>{xpGainedLine(weeklySummary)}</Text>
+                  </View>
+                </>
+              ) : (
+                <>
+                  <Text style={styles.weeklyText}>No workouts in the past week</Text>
+                  <Text style={styles.weeklyMeta}>Log some workout to level up!</Text>
+                </>
               )}
-            </Text>
-          </Text>
-        </View>
-      ) : null}
+            </View>
+          </>
+        )}
+      </View>
     </View>
   );
 }
@@ -134,6 +173,9 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'stretch',
     gap: spacing.xl,
+    // Fixed so switching Progress <-> Competitive never shifts layout (no CLS) —
+    // both the rank block and the weekly-summary block fit within this height.
+    minHeight: 78,
   },
   levelBlock: {
     width: AVATAR_SIZE + spacing.md,
@@ -171,6 +213,12 @@ const styles = StyleSheet.create({
     minWidth: 0,
     gap: 2,
   },
+  rankValue: {
+    fontSize: 28,
+    fontWeight: '800',
+    fontStyle: 'italic',
+    letterSpacing: 0.3,
+  },
   ratingLine: {
     marginTop: spacing.xs,
   },
@@ -188,31 +236,43 @@ const styles = StyleSheet.create({
     fontStyle: 'italic',
     lineHeight: 30,
   },
-  nextRankBlock: {
-    position: 'absolute',
-    right: 0,
-    bottom: 0,
-    alignItems: 'flex-end',
+  recordBlock: {
+    minWidth: 0,
+    gap: 2,
   },
-  nextRankLine: {
-    marginTop: 1,
-  },
-  nextRankLabel: {
-    color: colors.textSecondary,
-    fontSize: 9,
-    fontWeight: '700',
-    letterSpacing: 0.5,
-    textTransform: 'uppercase',
-  },
-  nextRankRating: {
+  recordValue: {
     color: colors.textPrimary,
-    fontSize: 11,
-    fontWeight: '700',
-  },
-  nextRankTier: {
-    fontSize: 11,
+    fontSize: 28,
     fontWeight: '800',
     fontStyle: 'italic',
-    letterSpacing: 0.2,
+    lineHeight: 30,
+    marginTop: spacing.xs,
+  },
+  recordMeta: {
+    color: colors.textSecondary,
+    fontSize: 11,
+  },
+  weeklyBlock: {
+    flex: 1,
+    minWidth: 0,
+    justifyContent: 'center',
+    gap: 4,
+  },
+  weeklyRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 6,
+    marginTop: 2,
+  },
+  weeklyText: {
+    color: colors.textPrimary,
+    fontSize: 12,
+    fontWeight: '600',
+    flexShrink: 1,
+  },
+  weeklyMeta: {
+    color: colors.textSecondary,
+    fontSize: 11,
+    marginTop: 2,
   },
 });
