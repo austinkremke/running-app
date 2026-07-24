@@ -114,6 +114,7 @@ function buildRunFromTeamMatchActivity(
 
   return {
     id: activity.id,
+    activityId: activity.id,
     user: {
       id: member?.user_id ?? activity.user_id,
       name: member?.display_name ?? 'Runner',

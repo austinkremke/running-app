@@ -345,6 +345,7 @@ function buildRunFromSoloMatchActivity(
 
   return {
     id: activity.id,
+    activityId: activity.id,
     user: {
       id: profile.id,
       name: profile.display_name,

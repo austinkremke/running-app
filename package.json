@@ -12,6 +12,7 @@
     "@types/jest": "29.5.14",
     "expo": "~56.0.9",
     "expo-apple-authentication": "~56.0.4",
+    "expo-blur": "~56.0.4",
     "expo-build-properties": "~56.0.19",
     "expo-constants": "~56.0.21",
     "expo-dev-client": "~56.0.23",
@@ -29,6 +30,8 @@
     "react": "19.2.3",
     "react-native": "0.85.3",
     "react-native-nitro-modules": "^0.36.1",
+    "react-native-purchases": "^10.4.4",
+    "react-native-purchases-ui": "^10.4.4",
     "react-native-safe-area-context": "~5.7.0",
     "react-native-svg": "15.15.4"
   },

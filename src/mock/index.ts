@@ -62,6 +62,7 @@ export type {
   TeamRole,
   TeamStat,
   TeamLogoAccent,
+  TopPlayerListing,
   TopTeamListing,
   TopTeamsTab,
   UserProfile,

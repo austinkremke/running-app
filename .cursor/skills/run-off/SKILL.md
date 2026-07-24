@@ -61,6 +61,9 @@ Mention milestone/phase in the subject (e.g. `milestone 02 Phase C`) and note do
 | 06 | Account settings, achievements, rank avatar borders, level & paywall gates | **In progress** — Phase 1–4 shipped; Phase 5 paywall next |
 | 07 | Team play — creation, management, team matchmaking | **In progress** — Phase 1–3 + invites/join-requests shipped; Phase 4 scoring/finalize next |
 | 08 | Run detail (activity overview) | **Shipped** (v1) — fullscreen map, charts, mile splits, delete own run |
+| 09 | Wearable integration (HealthKit) | **In progress** — Phase 1–3 shipped; Phase 4 background sync next |
+| 10 | Paid features & monetization | **Planned** — Pro catalog decided; plumbing via 06 Phase 5 |
+| 11 | Me tab — Progress vs Ranked split | **Planned** — separate Me surfaces for XP vs competitive rank |
 
 ---
 

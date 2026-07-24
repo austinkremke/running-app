@@ -1,5 +1,5 @@
 import { ActivityIndicator, Alert, FlatList, StyleSheet, Text, View } from 'react-native';
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 
 import {
   FeedCommentsDrawer,
@@ -15,6 +15,7 @@ import { useAchievementUnlockPresentation } from '../hooks/useAchievementUnlockP
 import { useFeed } from '../hooks/useFeed';
 import { useFriends } from '../hooks/useFriends';
 import type { FriendSearchResult } from '../services/friendService';
+import { fetchDistanceBadges, type DistanceBadge } from '../services/distanceRecords';
 import { colors, spacing } from '../theme';
 import { formatRelativeTime } from '../utils/formatRelativeTime';
 
@@ -42,6 +43,31 @@ export function FeedScreen({
   const [commentsPostId, setCommentsPostId] = useState<string | null>(null);
   const [addingFriendId, setAddingFriendId] = useState<string | null>(null);
   const [findFriendsVisible, setFindFriendsVisible] = useState(false);
+  const [distanceBadges, setDistanceBadges] = useState<Record<string, DistanceBadge[]>>({});
+
+  useEffect(() => {
+    const runActivityIds = items
+      .filter((item) => item.kind === 'run')
+      .map((item) => item.run.activityId);
+
+    if (runActivityIds.length === 0) {
+      setDistanceBadges({});
+      return;
+    }
+
+    let cancelled = false;
+    fetchDistanceBadges(runActivityIds)
+      .then((badges) => {
+        if (!cancelled) setDistanceBadges(badges);
+      })
+      .catch(() => {
+        if (!cancelled) setDistanceBadges({});
+      });
+
+    return () => {
+      cancelled = true;
+    };
+  }, [items]);
 
   const emptyMessage =
     activeTab === 'friends'
@@ -147,6 +173,7 @@ export function FeedScreen({
             />
           ) : (
             <RunCard
+              distanceBadges={distanceBadges[item.run.activityId]}
               engagementDisabled={likingPostId === item.id}
               onOpenComments={() => setCommentsPostId(item.id)}
               onOpenDetail={onOpenRun ? () => onOpenRun(item.run) : undefined}

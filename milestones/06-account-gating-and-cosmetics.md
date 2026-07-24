@@ -1,7 +1,7 @@
 # Account settings, gating & progression cosmetics
 
 > **Milestone:** 06  
-> **Status:** **In progress** — Phase 1–4 shipped; Phase 5 paywall next  
+> **Status:** **In progress** — Phase 1–4 shipped; Phase 5 client-side RevenueCat plumbing shipped, live store products/entitlements still pending  
 > **Depends on:** [02 Supabase](./02-supabase-backend.md) (auth + profiles), [03 XP & rank](./03-xp-and-ranking.md) (level, rank tiers, achievements data model)  
 > **Unblocks:** [07 Team play](./07-team-play.md) (`create_team` feature gate)
 
@@ -280,7 +280,7 @@ Achievement XP is **one-time only** — supplementary to run XP, not a farming l
 
 **Never gated:** run recording, XP lock-in, own history/stats/achievements, feed viewing + posting, likes, add friend, join team, settings, delete account.
 
-**Premium earmarks (Phase 5 — do not level-gate):** advanced stats/analytics, GPX export, concurrent match slots, premium cosmetics. Rank avatar borders stay free.
+**Premium earmarks (Phase 5 — do not level-gate):** see the decided catalog in [10 Paid features](./10-paid-features.md) — Pro pillars are match scouting, season-pass cosmetics, advanced personal/team analytics, private matches, and tournaments / seasonal events. Secondary perks (GPX export, extra match slots, background sync) remain optional. Rank avatar borders stay free.
 
 #### Implementation shape
 
@@ -289,12 +289,18 @@ Achievement XP is **one-time only** — supplementary to run XP, not a farming l
 - **Client:** `featureGateService.ts` fetches + caches catalog; `useFeatureGate(featureId)` hook derives locked/unlocked from `PlayerProgressContext` level; locked UI uses “Reach level N” copy — never subscription copy.
 - Gates fail **open** on fetch error client-side (don’t brick UI offline); server checks remain authoritative.
 
-### Phase 5 — Paywall blocking features
+### Phase 5 — Paywall blocking features **(client-side plumbing shipped, no live products yet)**
 
-- RevenueCat (or StoreKit) integration; `entitlements` on profile or separate table
-- Central `premiumFeatures` config separate from level gates
-- Paywall sheet component; restore purchases
-- Server validation for premium-only APIs
+**Product catalog:** [10 Paid features & monetization](./10-paid-features.md) (Pro pillars, free-forever list, rejected ideas).
+
+**Shipped:** `react-native-purchases` + `react-native-purchases-ui` (RevenueCat) wired app-wide via `PurchasesProvider` (`src/context/PurchasesContext.tsx`, mounted in `App.tsx` inside `AuthProvider` so it can `Purchases.logIn(userId)`). Configures the SDK from `EXPO_PUBLIC_REVENUECAT_IOS_API_KEY`/`_ANDROID_API_KEY` (a shared RevenueCat test/sandbox key for now — real per-platform keys land once App Store Connect/Google Play products exist; blank fails open to non-premium with a console warning rather than crashing). Entitlement identifier is `"Run Off Pro"` and package identifiers are `monthly`/`yearly` (`src/config/purchases.ts`) — must match the RevenueCat dashboard exactly. `usePurchases()` exposes `isPremium` (derived from `CustomerInfo.entitlements.active`), `customerInfo`, `offering`, `purchasePackage`, `restorePurchases`, plus RevenueCatUI helpers `presentPaywall`, `presentPaywallIfNeeded`, and `presentCustomerCenter`. `AllTimeBestsModal` (the first paywalled surface — [10 § Advanced analytics](./10-paid-features.md)) reads `isPremium` directly instead of the old hardcoded `__DEV__`-only flag; non-premium renders the full-screen `PaywallScreen` (`src/components/premium/`), which embeds RevenueCat's **hosted paywall template** (`RevenueCatUI.Paywall`, with the context message passed through as a `{{ custom.context_message }}` custom variable) once an offering exists, falling back to a minimal hand-built screen before any dashboard template/products are configured. `SettingsScreen` has a "Subscription" section: non-Pro users see "Upgrade to Run Off Pro" (`presentPaywall`); Pro users see "Manage subscription" via the RevenueCat **Customer Center** (`presentCustomerCenter` — cancel, refunds (iOS), restore, all configured in-dashboard, no custom UI needed).
+
+**Not yet done:**
+
+- No RevenueCat project / App Store Connect / Google Play products exist yet — only a shared test API key is set, so `isPremium` is always `false` today and `offering`/paywall templates depend on what that test project has configured.
+- No server-side entitlement validation for premium-only APIs (RPCs currently don't check Pro status).
+- No central `premiumFeatures` config mapping catalog keys ([10](./10-paid-features.md)) to gated UI — only the one All-Time Bests surface is wired so far; Pace Distribution / Climbing Analysis / Heart Rate Analysis cards are still ungated.
+- `entitlements` are RevenueCat-hosted, not mirrored onto `profiles` — fine for client gating, but anything needing entitlement state server-side (e.g. webhooks) isn't built.
 
 ---
 
@@ -311,7 +317,7 @@ Achievement XP is **one-time only** — supplementary to run XP, not a farming l
 
 ## Open decisions
 
-1. ~~Which features are **premium** vs **level-gated** vs **free**?~~ **Decided (Phase 4):** see [decided gate catalog](#decided-gate-catalog-v1); premium catalog itself still TBD in Phase 5.
+1. ~~Which features are **premium** vs **level-gated** vs **free**?~~ **Decided:** level gates in [decided gate catalog](#decided-gate-catalog-v1); Pro catalog in [10](./10-paid-features.md).
 2. Achievement unlock: push notification on unlock? (See [06 Phase 2 catalog](./06-account-gating-and-cosmetics.md#phase-2--achievements).)
 3. Avatar borders: also show level badge, or rank-only frame?
 4. Delete account: hard delete vs soft delete + retention policy.
@@ -325,3 +331,4 @@ Achievement XP is **one-time only** — supplementary to run XP, not a farming l
 | [02 Supabase](./02-supabase-backend.md) | `profiles`, Storage, auth providers |
 | [03 XP & rank](./03-xp-and-ranking.md) | `totalXp` / level for gates; `rank_tiers` for borders; XP ledger achievement source |
 | [05 Matchmaking](./05-matchmaking-and-feed.md) | Match-based achievements; premium match modes (if any) |
+| [10 Paid features](./10-paid-features.md) | Pro product catalog; Phase 5 implements entitlements against it |

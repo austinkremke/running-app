@@ -12,7 +12,7 @@ export type AppRoute =
   | 'teamMatchDetail'
   | 'soloMatchDetail'
   | 'team'
-  | 'topTeams'
+  | 'teamDetail'
   | 'me'
   | 'settings'
   | 'userProfile'
@@ -29,7 +29,7 @@ type RouteConfig = {
 };
 
 export const ROUTES: Record<AppRoute, RouteConfig> = {
-  feed: { title: 'FEED', showFeedTabs: true, showHeaderBorder: false },
+  feed: { title: 'SOCIAL', showFeedTabs: true, showHeaderBorder: false },
   runDetail: { title: 'RUN', showFeedTabs: false, hideChrome: true },
   run: { title: 'RUN', showFeedTabs: false, hideChrome: true },
   match: {
@@ -59,11 +59,7 @@ export const ROUTES: Record<AppRoute, RouteConfig> = {
     showHeaderBorder: true,
   },
   team: { title: 'TEAM', screen: TeamScreen, showFeedTabs: false, showHeaderBorder: true },
-  topTeams: {
-    title: 'TOP TEAMS',
-    showFeedTabs: false,
-    showHeaderBorder: true,
-  },
+  teamDetail: { title: 'TEAM', showFeedTabs: false, hideChrome: true },
   me: { title: 'ME', screen: MeScreen, showFeedTabs: false, showHeaderBorder: true },
   settings: { title: 'SETTINGS', showFeedTabs: false, showHeaderBorder: true },
   userProfile: { title: 'PROFILE', showFeedTabs: false, hideChrome: true },

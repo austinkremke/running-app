@@ -10,3 +10,4 @@ export {
   fetchRankTiers,
   type EloMatchResult,
 } from './rankService';
+export { listTopPlayers } from './topPlayersService';

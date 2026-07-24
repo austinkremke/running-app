@@ -7,6 +7,7 @@ import {
   PendingActivityConfirmationProvider,
   PlayerProgressProvider,
   PromoOfferProvider,
+  PurchasesProvider,
   RunProvider,
   XpGainProvider,
 } from './src/context';
@@ -16,20 +17,22 @@ export default function App() {
   return (
     <SafeAreaProvider>
       <AuthProvider>
-        <PlayerProgressProvider>
-          <XpGainProvider>
-            <PendingActivityConfirmationProvider>
-              <PromoOfferProvider>
-                <OnboardingProvider>
-                  <RunProvider>
-                    <StatusBar style="light" />
-                    <RootNavigator />
-                  </RunProvider>
-                </OnboardingProvider>
-              </PromoOfferProvider>
-            </PendingActivityConfirmationProvider>
-          </XpGainProvider>
-        </PlayerProgressProvider>
+        <PurchasesProvider>
+          <PlayerProgressProvider>
+            <XpGainProvider>
+              <PendingActivityConfirmationProvider>
+                <PromoOfferProvider>
+                  <OnboardingProvider>
+                    <RunProvider>
+                      <StatusBar style="light" />
+                      <RootNavigator />
+                    </RunProvider>
+                  </OnboardingProvider>
+                </PromoOfferProvider>
+              </PendingActivityConfirmationProvider>
+            </XpGainProvider>
+          </PlayerProgressProvider>
+        </PurchasesProvider>
       </AuthProvider>
     </SafeAreaProvider>
   );

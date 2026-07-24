@@ -57,22 +57,13 @@ async function fetchTeamOverview(teamId: string): Promise<TeamOverview | null> {
   }
 }
 
-export async function fetchMyTeam(userId: string): Promise<Team | null> {
+async function loadTeamById(teamId: string): Promise<Team | null> {
   if (!supabase) return null;
-
-  const { data: membership, error: membershipError } = await supabase
-    .from('team_members')
-    .select('team_id')
-    .eq('user_id', userId)
-    .maybeSingle();
-
-  if (membershipError) throw membershipError;
-  if (!membership) return null;
 
   const { data: team, error: teamError } = await supabase
     .from('teams')
     .select('*')
-    .eq('id', membership.team_id)
+    .eq('id', teamId)
     .maybeSingle();
 
   if (teamError) throw teamError;
@@ -131,6 +122,26 @@ export async function fetchMyTeam(userId: string): Promise<Team | null> {
   });
 
   return mapTeamRow(team, members, members.length, totalMemberXp, overview, tiers);
+}
+
+export async function fetchMyTeam(userId: string): Promise<Team | null> {
+  if (!supabase) return null;
+
+  const { data: membership, error: membershipError } = await supabase
+    .from('team_members')
+    .select('team_id')
+    .eq('user_id', userId)
+    .maybeSingle();
+
+  if (membershipError) throw membershipError;
+  if (!membership) return null;
+
+  return loadTeamById(membership.team_id);
+}
+
+/** Read-only lookup of any team by id, for the public team-view screen — no membership required. */
+export async function fetchTeamById(teamId: string): Promise<Team | null> {
+  return loadTeamById(teamId);
 }
 
 /** Lightweight team name lookup for profile display (Me tab). */

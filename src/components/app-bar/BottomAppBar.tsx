@@ -22,7 +22,7 @@ export type BottomAppBarItem = {
 };
 
 export const DEFAULT_BOTTOM_APP_BAR_ITEMS: BottomAppBarItem[] = [
-  { key: 'feed', label: 'Feed', icon: 'people-outline', activeIcon: 'people' },
+  { key: 'feed', label: 'Social', icon: 'people-outline', activeIcon: 'people' },
   { key: 'run', label: 'Run', icon: 'walk-outline', activeIcon: 'walk', SvgIcon: RunnerIcon },
   { key: 'match', label: 'Match', icon: 'trophy-outline', activeIcon: 'trophy' },
   { key: 'team', label: 'Team', icon: 'shield-outline', activeIcon: 'shield' },

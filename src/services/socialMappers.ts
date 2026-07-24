@@ -82,6 +82,7 @@ export function mapFeedPostToRun(
 
   return {
     id: post.id,
+    activityId: activity.id,
     user: {
       id: profile.id,
       name: profile.display_name,

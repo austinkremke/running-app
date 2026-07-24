@@ -13,6 +13,8 @@ import {
 import type { FeedTab } from '../mock';
 import { useAchievementUnlockPresentation } from '../hooks/useAchievementUnlockPresentation';
 import { recordsToGpsPoints } from '../services/activityAdapters';
+import { computeDistanceMilestoneSplits } from '../services/activityStreams';
+import { recordDistanceSplits } from '../services/distanceRecords';
 import { publishActivityToFeed } from '../services/feedService';
 import { makeMockRunActivity } from '../services/progression/mockRunActivity';
 import { uploadRunPhoto } from '../services/runPhotoUpload';
@@ -119,6 +121,15 @@ export function RunScreen({ onBack }: RunScreenProps) {
     } catch (error) {
       Alert.alert('Feed post failed', getErrorMessage(error, 'Could not post to feed.'));
       return;
+    }
+
+    try {
+      const splits = computeDistanceMilestoneSplits(finishedRun.records);
+      if (splits.length > 0) {
+        await recordDistanceSplits(activityId, splits);
+      }
+    } catch (error) {
+      console.warn('[RunScreen] Could not record distance milestone splits', error);
     }
 
     try {

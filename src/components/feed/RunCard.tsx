@@ -1,7 +1,9 @@
 import { Pressable, StyleSheet, View } from 'react-native';
 
 import type { Run } from '../../mock';
+import type { DistanceBadge } from '../../services/distanceRecords';
 import { colors, spacing } from '../../theme';
+import { DistanceMedalRow } from '../badges';
 import { RunCardContent } from './RunCardContent';
 import { RunCardEngagementMini } from './RunCardEngagementMini';
 import { RunCardHeader } from './RunCardHeader';
@@ -18,6 +20,8 @@ type RunCardProps = {
   onOpenDetail?: () => void;
   /** Opens the runner's profile — the avatar/name specifically, not the rest of the card. */
   onOpenProfile?: () => void;
+  /** Current gold/silver/bronze distance-milestone badges this run holds, if any. */
+  distanceBadges?: DistanceBadge[];
 };
 
 export function RunCard({
@@ -27,6 +31,7 @@ export function RunCard({
   onOpenComments,
   onOpenDetail,
   onOpenProfile,
+  distanceBadges,
 }: RunCardProps) {
   return (
     <View style={styles.card}>
@@ -45,6 +50,7 @@ export function RunCard({
             user={run.user}
           />
           <RunCardContent description={run.description} title={run.title} />
+          {distanceBadges?.length ? <DistanceMedalRow badges={distanceBadges} /> : null}
         </Pressable>
 
         <RunCardEngagementMini

@@ -4,6 +4,8 @@ import { SafeAreaProvider } from 'react-native-safe-area-context';
 
 import type { PendingSyncedActivity } from '../services/healthKitSyncService';
 import { recordsToGpsPoints } from '../services/activityAdapters';
+import { computeDistanceMilestoneSplits } from '../services/activityStreams';
+import { recordDistanceSplits } from '../services/distanceRecords';
 import { createFeedPost } from '../services/feedService';
 import { isHealthKitAvailable, requestHealthKitReadAccess } from '../services/healthKitService';
 import { syncHealthKitWorkouts } from '../services/healthKitSyncService';
@@ -96,6 +98,15 @@ export function PendingActivityConfirmationProvider({ children }: { children: Re
     } catch (error) {
       Alert.alert('Feed post failed', getErrorMessage(error, 'Could not post to feed.'));
       return;
+    }
+
+    try {
+      const splits = computeDistanceMilestoneSplits(current.records);
+      if (splits.length > 0) {
+        await recordDistanceSplits(current.session.id, splits);
+      }
+    } catch (error) {
+      console.warn('[PendingActivityConfirmation] Could not record distance milestone splits', error);
     }
 
     // Hide this Lock-In screen now; the XP drawer takes over next. The next

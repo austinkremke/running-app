@@ -38,14 +38,14 @@ import { colors, spacing } from '../theme';
 const TEAM_ACTIVITY_LIMIT = 5;
 
 type TeamScreenProps = {
-  onOpenTopTeams?: () => void;
+  onOpenLeaderboards?: () => void;
   onOpenRun?: (run: Run) => void;
   onViewAllActivity?: () => void;
   onOpenProfile?: (userId: string) => void;
 };
 
 export function TeamScreen({
-  onOpenTopTeams,
+  onOpenLeaderboards,
   onOpenRun,
   onViewAllActivity,
   onOpenProfile,
@@ -380,7 +380,7 @@ export function TeamScreen({
         showsVerticalScrollIndicator={false}
         style={styles.scroll}
       >
-        <TeamTopSection onRankPress={onOpenTopTeams} team={team} />
+        <TeamTopSection onRankPress={onOpenLeaderboards} team={team} />
         <TeamStatsSection stats={team.stats} />
         <TeamMembersSection
           canManageMember={(member) =>

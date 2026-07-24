@@ -54,6 +54,69 @@ export async function publishActivityToFeed(input: CreateFeedPostInput): Promise
   await createFeedPost(input);
 }
 
+/** Fetches a single run (as the feed-card `Run` shape RunDetailScreen expects) by its
+ * underlying `activities.id` — used when navigating to run detail from a surface that
+ * only has an activity id (e.g. All-Time Bests), not a `Run` already loaded in a feed list. */
+export async function fetchRunByActivityId(
+  activityId: string,
+  viewerUserId: string | null = null,
+): Promise<Run | null> {
+  if (!supabase) return null;
+
+  const [{ data, error }, rankTierRows] = await Promise.all([
+    supabase
+      .from('feed_posts')
+      .select(
+        `
+        *,
+        profiles:user_id (
+          id,
+          display_name,
+          avatar_url,
+          team_id,
+          player_progress (total_xp),
+          player_rank (competitive_rating),
+          teams:team_id (name)
+        ),
+        activities:activity_id (*)
+      `,
+      )
+      .eq('activity_id', activityId)
+      .maybeSingle(),
+    fetchRankTiers(),
+  ]);
+
+  if (error) throw error;
+  if (!data) return null;
+
+  const rankTiers = rankTierRows.map(mapRankTierRow);
+  const profile = data.profiles as
+    | (Tables<'profiles'> & {
+        player_progress?: { total_xp: number } | { total_xp: number }[] | null;
+        player_rank?: { competitive_rating: number } | { competitive_rating: number }[] | null;
+        teams?: { name: string } | { name: string }[] | null;
+      })
+    | null;
+  const activity = data.activities as Tables<'activities'> | null;
+  if (!profile || !activity) return null;
+
+  const progress = Array.isArray(profile.player_progress) ? profile.player_progress[0] : profile.player_progress;
+  const rank = Array.isArray(profile.player_rank) ? profile.player_rank[0] : profile.player_rank;
+  const teamRecord = profile.teams;
+  const teamName = Array.isArray(teamRecord) ? teamRecord[0]?.name : teamRecord?.name;
+  const engagementByPostId = await fetchFeedEngagementSummaries([data.id], viewerUserId);
+  const engagement = engagementByPostId[data.id] ?? { likeCount: 0, commentCount: 0, likedByMe: false };
+
+  return mapFeedPostToRun(
+    data,
+    { ...profile, player_progress: progress ?? null, player_rank: rank ?? null },
+    activity,
+    teamName ?? null,
+    engagement,
+    rankTiers,
+  );
+}
+
 export async function fetchFeedPosts(
   tab: FeedTab,
   viewerUserId: string | null = null,

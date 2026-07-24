@@ -13,6 +13,7 @@ import {
   PostRunPrimaryStats,
 } from '../components/post-run';
 import { FeedCommentsDrawer, RunCardEngagement, RunMediaCarousel } from '../components/feed';
+import { DistanceMedalRow } from '../components/badges';
 import { HeaderIconButton } from '../components/header';
 import { useUserId } from '../context';
 import { useAchievementUnlockPresentation } from '../hooks/useAchievementUnlockPresentation';
@@ -24,6 +25,7 @@ import {
 } from '../services/activityDetailService';
 import { fetchActivityTrack } from '../services/activityTrackService';
 import { buildClimbingAnalysis } from '../services/climbingAnalysisService';
+import { fetchDistanceBadges, type DistanceBadge } from '../services/distanceRecords';
 import { buildHeartRateAnalysis } from '../services/heartRateAnalysisService';
 import { buildPaceDistribution } from '../services/paceDistributionService';
 import { getPaceProfile } from '../services/paceProfileService';
@@ -54,6 +56,21 @@ export function RunDetailScreen({ run, onBack, onDeleted }: RunDetailScreenProps
   const [liked, setLiked] = useState(run.likedByMe);
   const [likes, setLikes] = useState(run.likes);
   const [comments, setComments] = useState(run.comments);
+  const [distanceBadges, setDistanceBadges] = useState<DistanceBadge[]>([]);
+
+  useEffect(() => {
+    let cancelled = false;
+    fetchDistanceBadges([run.activityId])
+      .then((badges) => {
+        if (!cancelled) setDistanceBadges(badges[run.activityId] ?? []);
+      })
+      .catch(() => {
+        if (!cancelled) setDistanceBadges([]);
+      });
+    return () => {
+      cancelled = true;
+    };
+  }, [run.activityId]);
 
   useEffect(() => {
     let cancelled = false;
@@ -217,6 +234,11 @@ export function RunDetailScreen({ run, onBack, onDeleted }: RunDetailScreenProps
               {extras?.dateLabel || run.postedAt}
               {run.location ? ` · ${run.location}` : ''}
             </Text>
+            {distanceBadges.length > 0 ? (
+              <View style={styles.medalRow}>
+                <DistanceMedalRow badges={distanceBadges} />
+              </View>
+            ) : null}
           </View>
           <Pressable
             accessibilityLabel="Share this run"
@@ -310,6 +332,9 @@ const styles = StyleSheet.create({
   titleBlock: {
     flex: 1,
     gap: 4,
+  },
+  medalRow: {
+    marginTop: 2,
   },
   shareButton: {
     width: 36,

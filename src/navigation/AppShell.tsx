@@ -33,24 +33,26 @@ import { getSoloMatchmakingStatus } from '../services/matchmakingService';
 import { DevSoloMatchScreenshotScreen } from '../screens/DevSoloMatchScreenshotScreen';
 import { DevTeamScreenshotScreen } from '../screens/DevTeamScreenshotScreen';
 import { FeedScreen } from '../screens/FeedScreen';
+import { LeaderboardsScreen } from '../screens/LeaderboardsScreen';
 import { RunDetailScreen } from '../screens/RunDetailScreen';
 import { MatchScreen } from '../screens/MatchScreen';
 import { MeScreen } from '../screens/MeScreen';
+import { PublicTeamScreen } from '../screens/PublicTeamScreen';
 import { RunScreen } from '../screens/RunScreen';
 import { SettingsScreen } from '../screens/SettingsScreen';
 import { SoloMatchScreen } from '../screens/SoloMatchScreen';
 import { TeamMatchScreen } from '../screens/TeamMatchScreen';
 import { TeamScreen } from '../screens/TeamScreen';
-import { TopTeamsScreen } from '../screens/TopTeamsScreen';
 import { UserProfileScreen } from '../screens/UserProfileScreen';
 import { colors } from '../theme';
 import { isAppRoute, ROUTES, type AppRoute } from './routes';
 
-const FEED_TABS = [
-  { key: 'community', label: 'COMMUNITY' },
-  { key: 'friends', label: 'FRIENDS' },
-  { key: 'team', label: 'TEAM' },
+const SOCIAL_TABS = [
+  { key: 'feed', label: 'FEED' },
+  { key: 'leaderboards', label: 'LEADERBOARDS' },
 ] as const;
+
+type SocialTab = (typeof SOCIAL_TABS)[number]['key'];
 
 const MATCH_TABS = [
   { key: 'team', label: 'Team' },
@@ -83,6 +85,7 @@ export function AppShell() {
   const [runReturnRoute, setRunReturnRoute] = useState<AppRoute>('feed');
   const [settingsReturnRoute, setSettingsReturnRoute] = useState<AppRoute>('me');
   const [activeFeedTab, setActiveFeedTab] = useState<FeedTab>('community');
+  const [activeSocialTab, setActiveSocialTab] = useState<SocialTab>('feed');
   const [activeMatchTab, setActiveMatchTab] = useState<MatchTab>('team');
   const [detailRun, setDetailRun] = useState<Run | null>(null);
   const [detailReturnRoute, setDetailReturnRoute] = useState<AppRoute>('feed');
@@ -91,6 +94,14 @@ export function AppShell() {
   const [profileReturnRoute, setProfileReturnRoute] = useState<AppRoute>('feed');
   const [detailMatchId, setDetailMatchId] = useState<string | null>(null);
   const [matchDetailReturnRoute, setMatchDetailReturnRoute] = useState<AppRoute>('feed');
+  const [detailTeamId, setDetailTeamId] = useState<string | null>(null);
+  const [teamDetailReturnRoute, setTeamDetailReturnRoute] = useState<AppRoute>('feed');
+
+  function openTeamDetail(teamId: string) {
+    setDetailTeamId(teamId);
+    setTeamDetailReturnRoute(activeRoute === 'teamDetail' ? teamDetailReturnRoute : activeRoute);
+    setActiveRoute('teamDetail');
+  }
 
   function openRunDetail(run: Run) {
     setDetailRun(run);
@@ -156,11 +167,9 @@ export function AppShell() {
         : 'MATCHMAKING'
       : activeRoute === 'teamMatch'
         ? 'MATCH'
-        : activeRoute === 'topTeams'
-          ? 'TOP TEAMS'
-          : activeRoute === 'settings'
-            ? 'SETTINGS'
-            : title;
+        : activeRoute === 'settings'
+          ? 'SETTINGS'
+          : title;
 
   function openRun() {
     if (activeRoute !== 'run') {
@@ -231,6 +240,10 @@ export function AppShell() {
 
   function renderScreen() {
     if (activeRoute === 'feed') {
+      if (activeSocialTab === 'leaderboards') {
+        return <LeaderboardsScreen onOpenProfile={openUserProfile} onOpenTeam={openTeamDetail} />;
+      }
+
       return (
         <FeedScreen
           activeTab={activeFeedTab}
@@ -303,8 +316,12 @@ export function AppShell() {
         <TeamScreen
           onOpenProfile={openUserProfile}
           onOpenRun={openRunDetail}
-          onOpenTopTeams={() => setActiveRoute('topTeams')}
+          onOpenLeaderboards={() => {
+            setActiveSocialTab('leaderboards');
+            setActiveRoute('feed');
+          }}
           onViewAllActivity={() => {
+            setActiveSocialTab('feed');
             setActiveFeedTab('team');
             setActiveRoute('feed');
           }}
@@ -312,8 +329,14 @@ export function AppShell() {
       );
     }
 
-    if (activeRoute === 'topTeams') {
-      return <TopTeamsScreen />;
+    if (activeRoute === 'teamDetail' && detailTeamId) {
+      return (
+        <PublicTeamScreen
+          onBack={() => setActiveRoute(teamDetailReturnRoute)}
+          onOpenProfile={openUserProfile}
+          teamId={detailTeamId}
+        />
+      );
     }
 
     if (activeRoute === 'me') {
@@ -321,6 +344,7 @@ export function AppShell() {
         <MeScreen
           onOpenDevScreenshotMock={__DEV__ ? () => setActiveRoute('devSoloMatchScreenshot') : undefined}
           onOpenDevTeamScreenshotMock={__DEV__ ? () => setActiveRoute('devTeamScreenshot') : undefined}
+          onOpenRun={openRunDetail}
           onOpenSettings={() => openSettings('me')}
         />
       );
@@ -348,7 +372,6 @@ export function AppShell() {
       activeRoute === 'soloMatch' ||
       activeRoute === 'teamMatchDetail' ||
       activeRoute === 'soloMatchDetail' ||
-      activeRoute === 'topTeams' ||
       activeRoute === 'settings'
     ) {
       return (
@@ -375,11 +398,6 @@ export function AppShell() {
               return;
             }
 
-            if (activeRoute === 'topTeams') {
-              setActiveRoute('team');
-              return;
-            }
-
             setActiveRoute('feed');
           }}
         />
@@ -401,15 +419,6 @@ export function AppShell() {
   }
 
   function renderHeaderRight() {
-    if (activeRoute === 'topTeams') {
-      return (
-        <HeaderIconButton
-          accessibilityLabel="Top teams info"
-          icon="information-circle-outline"
-          onPress={() => {}}
-        />
-      );
-    }
 
     if (activeRoute === 'soloMatch') {
       return (
@@ -508,9 +517,11 @@ export function AppShell() {
 
             {showFeedTabs ? (
               <TabAppHeader
-                activeTab={activeFeedTab}
-                onTabPress={(key) => setActiveFeedTab(key as FeedTab)}
-                tabs={[...FEED_TABS]}
+                accentActive
+                activeTab={activeSocialTab}
+                compact
+                onTabPress={(key) => setActiveSocialTab(key as SocialTab)}
+                tabs={[...SOCIAL_TABS]}
               />
             ) : null}
 
@@ -560,9 +571,7 @@ export function AppShell() {
                 : 'me'
               : activeRoute === 'teamMatch' || activeRoute === 'soloMatch'
                 ? 'match'
-                : activeRoute === 'topTeams'
-                  ? 'team'
-                  : activeRoute
+                : activeRoute
           }
           badges={{ match: showMatchTabBadge, feed: hasTeamNotifications }}
           onItemPress={handleNavPress}

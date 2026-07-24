@@ -12,4 +12,5 @@ export { SoloMatchCompletionProvider, useSoloMatchCompletion } from './SoloMatch
 export { TeamMatchCompletionProvider, useTeamMatchCompletion } from './TeamMatchCompletionContext';
 export { InAppNotificationProvider, useInAppNotification, useInAppNotificationOptional } from './InAppNotificationContext';
 export { PromoOfferProvider, usePromoOffer } from './PromoOfferContext';
+export { PurchasesProvider, usePurchases } from './PurchasesContext';
 export { XpGainProvider, useXpGain } from './XpGainContext';

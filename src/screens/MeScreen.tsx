@@ -5,14 +5,19 @@ import {
   AchievementsAllModal,
   AchievementsSection,
   AchievementsSkeleton,
+  AllTimeBestsModal,
   CompetitiveStatsSection,
   ExperienceCard,
+  MeTabs,
   OverallStatsRangeTabs,
   OverallStatsSection,
+  PersonalRecordsSection,
   ProfileTopSection,
+  RankSummaryCard,
   RankUpCelebrationDrawer,
   SectionHeader,
   StatDetailDrawer,
+  type MeTab,
   type StatDetailTarget,
 } from '../components/me';
 import { useAuth, usePlayerProgress, useUserId, useXpGain } from '../context';
@@ -25,6 +30,10 @@ import type { AchievementListItem } from '../services/achievementService';
 import { sortAchievementsForMeCarousel } from '../services/achievementService';
 import { buildOverallStats } from '../services/buildOverallStats';
 import { fetchCompetitiveStats, type CompetitiveStats } from '../services/competitiveStatsService';
+import type { DistanceMilestoneKey } from '../services/activityStreams';
+import { fetchPersonalRecords, type PersonalRecord } from '../services/distanceRecords';
+import { fetchRunByActivityId } from '../services/feedService';
+import type { Run } from '../mock';
 import {
   fetchProfileOverallStats,
   rangeSinceDate,
@@ -40,12 +49,14 @@ const SCROLL_OVERLAP = -8;
 type MeScreenProps = {
   onOpenDevScreenshotMock?: () => void;
   onOpenDevTeamScreenshotMock?: () => void;
+  onOpenRun?: (run: Run) => void;
   onOpenSettings?: () => void;
 };
 
 export function MeScreen({
   onOpenDevScreenshotMock,
   onOpenDevTeamScreenshotMock,
+  onOpenRun,
   onOpenSettings,
 }: MeScreenProps) {
   const { gameState } = useAuth();
@@ -58,12 +69,16 @@ export function MeScreen({
     evaluateOnMount: true,
     onUnlock: showAchievementUnlocks,
   });
+  const [activeMeTab, setActiveMeTab] = useState<MeTab>('progress');
   const [viewAllVisible, setViewAllVisible] = useState(false);
+  const [allTimeBestsVisible, setAllTimeBestsVisible] = useState(false);
+  const [allTimeBestsDistanceKey, setAllTimeBestsDistanceKey] = useState<DistanceMilestoneKey | undefined>();
   const [rankUpMockVisible, setRankUpMockVisible] = useState(false);
   const [teamName, setTeamName] = useState('');
   const [overallStats, setOverallStats] = useState<ProfileOverallStats | null>(null);
   const [overallStatsRange, setOverallStatsRange] = useState<OverallStatsRange>('all');
   const [competitiveStats, setCompetitiveStats] = useState<CompetitiveStats | null>(null);
+  const [personalRecords, setPersonalRecords] = useState<PersonalRecord[]>([]);
   const [statDetailTarget, setStatDetailTarget] = useState<StatDetailTarget | null>(null);
   const [headerHeight, setHeaderHeight] = useState(0);
   const carouselAchievements = useMemo(
@@ -118,6 +133,28 @@ export function MeScreen({
   }, [userId]);
 
   useEffect(() => {
+    if (!userId) {
+      setPersonalRecords([]);
+      return;
+    }
+
+    let cancelled = false;
+
+    fetchPersonalRecords(userId)
+      .then((records) => {
+        if (!cancelled) setPersonalRecords(records);
+      })
+      .catch((error) => {
+        console.warn('Failed to load personal records', error);
+        if (!cancelled) setPersonalRecords([]);
+      });
+
+    return () => {
+      cancelled = true;
+    };
+  }, [userId]);
+
+  useEffect(() => {
     if (!teamId) {
       setTeamName('');
       return;
@@ -161,6 +198,17 @@ export function MeScreen({
     rank: profileRank,
   };
 
+  async function handleOpenRun(activityId: string) {
+    try {
+      const run = await fetchRunByActivityId(activityId, userId);
+      if (run) {
+        onOpenRun?.(run);
+      }
+    } catch (error) {
+      console.warn('Failed to load run for All-Time Bests row', error);
+    }
+  }
+
   function handleStatPress(stat: OverallStat) {
     if (!stat.metricKey) return;
     setStatDetailTarget({
@@ -190,36 +238,53 @@ export function MeScreen({
             style={styles.scroll}
           >
           <View style={styles.scrollCard}>
-            {loading ? (
-              <AchievementsSkeleton />
-            ) : carouselAchievements.length > 0 ? (
-              <AchievementsSection
-                achievements={carouselAchievements}
-                onAchievementPress={handleAchievementPress}
-                onViewAll={() => setViewAllVisible(true)}
-              />
-            ) : (
-              <View style={styles.emptyAchievements}>
-                <SectionHeader
-                  actionLabel="VIEW ALL"
-                  onActionPress={() => setViewAllVisible(true)}
-                  title="ACHIEVEMENTS"
+            <MeTabs onChange={setActiveMeTab} value={activeMeTab} />
+
+            {activeMeTab === 'progress' ? (
+              <>
+                {loading ? (
+                  <AchievementsSkeleton />
+                ) : carouselAchievements.length > 0 ? (
+                  <AchievementsSection
+                    achievements={carouselAchievements}
+                    onAchievementPress={handleAchievementPress}
+                    onViewAll={() => setViewAllVisible(true)}
+                  />
+                ) : (
+                  <View style={styles.emptyAchievements}>
+                    <SectionHeader
+                      actionLabel="VIEW ALL"
+                      onActionPress={() => setViewAllVisible(true)}
+                      title="ACHIEVEMENTS"
+                    />
+                    <Text style={styles.emptyCopy}>Complete your first run to start earning badges.</Text>
+                  </View>
+                )}
+
+                <PersonalRecordsSection
+                  onViewAllTimeBests={(distanceKey) => {
+                    setAllTimeBestsDistanceKey(distanceKey);
+                    setAllTimeBestsVisible(true);
+                  }}
+                  records={personalRecords}
                 />
-                <Text style={styles.emptyCopy}>Complete your first run to start earning badges.</Text>
-              </View>
+
+                {overallStats ? (
+                  <OverallStatsSection
+                    headerAccessory={
+                      <OverallStatsRangeTabs onChange={setOverallStatsRange} value={overallStatsRange} />
+                    }
+                    onStatPress={handleStatPress}
+                    stats={buildOverallStats(overallStats)}
+                  />
+                ) : null}
+              </>
+            ) : (
+              <>
+                <RankSummaryCard rank={profileRank} />
+                {competitiveStats ? <CompetitiveStatsSection stats={competitiveStats} /> : null}
+              </>
             )}
-
-            {overallStats ? (
-              <OverallStatsSection
-                headerAccessory={
-                  <OverallStatsRangeTabs onChange={setOverallStatsRange} value={overallStatsRange} />
-                }
-                onStatPress={handleStatPress}
-                stats={buildOverallStats(overallStats)}
-              />
-            ) : null}
-
-            {competitiveStats ? <CompetitiveStatsSection stats={competitiveStats} /> : null}
 
             {/* Dev-only screenshot mockup buttons — commented out for now, not removed.
             {onOpenDevScreenshotMock ? (
@@ -267,6 +332,13 @@ export function MeScreen({
         onAchievementPress={handleAchievementPress}
         onClose={() => setViewAllVisible(false)}
         visible={viewAllVisible}
+      />
+
+      <AllTimeBestsModal
+        initialDistanceKey={allTimeBestsDistanceKey}
+        onClose={() => setAllTimeBestsVisible(false)}
+        onOpenRun={onOpenRun ? (activityId) => void handleOpenRun(activityId) : undefined}
+        visible={allTimeBestsVisible}
       />
 
       <StatDetailDrawer

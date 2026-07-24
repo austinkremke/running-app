@@ -265,6 +265,7 @@ Replace `MOCK_XP_GAIN_NORMAL` in `RunScreen.handleAddToFeed`. **Done** — real 
 
 - `ExperienceCard` reads `PlayerProgressContext` (real `totalXp`, derived level).
 - `ProfileTopSection`: **LEVEL** from progression; **RANK** from `PlayerRank` (tier title, percentile) — not from level.
+- **Planned UX:** split Me into Progress vs Ranked modes so the two systems don’t share one scroll — [11](./11-me-progress-ranked-split.md).
 
 ### Onboarding
 

@@ -15,7 +15,7 @@ import {
 
 import { NotificationPreferenceRow, SettingsRow, SettingsSection, UnitToggle } from '../components/settings';
 import { APP_VERSION, LEGAL_LINKS } from '../config/appMeta';
-import { useAuth, usePendingActivityConfirmation, usePlayerProgress } from '../context';
+import { useAuth, usePendingActivityConfirmation, usePlayerProgress, usePurchases } from '../context';
 import { useNotificationPreferences } from '../hooks/useNotificationPreferences';
 import { useUserPreferences } from '../hooks/useUserPreferences';
 import type { NotificationCategory } from '../services/pushNotifications';
@@ -60,8 +60,28 @@ export function SettingsScreen({ onBack }: SettingsScreenProps) {
   const userId = session?.user?.id ?? null;
   const { pushPendingActivities } = usePendingActivityConfirmation();
   const { refreshProgress } = usePlayerProgress();
+  const { isPremium, presentPaywall, presentCustomerCenter } = usePurchases();
   const [notificationCategoriesExpanded, setNotificationCategoriesExpanded] = useState(false);
   const [isSyncingHealthKit, setIsSyncingHealthKit] = useState(false);
+
+  async function handleManageSubscription() {
+    try {
+      await presentCustomerCenter();
+    } catch (error) {
+      Alert.alert(
+        'Could not open subscription management',
+        error instanceof Error ? error.message : 'Try again.',
+      );
+    }
+  }
+
+  async function handleUpgradeToPro() {
+    try {
+      await presentPaywall();
+    } catch (error) {
+      Alert.alert('Could not open upgrade screen', error instanceof Error ? error.message : 'Try again.');
+    }
+  }
 
   async function handleResetLocalXpCache() {
     if (!userId) return;
@@ -401,6 +421,19 @@ export function SettingsScreen({ onBack }: SettingsScreenProps) {
               />
             ))
           : null}
+      </SettingsSection>
+
+      <SettingsSection title="Subscription">
+        {isPremium ? (
+          <SettingsRow
+            icon="star"
+            label="Manage subscription"
+            onPress={() => void handleManageSubscription()}
+            value="Run Off Pro"
+          />
+        ) : (
+          <SettingsRow icon="sparkles-outline" label="Upgrade to Run Off Pro" onPress={() => void handleUpgradeToPro()} />
+        )}
       </SettingsSection>
 
       <SettingsSection title="Linked sign-in">

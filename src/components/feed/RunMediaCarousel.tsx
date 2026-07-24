@@ -9,6 +9,7 @@ import {
   ScrollView,
   StyleSheet,
   View,
+  type DimensionValue,
 } from 'react-native';
 
 import { StaticRouteMapPreview } from '../map';
@@ -68,7 +69,7 @@ export function RunMediaCarousel({
     return null;
   }
 
-  function renderMapCard(width: number | string) {
+  function renderMapCard(width: DimensionValue) {
     return (
       <Pressable
         disabled={!onPressMap}
@@ -85,7 +86,7 @@ export function RunMediaCarousel({
     );
   }
 
-  function renderPhotoCard(width: number | string) {
+  function renderPhotoCard(width: DimensionValue) {
     return (
       <Pressable
         disabled={!onPressPhoto}

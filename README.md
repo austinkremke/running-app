@@ -6,8 +6,9 @@ Expo 56 React Native running app — local GPS recording, Supabase backend, team
 
 | Doc | Purpose |
 |-----|---------|
-| [milestones/README.md](milestones/README.md) | Roadmap (01 → 06) + status table |
+| [milestones/README.md](milestones/README.md) | Roadmap (01 → 11) + status table |
 | [milestones/06-account-gating-and-cosmetics.md](milestones/06-account-gating-and-cosmetics.md) | Account settings, achievements, gates, rank avatar borders |
+| [milestones/10-paid-features.md](milestones/10-paid-features.md) | Pro catalog (scouting, season pass, analytics, private matches, tournaments) |
 | [milestones/02-supabase-backend.md](milestones/02-supabase-backend.md) | Backend phases A–E (auth, sync, teams, feed, matches) |
 | [supabase/SCHEMA.md](supabase/SCHEMA.md) | Database index + migration workflow |
 | [AGENTS.md](AGENTS.md) | Agent / contributor quick rules |
@@ -67,6 +68,8 @@ Mapbox on device often needs a recent Xcode beta; see project notes in your shel
 | 06 Account, gating & cosmetics | **In progress** — Phase 1–4 shipped (settings, achievements, rank avatar borders, level gates); Phase 5 paywall next ([06](./milestones/06-account-gating-and-cosmetics.md)) |
 | 07 Team play | **In progress** — Phase 1–3 shipped (creation/management, `team_rank`, matchmaking queue); scoring/finalize next ([07](./milestones/07-team-play.md)) |
 | 08 Run detail | **Shipped** (v1) — tap a feed run → fullscreen map, charts, mile splits, delete ([08](./milestones/08-run-detail.md)) |
+| 10 Paid features | **Planned** — Pro catalog decided ([10](./milestones/10-paid-features.md)); paywall plumbing via [06 Phase 5](./milestones/06-account-gating-and-cosmetics.md) |
+| 11 Me Progress / Ranked split | **Phase 1 shipped** — Progress / Competitive tabs on Me ([11](./milestones/11-me-progress-ranked-split.md)) |
 
 ### Still mock / placeholder (honest)
 

@@ -33,6 +33,8 @@ When adding a milestone:
 | 07 | [Team play — creation, management & team matchmaking](./07-team-play.md) | **In progress** — Phase 1–4 shipped (creation/management, team rating, matchmaking queue, top-N scoring + finalize/completion); Phase 5 (retire demo, UX polish) next | 02, 03, 05, 06 (Phase 4) | team challenges, seasonal team boards |
 | 08 | [Run detail (activity overview)](./08-run-detail.md) | **Shipped** (v1) — fullscreen map, charts, mile splits, delete | 01, 02, 05 | run history, match deep-links |
 | 09 | [Wearable integration (HealthKit)](./09-wearable-integration.md) | **In progress** — Phase 1-3 shipped (foundation, ingestion mapping validated on device, verification tier + server enforcement + auto-publish sync); Phase 4 background sync next | 01, 02, 03 | Heart Rate Analysis (now live for synced Apple Watch/Garmin runs), Garmin without partner approval |
+| 10 | [Paid features & monetization](./10-paid-features.md) | **Planned** — Pro catalog decided (scouting, season pass, analytics, private matches, tournaments/events); plumbing via [06 Phase 5](./06-account-gating-and-cosmetics.md#phase-5--paywall-blocking-features) | 06 Phase 5, 05, 07, 08 | Pro paywall UI, premium API enforcement |
+| 11 | [Me tab — Progress vs Ranked split](./11-me-progress-ranked-split.md) | **Phase 1 shipped** — Progress / Competitive tabs on Me | 03, 05, 06 | Clearer Me UX; room for rank/season depth |
 
 ---
 
@@ -52,7 +54,7 @@ When adding a milestone:
 | Achievements (server-backed) | [06](./06-account-gating-and-cosmetics.md) Phase 2 **shipped** |
 | Avatar rank decorative borders | [06](./06-account-gating-and-cosmetics.md) Phase 3 **shipped** (Me, feed, solo — not team rosters) |
 | Level blocking features | [06](./06-account-gating-and-cosmetics.md) Phase 4 **shipped** (ranked queue L5, challenges L3, comments L2) |
-| Paywall blocking features | [06](./06-account-gating-and-cosmetics.md) Phase 5 |
+| Paywall blocking features | [06](./06-account-gating-and-cosmetics.md) Phase 5 (plumbing); catalog in [10](./10-paid-features.md) |
 
 ---
 

@@ -236,11 +236,11 @@ export function MapboxMapView({
       <StyleImport
         id="basemap"
         existing
-        config={MAPBOX_STYLE_IMPORT_CONFIG}
+        config={MAPBOX_STYLE_IMPORT_CONFIG as unknown as Record<string, string>}
       />
 
       <Camera
-        ref={cameraRef}
+        ref={cameraRef as never}
         defaultSettings={initialCameraSettings}
         {...(followRoute
           ? {

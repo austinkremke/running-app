@@ -21,13 +21,27 @@ Replace the seeded demo team match and mock lineup with a real team lifecycle: *
 
 | Decision | Choice | Why |
 |----------|--------|-----|
-| **Match scoring** | **Top-N contributors** — everyone on the roster can run; only the top N point-earners per side count toward the team score (N from `match_types` config, default 5) | Fair across roster sizes; no lineup management friction; internal competition for a scoring spot |
+| **Match scoring** | **Top-N contributors** — everyone on the roster can run; only the top N point-earners per side count toward the team score (N from `match_types` config, default 5). **Planned add-on:** modest **balance bonus** (below) — does not replace top-N | Fair across roster sizes; no lineup management friction; internal competition for a scoring spot; bonus nudges depth without punishing stars |
 | **Team rating** | **Separate team Elo** — `team_rank` mirrors `player_rank` (`competitive_rating`, season W/L); moves only from team match results | Survives roster churn; individual Elo untouched by team play; reuses the proven Elo RPC pattern |
 | **Queue rights** | **Leader + co-leaders** enqueue/cancel (and accept future team challenges) | Matches existing role model; delegation via promotion; members see “ask your leader” state |
 | **Creation access** | **Activate `create_team` gate at level 10** (`feature_gates` UPDATE — no code change); **joining stays free at any level** | Leading a team is an invested-user feature; social hook stays open for new users |
 | **Roster snapshot** | Participants enrolled **at pairing time**; mid-match joiners don’t score, leavers keep their points on the board | Prevents mid-match ringers; matches solo’s fixed-participant model |
 
 **Rank separation rules still apply ([03](./03-xp-and-ranking.md)):** runs during team matches earn normal personal XP and count toward team points; **personal `competitive_rating` never moves from team matches**; matchmaking pairs on `team_rank.competitive_rating` only.
+
+### Planned — balance bonus (post–Phase 4)
+
+**Intent:** encourage teams to spread contribution across members without making equality the win condition.
+
+**Shape (agreed direction):**
+
+- Keep **top-N raw points** as the primary team score (stars still matter).
+- Apply a **modest multiplier** (target band ~0–15%) when the top-N scorers’ contributions are more even.
+- Prefer a tolerant similarity metric (e.g. share-of-points from #1, or CV/Gini across the top-N) — **not** “everyone within 5%,” which wrecks real-life variance (injury, travel, fitness gaps).
+- Surface clearly on the scoreboard (“Balance bonus +12%”) so mid-match trust stays high.
+- **Do not** replace top-N, and **do not** make balance so strong that stars sandbag or pad equal junk miles.
+
+**Out of scope for this bonus:** participation cosmetics / XP-only rewards (still a fine separate lever later); hard min-contributor floors (simpler cousin — can ship first if the curve feels too gameable).
 
 ---
 
@@ -125,6 +139,7 @@ Replace the seeded demo team match and mock lineup with a real team lifecycle: *
 - [ ] Leader-picked lineup as an alternative match type (uses existing lineup UI concepts)
 - [x] ~~Team stats / team activity stream~~ **shipped** — real `team_rank` stats (Phase 2) + Team Activity showing the team's 5 latest runs (`TeamActivitySection` → `fetchFeedPosts('team', …)`), same data the Feed's Team tab shows.
 - [ ] Dynamic pace scoring shared with [05 backlog](./05-matchmaking-and-feed.md#future-follow-ups-milestone-05-backlog)
+- [ ] **Balance bonus** on team match finalize — modest multiplier when top-N contributions are more even (see [Planned — balance bonus](#planned--balance-bonus-postphase-4)); scoreboard copy + `finalize_team_match` change
 
 ### Bug fix — Team tab leaked non-teammates' runs
 
@@ -143,6 +158,7 @@ Replace the seeded demo team match and mock lineup with a real team lifecycle: *
 3. **Disband/kick mid-match:** blocked outright (v1 recommendation) vs treated as forfeit.
 4. **Team forfeit in v1** or backlog.
 5. **`member_max`:** stays 30, or tighten once top-N makes large rosters less decisive.
+6. **Balance bonus curve:** exact metric + cap (e.g. max +10% vs +15%); compute over all roster runners or only the top-N who already score?; ship a min-contributor floor first?
 
 ---
 

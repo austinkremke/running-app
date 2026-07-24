@@ -98,6 +98,90 @@ function segmentPaceSecondsPerMile(
   return elapsedDelta / distanceMiles;
 }
 
+export type DistanceMilestoneKey =
+  | 'half_mile'
+  | 'one_k'
+  | 'mile'
+  | 'five_k'
+  | 'five_mile'
+  | 'ten_k'
+  | 'half_marathon'
+  | 'marathon';
+
+export const DISTANCE_MILESTONES: { key: DistanceMilestoneKey; label: string; meters: number }[] = [
+  { key: 'half_mile', label: '1/2 Mile', meters: 804.672 },
+  { key: 'one_k', label: '1K', meters: 1000 },
+  { key: 'mile', label: '1 Mile', meters: 1609.344 },
+  { key: 'five_k', label: '5K', meters: 5000 },
+  { key: 'five_mile', label: '5 Mile', meters: 8046.72 },
+  { key: 'ten_k', label: '10K', meters: 10000 },
+  { key: 'half_marathon', label: 'Half Marathon', meters: 21097.5 },
+  { key: 'marathon', label: 'Marathon', meters: 42195 },
+];
+
+/**
+ * Fastest elapsed time for any contiguous window of `targetMeters` anywhere in
+ * the track (a "best effort," not just from the start) — e.g. the fastest 1/2
+ * mile embedded in a slower overall run. O(n) two-pointer since cumulative
+ * distance is monotonic.
+ */
+function bestSplitForDistance(records: ActivityRecord[], targetMeters: number): number | null {
+  const n = records.length;
+  if (n < 2) return null;
+  const total = records[n - 1].distanceMeters;
+  if (total < targetMeters) return null;
+
+  let best = Infinity;
+  let j = 1;
+
+  for (let i = 0; i < n; i += 1) {
+    const startDist = records[i].distanceMeters;
+    const startTime = records[i].elapsedSeconds;
+    const endDist = startDist + targetMeters;
+    if (endDist > total) break;
+
+    if (j < i + 1) j = i + 1;
+    while (j < n - 1 && records[j].distanceMeters < endDist) j += 1;
+
+    const prev = records[j - 1];
+    const curr = records[j];
+    let endTime: number;
+    if (curr.distanceMeters <= endDist) {
+      endTime = curr.elapsedSeconds;
+    } else {
+      const span = curr.distanceMeters - prev.distanceMeters;
+      const ratio = span > 0 ? (endDist - prev.distanceMeters) / span : 0;
+      endTime = prev.elapsedSeconds + ratio * (curr.elapsedSeconds - prev.elapsedSeconds);
+    }
+
+    const windowSeconds = endTime - startTime;
+    if (windowSeconds < best) best = windowSeconds;
+  }
+
+  return best === Infinity ? null : Math.round(best);
+}
+
+/**
+ * For each milestone distance this run's track actually covers, the fastest
+ * embedded "best effort" time for that exact distance anywhere in the run —
+ * not just from the start. A run must cover at least the full milestone
+ * distance to qualify (an extreme first-ever run past marathon distance
+ * qualifies for every shorter milestone too, computed independently).
+ */
+export function computeDistanceMilestoneSplits(
+  records: ActivityRecord[],
+): { distanceKey: DistanceMilestoneKey; splitSeconds: number }[] {
+  if (records.length < 2) return [];
+  const totalMeters = records[records.length - 1]?.distanceMeters ?? 0;
+
+  return DISTANCE_MILESTONES.filter((milestone) => totalMeters >= milestone.meters)
+    .map((milestone) => {
+      const splitSeconds = bestSplitForDistance(records, milestone.meters);
+      return splitSeconds != null ? { distanceKey: milestone.key, splitSeconds } : null;
+    })
+    .filter((entry): entry is { distanceKey: DistanceMilestoneKey; splitSeconds: number } => entry != null);
+}
+
 /**
  * Per-mile splits from the raw record track. Each full mile plus a trailing
  * partial mile; pace is normalized to seconds-per-mile so partial miles compare

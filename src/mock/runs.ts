@@ -13,6 +13,7 @@ function offsetRoute(route: GpsPoint[], latOffset: number, lngOffset: number): G
 export const MOCK_RUNS: Run[] = [
   {
     id: 'run-1',
+    activityId: 'activity-run-1',
     user: {
       id: 'user-austin',
       name: 'Austin Kremke',
@@ -40,6 +41,7 @@ export const MOCK_RUNS: Run[] = [
   },
   {
     id: 'run-2',
+    activityId: 'activity-run-2',
     user: {
       id: 'user-sarah',
       name: 'Sarah Adams',
@@ -67,6 +69,7 @@ export const MOCK_RUNS: Run[] = [
   },
   {
     id: 'run-3',
+    activityId: 'activity-run-3',
     user: {
       id: 'user-jake',
       name: 'Jake Thompson',

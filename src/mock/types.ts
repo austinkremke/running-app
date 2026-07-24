@@ -20,6 +20,8 @@ export type RunStats = {
 
 export type Run = {
   id: string;
+  /** The underlying `activities.id` — distinct from `id` (the feed post id) — used for distance-record badge lookups. */
+  activityId: string;
   user: RunUser;
   title: string;
   description: string;
@@ -415,6 +417,17 @@ export type TopTeamListing = {
   shieldIcon: string;
   shieldAccent: TeamLogoAccent;
   logoUrl?: string;
+  rankTierId?: string;
+};
+
+export type TopPlayerListing = {
+  id: string;
+  rank: number;
+  name: string;
+  avatarUrl?: string;
+  rating: number;
+  wins: number;
+  losses: number;
   rankTierId?: string;
 };
 

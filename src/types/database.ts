@@ -1,4 +1,3 @@
-Initialising login role...
 export type Json =
   | string
   | number
@@ -193,6 +192,48 @@ export type Database = {
           },
           {
             foreignKeyName: "activities_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      activity_distance_records: {
+        Row: {
+          activity_id: string
+          created_at: string
+          distance_key: string
+          id: string
+          split_seconds: number
+          user_id: string
+        }
+        Insert: {
+          activity_id: string
+          created_at?: string
+          distance_key: string
+          id?: string
+          split_seconds: number
+          user_id: string
+        }
+        Update: {
+          activity_id?: string
+          created_at?: string
+          distance_key?: string
+          id?: string
+          split_seconds?: number
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "activity_distance_records_activity_id_fkey"
+            columns: ["activity_id"]
+            isOneToOne: false
+            referencedRelation: "activities"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "activity_distance_records_user_id_fkey"
             columns: ["user_id"]
             isOneToOne: false
             referencedRelation: "profiles"
@@ -1604,6 +1645,22 @@ export type Database = {
         Returns: undefined
       }
       forfeit_solo_match: { Args: { p_match_id: string }; Returns: Json }
+      get_all_time_bests: {
+        Args: { p_distance_key?: string; p_user_id?: string }
+        Returns: {
+          achieved_at: string
+          activity_id: string
+          split_seconds: number
+        }[]
+      }
+      get_distance_badges: {
+        Args: { p_activity_ids: string[] }
+        Returns: {
+          activity_id: string
+          distance_key: string
+          rnk: number
+        }[]
+      }
       get_friend_notifications: { Args: never; Returns: Json }
       get_my_notification_preferences: {
         Args: never
@@ -1633,6 +1690,16 @@ export type Database = {
       get_my_team_match_completions: {
         Args: { p_limit?: number; p_user_id?: string }
         Returns: Json
+      }
+      get_personal_records: {
+        Args: { p_user_id?: string }
+        Returns: {
+          achieved_at: string
+          activity_id: string
+          distance_key: string
+          rnk: number
+          split_seconds: number
+        }[]
       }
       get_public_match_share: { Args: { p_match_id: string }; Returns: Json }
       get_public_run_share: { Args: { p_feed_post_id: string }; Returns: Json }
@@ -1743,6 +1810,14 @@ export type Database = {
           p_motto?: string
           p_name?: string
           p_team_id: string
+        }
+        Returns: undefined
+      }
+      upsert_distance_record: {
+        Args: {
+          p_activity_id: string
+          p_distance_key: string
+          p_split_seconds: number
         }
         Returns: undefined
       }
@@ -1902,5 +1977,3 @@ export const Constants = {
     Enums: {},
   },
 } as const
-A new version of Supabase CLI is available: v2.109.1 (currently installed v2.84.2)
-We recommend updating regularly for new features and bug fixes: https://supabase.com/docs/guides/cli/getting-started#updating-the-supabase-cli

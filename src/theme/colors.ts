@@ -7,7 +7,7 @@ export const colors = {
   textPrimary: '#FFFFFF',
   textSecondary: '#8D96A7',
   accentLime: '#D7FF2F',
-  accentPurple: '#9B5CFF',
+  accentPurple: '#FFFFFF',
   accentOrange: '#FF8A3D',
   accentGold: '#F5C842',
   danger: '#FF5C5C',

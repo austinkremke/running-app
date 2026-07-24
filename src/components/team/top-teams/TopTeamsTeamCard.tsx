@@ -1,5 +1,5 @@
 import { Ionicons } from '@expo/vector-icons';
-import { StyleSheet, Text, View } from 'react-native';
+import { Pressable, StyleSheet, Text, View } from 'react-native';
 
 import type { TopTeamListing } from '../../../mock';
 import { colors, spacing } from '../../../theme';
@@ -8,17 +8,24 @@ import { TeamAvatar } from '../TeamAvatar';
 
 type TopTeamsTeamCardProps = {
   team: TopTeamListing;
+  onPress?: () => void;
 };
 
 function formatPoints(value: number): string {
   return value.toLocaleString('en-US');
 }
 
-export function TopTeamsTeamCard({ team }: TopTeamsTeamCardProps) {
+export function TopTeamsTeamCard({ team, onPress }: TopTeamsTeamCardProps) {
   const isTopRank = team.rank === 1;
 
   return (
-    <View style={styles.card}>
+    <Pressable
+      accessibilityHint="Opens this team"
+      accessibilityRole="button"
+      disabled={!onPress}
+      onPress={onPress}
+      style={({ pressed }) => [styles.card, pressed && onPress ? styles.pressed : null]}
+    >
       <View style={styles.cardBody}>
         <View style={styles.leading}>
           <Text
@@ -68,7 +75,7 @@ export function TopTeamsTeamCard({ team }: TopTeamsTeamCardProps) {
           </View>
         </View>
       </View>
-    </View>
+    </Pressable>
   );
 }
 
@@ -83,6 +90,9 @@ const styles = StyleSheet.create({
     paddingTop: spacing.md,
     paddingBottom: spacing.md,
     paddingRight: spacing.md,
+  },
+  pressed: {
+    opacity: 0.85,
   },
   cardBody: {
     flexDirection: 'row',

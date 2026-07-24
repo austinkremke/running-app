@@ -6,15 +6,20 @@ import { colors, spacing } from '../../../theme';
 type TopTeamsSearchRowProps = {
   query: string;
   onQueryChange: (query: string) => void;
+  placeholder?: string;
 };
 
-export function TopTeamsSearchRow({ query, onQueryChange }: TopTeamsSearchRowProps) {
+export function TopTeamsSearchRow({
+  query,
+  onQueryChange,
+  placeholder = 'Search teams...',
+}: TopTeamsSearchRowProps) {
   return (
     <View style={styles.searchField}>
       <TextInput
-        accessibilityLabel="Search teams"
+        accessibilityLabel={placeholder}
         onChangeText={onQueryChange}
-        placeholder="Search teams..."
+        placeholder={placeholder}
         placeholderTextColor={colors.textSecondary}
         style={styles.input}
         value={query}
