@@ -1,4 +1,5 @@
 import { Ionicons } from '@expo/vector-icons';
+import type { ReactNode } from 'react';
 import { Pressable, StyleSheet, Text, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
@@ -12,55 +13,85 @@ const PILLS: { key: MePillMode; label: string }[] = [
 ];
 
 type MePillHeaderProps = {
-  activeMode: MePillMode;
-  onModeChange: (mode: MePillMode) => void;
+  /** Required when `showPills` (the default) is true; unused otherwise. */
+  activeMode?: MePillMode;
+  onModeChange?: (mode: MePillMode) => void;
   onOpenSettings?: () => void;
+  /** Back chevron shown on the left instead of a spacer — used when viewing another user's profile. */
+  onBack?: () => void;
+  /** Progress/Competitive switcher is exclusive to the signed-in viewer's own profile. */
+  showPills?: boolean;
+  /** Overrides the settings cog on the right — used for a friend-menu button on another user's profile. */
+  rightAccessory?: ReactNode;
 };
 
 /**
- * Replaces the old "ME" title + settings-cog `AppHeader` for this screen — this
- * bar hosts the Progress/Competitive switcher plus the settings cog (moved back
- * here from `ProfileHeaderCentered`'s top-right slot), while still owning the
- * top safe-area inset (removing `AppHeader` entirely left content rendered
- * under the status bar/notch, since nothing else in the Me tab pads for it).
+ * Shared top bar for both the owner's own Me tab and the read-only other-user
+ * profile view (`UserProfileScreen` renders `MeScreen` with `viewedUserId`) —
+ * one component, two modes, so the two screens don't fork into separate
+ * header implementations. Owns the top safe-area inset (removing `AppHeader`
+ * entirely left content rendered under the status bar/notch, since nothing
+ * else in the Me tab pads for it).
  */
-export function MePillHeader({ activeMode, onModeChange, onOpenSettings }: MePillHeaderProps) {
+export function MePillHeader({
+  activeMode,
+  onModeChange,
+  onOpenSettings,
+  onBack,
+  showPills = true,
+  rightAccessory,
+}: MePillHeaderProps) {
   const insets = useSafeAreaInsets();
 
   return (
     <View style={[styles.wrapper, { paddingTop: insets.top }]}>
       <View style={styles.row}>
-        <View style={styles.side} />
+        <View style={styles.side}>
+          {onBack ? (
+            <Pressable
+              accessibilityLabel="Go back"
+              accessibilityRole="button"
+              hitSlop={8}
+              onPress={onBack}
+              style={styles.settingsButton}
+            >
+              <Ionicons color={colors.textPrimary} name="chevron-back" size={24} />
+            </Pressable>
+          ) : null}
+        </View>
 
         <View style={styles.pills}>
-          {PILLS.map((pill) => {
-            const isActive = pill.key === activeMode;
-            return (
-              <Pressable
-                key={pill.key}
-                accessibilityRole="button"
-                accessibilityState={{ selected: isActive }}
-                onPress={() => onModeChange(pill.key)}
-                style={[styles.pill, isActive && styles.pillActive]}
-              >
-                <Text style={[styles.pillLabel, isActive && styles.pillLabelActive]}>{pill.label}</Text>
-              </Pressable>
-            );
-          })}
+          {showPills && activeMode && onModeChange
+            ? PILLS.map((pill) => {
+                const isActive = pill.key === activeMode;
+                return (
+                  <Pressable
+                    key={pill.key}
+                    accessibilityRole="button"
+                    accessibilityState={{ selected: isActive }}
+                    onPress={() => onModeChange(pill.key)}
+                    style={[styles.pill, isActive && styles.pillActive]}
+                  >
+                    <Text style={[styles.pillLabel, isActive && styles.pillLabelActive]}>{pill.label}</Text>
+                  </Pressable>
+                );
+              })
+            : null}
         </View>
 
         <View style={[styles.side, styles.sideRight]}>
-          {onOpenSettings ? (
-            <Pressable
-              accessibilityLabel="Settings"
-              accessibilityRole="button"
-              hitSlop={8}
-              onPress={onOpenSettings}
-              style={styles.settingsButton}
-            >
-              <Ionicons color={colors.textPrimary} name="settings-outline" size={22} />
-            </Pressable>
-          ) : null}
+          {rightAccessory ??
+            (onOpenSettings ? (
+              <Pressable
+                accessibilityLabel="Settings"
+                accessibilityRole="button"
+                hitSlop={8}
+                onPress={onOpenSettings}
+                style={styles.settingsButton}
+              >
+                <Ionicons color={colors.textPrimary} name="settings-outline" size={22} />
+              </Pressable>
+            ) : null)}
         </View>
       </View>
     </View>

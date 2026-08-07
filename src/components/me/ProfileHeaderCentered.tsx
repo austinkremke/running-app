@@ -1,3 +1,4 @@
+import type { ReactNode } from 'react';
 import { StyleSheet, Text, View } from 'react-native';
 
 import type { UserProfile } from '../../mock';
@@ -5,15 +6,17 @@ import type { SoloRankPosition } from '../../services/rank';
 import { colors, spacing } from '../../theme';
 import { RANK_TIER_COLORS, rankTierColorForTier, shortRankTierName } from '../team/rankAvatarBorderTheme';
 import { FlagIcon } from './FlagIcon';
-import { MiniXpBar } from './MiniXpBar';
 import { ProfileAvatar } from './ProfileAvatar';
 
 type ProfileHeaderCenteredProps = {
-  profile: Pick<UserProfile, 'name' | 'avatarUrl' | 'rank' | 'level' | 'experience'>;
+  profile: Pick<UserProfile, 'name' | 'avatarUrl' | 'rank'>;
   /** Device-locale ISO-3166-1 alpha-2 region code shown in the top-left slot; null hides the slot. */
   regionCode?: string | null;
   soloRankPosition?: SoloRankPosition | null;
   onEditAvatar?: () => void;
+  /** Rendered in the top-right slot — `MiniXpBar` on the owner's Me tab, omitted (or a
+   * different action, e.g. Add Friend) when viewing another user's read-only profile. */
+  topRightSlot?: ReactNode;
 };
 
 const AVATAR_SIZE = 128;
@@ -22,17 +25,20 @@ const AVATAR_SIZE = 128;
 const AVATAR_RING_RATIO = 0.035;
 
 /**
- * Centered v2 layout for the owner's own Me tab header: country/global solo
- * rank top-left, settings cog top-right, large centered avatar, name + colored
- * rank line underneath. Distinct from `ProfileTopSection` (which still backs
- * `UserProfileScreen` for viewing other users and keeps the left-aligned
- * layout) because the two no longer share a visual structure.
+ * Centered v2 header layout: country/global solo rank top-left (owner only —
+ * omitted when `soloRankPosition` isn't passed), custom top-right slot, large
+ * centered avatar, name + colored rank line underneath. Shared between the
+ * owner's own Me tab (`MeScreen`, full `topRightSlot`/rank data) and the
+ * read-only `UserProfileScreen` for other users (no rank slot, no XP bar —
+ * that data doesn't exist for other users — swapping in an Add Friend action
+ * instead), so the two profile views stay visually consistent.
  */
 export function ProfileHeaderCentered({
   profile,
   regionCode,
   soloRankPosition,
   onEditAvatar,
+  topRightSlot,
 }: ProfileHeaderCenteredProps) {
   const rankColor = rankTierColorForTier(profile.rank.tierId);
   const rankLabel = shortRankTierName(profile.rank.tierId, profile.rank.title);
@@ -61,9 +67,7 @@ export function ProfileHeaderCentered({
           ) : null}
         </View>
 
-        <View style={[styles.topSlot, styles.topSlotRight]}>
-          <MiniXpBar experience={profile.experience} level={profile.level} />
-        </View>
+        <View style={[styles.topSlot, styles.topSlotRight]}>{topRightSlot}</View>
       </View>
 
       <View style={styles.avatarRow}>

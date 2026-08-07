@@ -15,7 +15,6 @@ export { MePillHeader, type MePillMode } from './MePillHeader';
 export { MiniXpBar } from './MiniXpBar';
 export { PersonalRecordsSection } from './PersonalRecordsSection';
 export { ProfileHeaderCentered } from './ProfileHeaderCentered';
-export { ProfileTopSection } from './ProfileTopSection';
 export { TopographyBackground } from './TopographyBackground';
 export { RankProgressCard } from './RankProgressCard';
 export { RankUpCelebrationDrawer } from './RankUpCelebrationDrawer';
