@@ -3,6 +3,7 @@ import { useOnboarding } from '../context';
 import {
   OnboardingEmailScreen,
   OnboardingLoginScreen,
+  OnboardingTermsScreen,
   OnboardingTutorialScreen,
   OnboardingWelcomeScreen,
 } from '../screens/onboarding';
@@ -15,6 +16,17 @@ export function OnboardingShell({ step }: OnboardingShellProps) {
   const { completeOnboarding, goToStep } = useOnboarding();
 
   switch (step) {
+    case 'terms':
+      return (
+        <OnboardingTermsScreen
+          onAccept={() => {
+            // Not signed in yet at this point in the pre-auth flow — the
+            // acceptance itself is recorded server-side right after
+            // sign-in succeeds (see AuthContext's post-session effect).
+            goToStep('login');
+          }}
+        />
+      );
     case 'login':
       return <OnboardingLoginScreen />;
     case 'email':
@@ -34,8 +46,8 @@ export function OnboardingShell({ step }: OnboardingShellProps) {
     default:
       return (
         <OnboardingWelcomeScreen
-          onJoin={() => goToStep('login')}
-          onLogin={() => goToStep('login')}
+          onJoin={() => goToStep('terms')}
+          onLogin={() => goToStep('terms')}
         />
       );
   }

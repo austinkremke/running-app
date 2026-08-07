@@ -3,62 +3,28 @@ import { Pressable, StyleSheet, Text, View } from 'react-native';
 
 import type { PostRunChartTab, PostRunSummary } from '../../mock';
 import { colors, spacing } from '../../theme';
-import { buildPaceYLabels, PostRunLineChart } from './PostRunLineChart';
+import { buildChartAxisConfig, chartTabLabel } from '../../utils/chartConfig';
+import { PostRunLineChart } from './PostRunLineChart';
 
 type PostRunChartSectionProps = {
   summary: Pick<PostRunSummary, 'chartData' | 'chartReferenceLines' | 'distanceMiles'>;
 };
 
-const ALL_TABS: { key: PostRunChartTab; label: string }[] = [
-  { key: 'pace', label: 'PACE' },
-  { key: 'elevation', label: 'ELEVATION' },
-  { key: 'heartRate', label: 'HEART RATE' },
-];
+const ALL_TABS: PostRunChartTab[] = ['pace', 'elevation', 'heartRate'];
 
 export function PostRunChartSection({ summary }: PostRunChartSectionProps) {
   const tabs = useMemo(
-    () => ALL_TABS.filter((tab) => summary.chartData[tab.key].length > 0),
+    () => ALL_TABS.filter((tab) => summary.chartData[tab].length > 0).map((key) => ({ key, label: chartTabLabel(key) })),
     [summary.chartData],
   );
   const [activeTab, setActiveTab] = useState<PostRunChartTab>(tabs[0]?.key ?? 'pace');
   const resolvedTab = tabs.some((tab) => tab.key === activeTab) ? activeTab : tabs[0]?.key;
   const data = resolvedTab ? summary.chartData[resolvedTab] : [];
 
-  const chartConfig = useMemo(() => {
-    if (!resolvedTab || data.length === 0) {
-      return null;
-    }
-
-    const values = data.map((point) => point.value);
-    const minValue = Math.min(...values);
-    const maxValue = Math.max(...values);
-
-    if (resolvedTab === 'pace') {
-      return {
-        yLabels: buildPaceYLabels(minValue, maxValue),
-        yUnit: '/mi',
-        referenceValue: summary.chartReferenceLines.pace,
-      };
-    }
-
-    if (resolvedTab === 'elevation') {
-      const range = Math.max(maxValue - minValue, 10);
-      const step = range / 3;
-      const top = maxValue + range * 0.05;
-      return {
-        yLabels: [0, 1, 2, 3].map((index) => String(Math.round(top - step * index))),
-        yUnit: 'ft',
-        referenceValue: undefined,
-      };
-    }
-
-    const step = (maxValue - minValue) / 3;
-    return {
-      yLabels: [0, 1, 2, 3].map((index) => String(Math.round(maxValue - step * index))),
-      yUnit: 'bpm',
-      referenceValue: summary.chartReferenceLines.heartRate,
-    };
-  }, [data, resolvedTab, summary.chartReferenceLines.heartRate, summary.chartReferenceLines.pace]);
+  const chartConfig = useMemo(
+    () => (resolvedTab ? buildChartAxisConfig(resolvedTab, data, summary.chartReferenceLines) : null),
+    [data, resolvedTab, summary.chartReferenceLines],
+  );
 
   if (!resolvedTab || !chartConfig || data.length === 0) {
     return null;

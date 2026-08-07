@@ -57,6 +57,7 @@ const ME_TABS = [
 ] as const;
 
 type MeScreenProps = {
+  onOpenDevRankMedalMock?: () => void;
   onOpenDevScreenshotMock?: () => void;
   onOpenDevTeamScreenshotMock?: () => void;
   onOpenMatch?: (matchId: string) => void;
@@ -65,6 +66,7 @@ type MeScreenProps = {
 };
 
 export function MeScreen({
+  onOpenDevRankMedalMock,
   onOpenDevScreenshotMock,
   onOpenDevTeamScreenshotMock,
   onOpenMatch,
@@ -368,6 +370,17 @@ export function MeScreen({
                 {competitiveStats ? <CompetitiveStatsSection stats={competitiveStats} /> : null}
               </>
             )}
+
+            {onOpenDevRankMedalMock ? (
+              <Pressable
+                accessibilityLabel="Dev: 3D rank medal"
+                accessibilityRole="button"
+                onPress={onOpenDevRankMedalMock}
+                style={styles.devButton}
+              >
+                <Text style={styles.devButtonLabel}>DEV: 3D RANK MEDAL</Text>
+              </Pressable>
+            ) : null}
 
             {/* Dev-only screenshot mockup buttons — commented out for now, not removed.
             {onOpenDevScreenshotMock ? (

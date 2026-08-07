@@ -241,6 +241,102 @@ export type Database = {
           },
         ]
       }
+      blocked_terms: {
+        Row: {
+          created_at: string
+          term: string
+        }
+        Insert: {
+          created_at?: string
+          term: string
+        }
+        Update: {
+          created_at?: string
+          term?: string
+        }
+        Relationships: []
+      }
+      blocked_users: {
+        Row: {
+          blocked_id: string
+          blocker_id: string
+          created_at: string
+        }
+        Insert: {
+          blocked_id: string
+          blocker_id: string
+          created_at?: string
+        }
+        Update: {
+          blocked_id?: string
+          blocker_id?: string
+          created_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "blocked_users_blocked_id_fkey"
+            columns: ["blocked_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "blocked_users_blocker_id_fkey"
+            columns: ["blocker_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      content_reports: {
+        Row: {
+          content_id: string
+          content_type: string
+          created_at: string
+          id: string
+          reason: string | null
+          reported_user_id: string | null
+          reporter_id: string
+          status: string
+        }
+        Insert: {
+          content_id: string
+          content_type: string
+          created_at?: string
+          id?: string
+          reason?: string | null
+          reported_user_id?: string | null
+          reporter_id: string
+          status?: string
+        }
+        Update: {
+          content_id?: string
+          content_type?: string
+          created_at?: string
+          id?: string
+          reason?: string | null
+          reported_user_id?: string | null
+          reporter_id?: string
+          status?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "content_reports_reported_user_id_fkey"
+            columns: ["reported_user_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "content_reports_reporter_id_fkey"
+            columns: ["reporter_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       device_push_tokens: {
         Row: {
           created_at: string
@@ -1022,6 +1118,7 @@ export type Database = {
           id: string
           onboarding_completed_at: string | null
           team_id: string | null
+          terms_accepted_at: string | null
           updated_at: string
         }
         Insert: {
@@ -1031,6 +1128,7 @@ export type Database = {
           id: string
           onboarding_completed_at?: string | null
           team_id?: string | null
+          terms_accepted_at?: string | null
           updated_at?: string
         }
         Update: {
@@ -1040,6 +1138,7 @@ export type Database = {
           id?: string
           onboarding_completed_at?: string | null
           team_id?: string | null
+          terms_accepted_at?: string | null
           updated_at?: string
         }
         Relationships: [
@@ -1522,6 +1621,7 @@ export type Database = {
         Args: { p_challenge_id: string }
         Returns: Json
       }
+      accept_terms: { Args: never; Returns: undefined }
       achievement_metric: {
         Args: { p_criteria: Json; p_criteria_type: string; p_user_id: string }
         Returns: number
@@ -1565,6 +1665,7 @@ export type Database = {
         Returns: undefined
       }
       award_run_xp: { Args: { p_activity_id: string }; Returns: Json }
+      block_user: { Args: { p_blocked_id: string }; Returns: undefined }
       bootstrap_progression_from_local: {
         Args: {
           p_last_award_date?: string
@@ -1587,6 +1688,7 @@ export type Database = {
         Args: { p_request_id: string }
         Returns: Json
       }
+      contains_blocked_terms: { Args: { p_text: string }; Returns: boolean }
       create_solo_match_for_users: {
         Args: {
           p_away_user_id: string
@@ -1639,6 +1741,7 @@ export type Database = {
       }
       expire_stale_solo_match_challenges: { Args: never; Returns: undefined }
       expire_stale_team_membership_requests: { Args: never; Returns: undefined }
+      fetch_blocked_user_ids: { Args: never; Returns: string[] }
       finalize_due_solo_matches_for_user: {
         Args: { p_user_id?: string }
         Returns: Json
@@ -1744,6 +1847,10 @@ export type Database = {
       }
       has_team_notifications: { Args: never; Returns: boolean }
       invite_to_team: { Args: { p_user_id: string }; Returns: Json }
+      is_blocked_either_way: {
+        Args: { p_user_a: string; p_user_b: string }
+        Returns: boolean
+      }
       is_match_participant: {
         Args: { p_match_id: string; p_user_id?: string }
         Returns: boolean
@@ -1800,6 +1907,15 @@ export type Database = {
       }
       remove_friend: { Args: { p_friend_user_id: string }; Returns: undefined }
       repair_solo_match_activity_credits: { Args: never; Returns: Json }
+      report_content: {
+        Args: {
+          p_content_id: string
+          p_content_type: string
+          p_reason?: string
+          p_reported_user_id?: string
+        }
+        Returns: string
+      }
       request_to_join_team: { Args: { p_team_id: string }; Returns: Json }
       respond_to_friend_request: {
         Args: { p_accept: boolean; p_request_id: string }
@@ -1832,6 +1948,7 @@ export type Database = {
       transfer_leadership: { Args: { p_user_id: string }; Returns: undefined }
       try_pair_solo_queue: { Args: never; Returns: string }
       try_pair_team_queue: { Args: never; Returns: string }
+      unblock_user: { Args: { p_blocked_id: string }; Returns: undefined }
       update_notification_preference: {
         Args: { p_category: string; p_enabled: boolean }
         Returns: undefined

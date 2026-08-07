@@ -1,15 +1,13 @@
-import { ReactNode, useEffect, useRef, useState } from 'react';
-import {
-  Animated,
-  Dimensions,
-  Keyboard,
-  Modal,
-  PanResponder,
-  Platform,
-  Pressable,
-  StyleSheet,
-  View,
-} from 'react-native';
+import { ReactNode, useEffect, useState } from 'react';
+import { Dimensions, Keyboard, Modal, Platform, Pressable, StyleSheet, View } from 'react-native';
+import { Gesture, GestureDetector } from 'react-native-gesture-handler';
+import Animated, {
+  runOnJS,
+  useAnimatedStyle,
+  useSharedValue,
+  withSpring,
+  withTiming,
+} from 'react-native-reanimated';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import { colors, spacing } from '../../theme';
@@ -18,6 +16,7 @@ const SCREEN_HEIGHT = Dimensions.get('window').height;
 const DISMISS_THRESHOLD = 100;
 const HANDLE_ZONE_HEIGHT = 48;
 const TOP_CLEARANCE = spacing.sm;
+const SPRING_CONFIG = { damping: 32, stiffness: 300, mass: 0.9 };
 
 type BottomSheetDrawerProps = {
   visible: boolean;
@@ -47,10 +46,7 @@ export function BottomSheetDrawer({
       ? SCREEN_HEIGHT - keyboardOffset - insets.top - TOP_CLEARANCE
       : SCREEN_HEIGHT - insets.top - TOP_CLEARANCE;
   const drawerHeight = Math.min(preferredHeight, maxHeight);
-  const translateY = useRef(new Animated.Value(preferredHeight)).current;
-  const isClosing = useRef(false);
-  const dragStartY = useRef(0);
-  const touchStartInHandleZone = useRef(false);
+  const translateY = useSharedValue(preferredHeight);
 
   useEffect(() => {
     if (!keyboardAvoiding) {
@@ -81,98 +77,72 @@ export function BottomSheetDrawer({
 
   useEffect(() => {
     if (visible) {
-      isClosing.current = false;
-      translateY.setValue(preferredHeight);
-      Animated.spring(translateY, {
-        toValue: 0,
-        useNativeDriver: true,
-        damping: 22,
-        stiffness: 220,
-      }).start();
+      translateY.value = preferredHeight;
+      translateY.value = withSpring(0, SPRING_CONFIG);
     }
   }, [preferredHeight, translateY, visible]);
 
-  function dismissDrawer(onComplete?: () => void) {
-    if (isClosing.current) {
-      return;
-    }
-
-    isClosing.current = true;
-    Animated.timing(translateY, {
-      toValue: preferredHeight,
-      duration: 240,
-      useNativeDriver: true,
-    }).start(() => {
-      isClosing.current = false;
-      onComplete?.();
-      onClose();
+  function dismissDrawer() {
+    translateY.value = withTiming(preferredHeight, { duration: 240 }, (finished) => {
+      if (finished) {
+        runOnJS(onClose)();
+      }
     });
   }
 
-  const panResponder = useRef(
-    PanResponder.create({
-      onStartShouldSetPanResponder: (event) => {
-        touchStartInHandleZone.current = event.nativeEvent.locationY < HANDLE_ZONE_HEIGHT;
-        return touchStartInHandleZone.current;
-      },
-      onMoveShouldSetPanResponder: (_, gesture) => {
-        const pullingDown = gesture.dy > 4 && Math.abs(gesture.dy) > Math.abs(gesture.dx);
-        return pullingDown && touchStartInHandleZone.current;
-      },
-      onPanResponderTerminationRequest: () => false,
-      onPanResponderGrant: () => {
-        translateY.stopAnimation((value) => {
-          dragStartY.current = value;
+  const panGesture = Gesture.Pan()
+    .activeOffsetY(4)
+    .failOffsetY(-10)
+    .failOffsetX([-10, 10])
+    .hitSlop({ top: 0, height: HANDLE_ZONE_HEIGHT })
+    .onUpdate((event) => {
+      if (event.translationY > 0) {
+        translateY.value = event.translationY;
+      }
+    })
+    .onEnd((event) => {
+      const nextY = Math.max(0, event.translationY);
+      if (nextY > DISMISS_THRESHOLD || event.velocityY > 750) {
+        translateY.value = withTiming(preferredHeight, { duration: 240 }, (finished) => {
+          if (finished) {
+            runOnJS(onClose)();
+          }
         });
-      },
-      onPanResponderMove: (_, gesture) => {
-        if (gesture.dy > 0) {
-          translateY.setValue(dragStartY.current + gesture.dy);
-        }
-      },
-      onPanResponderRelease: (_, gesture) => {
-        const nextY = dragStartY.current + Math.max(0, gesture.dy);
+        return;
+      }
+      translateY.value = withSpring(0, SPRING_CONFIG);
+    });
 
-        if (nextY > DISMISS_THRESHOLD || gesture.vy > 0.75) {
-          dismissDrawer();
-          return;
-        }
-
-        Animated.spring(translateY, {
-          toValue: 0,
-          useNativeDriver: true,
-          damping: 22,
-          stiffness: 220,
-        }).start();
-      },
-    }),
-  ).current;
+  const animatedStyle = useAnimatedStyle(() => ({
+    transform: [{ translateY: translateY.value }],
+  }));
 
   if (!visible) {
     return null;
   }
 
   const drawer = (
-    <Animated.View
-      {...panResponder.panHandlers}
-      style={[
-        styles.drawer,
-        {
-          height: drawerHeight,
-          marginBottom: keyboardOffset,
-          paddingBottom: keyboardOffset > 0 ? spacing.md : Math.max(insets.bottom, spacing.md),
-          transform: [{ translateY }],
-        },
-      ]}
-    >
-      <View style={styles.handleArea}>
-        <View style={styles.handle} />
-      </View>
+    <GestureDetector gesture={panGesture}>
+      <Animated.View
+        style={[
+          styles.drawer,
+          animatedStyle,
+          {
+            height: drawerHeight,
+            marginBottom: keyboardOffset,
+            paddingBottom: keyboardOffset > 0 ? spacing.md : Math.max(insets.bottom, spacing.md),
+          },
+        ]}
+      >
+        <View style={styles.handleArea}>
+          <View style={styles.handle} />
+        </View>
 
-      <View style={styles.content}>{children}</View>
+        <View style={styles.content}>{children}</View>
 
-      {footer ? <View style={styles.footer}>{footer}</View> : null}
-    </Animated.View>
+        {footer ? <View style={styles.footer}>{footer}</View> : null}
+      </Animated.View>
+    </GestureDetector>
   );
 
   return (

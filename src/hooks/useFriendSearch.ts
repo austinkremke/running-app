@@ -1,5 +1,6 @@
 import { useEffect, useRef, useState } from 'react';
 
+import { useBlockedUsers } from '../context';
 import { searchProfiles, type FriendSearchResult } from '../services/friendService';
 import { fetchRankTiers } from '../services/rank';
 import { mapRankTierRow } from '../services/rank/tierFromRating';
@@ -8,6 +9,7 @@ import type { ResolvedRankTier } from '../types/rank';
 const SEARCH_DEBOUNCE_MS = 300;
 
 export function useFriendSearch(viewerUserId: string | null, enabled: boolean) {
+  const { blockedIds } = useBlockedUsers();
   const [query, setQuery] = useState('');
   const [results, setResults] = useState<FriendSearchResult[]>([]);
   const [loading, setLoading] = useState(false);
@@ -67,7 +69,7 @@ export function useFriendSearch(viewerUserId: string | null, enabled: boolean) {
     setError(null);
 
     const timeout = setTimeout(() => {
-      void searchProfiles(trimmed, viewerUserId, rankTiersRef.current)
+      void searchProfiles(trimmed, viewerUserId, rankTiersRef.current, 20, blockedIds)
         .then((next) => {
           setResults(next);
         })
@@ -85,7 +87,7 @@ export function useFriendSearch(viewerUserId: string | null, enabled: boolean) {
     return () => {
       clearTimeout(timeout);
     };
-  }, [enabled, query, viewerUserId]);
+  }, [enabled, query, viewerUserId, blockedIds]);
 
   return {
     query,

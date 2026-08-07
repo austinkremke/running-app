@@ -17,7 +17,9 @@ export type AppRoute =
   | 'settings'
   | 'userProfile'
   | 'devSoloMatchScreenshot'
-  | 'devTeamScreenshot';
+  | 'devTeamScreenshot'
+  | 'devRankMedal'
+  | 'blockedUsers';
 
 type RouteConfig = {
   title: string;
@@ -65,6 +67,8 @@ export const ROUTES: Record<AppRoute, RouteConfig> = {
   userProfile: { title: 'PROFILE', showFeedTabs: false, hideChrome: true },
   devSoloMatchScreenshot: { title: '1V1 MATCH', showFeedTabs: false, hideChrome: true },
   devTeamScreenshot: { title: 'TEAM', showFeedTabs: false, hideChrome: true },
+  devRankMedal: { title: '3D RANK MEDAL', showFeedTabs: false, hideChrome: true },
+  blockedUsers: { title: 'BLOCKED USERS', showFeedTabs: false, hideChrome: true },
 };
 
 export function isAppRoute(key: string): key is AppRoute {

@@ -14,7 +14,7 @@ import {
 } from '../storage/onboardingStorage';
 import { useAuth } from './AuthContext';
 
-export type OnboardingStep = 'welcome' | 'login' | 'email' | 'howItWorks';
+export type OnboardingStep = 'welcome' | 'terms' | 'login' | 'email' | 'howItWorks';
 
 type OnboardingContextValue = {
   step: OnboardingStep;

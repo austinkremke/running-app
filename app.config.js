@@ -51,6 +51,7 @@ export default () => {
       },
     ],
     'expo-apple-authentication',
+    'expo-asset',
     [
       '@kingstinct/react-native-healthkit',
       {

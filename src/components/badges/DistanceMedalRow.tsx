@@ -31,18 +31,22 @@ const RANK_COLORS: Record<1 | 2 | 3, string> = {
 
 type DistanceMedalRowProps = {
   badges: DistanceBadge[];
+  /** Feed cards: show only the top badge, with "+N more" when there are extras. */
+  compact?: boolean;
 };
 
 /** A row of gold/silver/bronze medal chips — a run can earn several at once
  * (e.g. a first-ever marathon qualifies for every shorter milestone too). */
-export function DistanceMedalRow({ badges }: DistanceMedalRowProps) {
+export function DistanceMedalRow({ badges, compact = false }: DistanceMedalRowProps) {
   if (badges.length === 0) return null;
 
   const sorted = [...badges].sort((a, b) => a.rank - b.rank);
+  const visible = compact ? sorted.slice(0, 1) : sorted;
+  const extraCount = compact ? sorted.length - 1 : 0;
 
   return (
     <View style={styles.row}>
-      {sorted.map((badge) => {
+      {visible.map((badge) => {
         const color = RANK_COLORS[badge.rank];
         return (
           <View key={badge.distanceKey} style={[styles.chip, { borderColor: color }]}>
@@ -53,6 +57,7 @@ export function DistanceMedalRow({ badges }: DistanceMedalRowProps) {
           </View>
         );
       })}
+      {extraCount > 0 ? <Text style={styles.more}>+{extraCount} more</Text> : null}
     </View>
   );
 }
@@ -61,6 +66,7 @@ const styles = StyleSheet.create({
   row: {
     flexDirection: 'row',
     flexWrap: 'wrap',
+    alignItems: 'center',
     gap: 6,
   },
   chip: {
@@ -77,5 +83,10 @@ const styles = StyleSheet.create({
     fontSize: 11,
     fontWeight: '800',
     letterSpacing: 0.2,
+  },
+  more: {
+    fontSize: 10,
+    fontWeight: '600',
+    color: colors.textSecondary,
   },
 });

@@ -44,6 +44,7 @@ type AuthContextValue = {
   signInWithGoogle: () => Promise<void>;
   signOut: () => Promise<void>;
   refreshGameState: () => Promise<void>;
+  acceptTerms: () => Promise<void>;
 };
 
 const AuthContext = createContext<AuthContextValue | null>(null);
@@ -218,6 +219,17 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     }
   }, []);
 
+  const acceptTerms = useCallback(async () => {
+    if (!supabase) return;
+
+    const { error } = await supabase.rpc('accept_terms');
+    if (error) {
+      throw error;
+    }
+
+    await refreshGameState();
+  }, [refreshGameState]);
+
   const signOut = useCallback(async () => {
     if (!supabase) return;
 
@@ -243,6 +255,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       signInWithGoogle,
       signOut,
       refreshGameState,
+      acceptTerms,
     }),
     [
       session,
@@ -256,6 +269,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       signInWithGoogle,
       signOut,
       refreshGameState,
+      acceptTerms,
     ],
   );
 

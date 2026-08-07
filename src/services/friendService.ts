@@ -145,6 +145,7 @@ export async function searchProfiles(
   viewerUserId: string,
   rankTiers: ResolvedRankTier[] = [],
   limit = 20,
+  blockedUserIds: ReadonlySet<string> = new Set(),
 ): Promise<FriendSearchResult[]> {
   if (!supabase) {
     return [];
@@ -178,25 +179,27 @@ export async function searchProfiles(
     throw error;
   }
 
-  return (data ?? []).map((row) => {
-    const progress = Array.isArray(row.player_progress)
-      ? row.player_progress[0]
-      : row.player_progress;
-    const rank = Array.isArray(row.player_rank) ? row.player_rank[0] : row.player_rank;
-    const team = Array.isArray(row.teams) ? row.teams[0] : row.teams;
-    const rating = rank?.competitive_rating;
-    const tier =
-      rating != null && tiers.length > 0 ? tierFromRating(rating, tiers) : undefined;
+  return (data ?? [])
+    .filter((row) => !blockedUserIds.has(row.id))
+    .map((row) => {
+      const progress = Array.isArray(row.player_progress)
+        ? row.player_progress[0]
+        : row.player_progress;
+      const rank = Array.isArray(row.player_rank) ? row.player_rank[0] : row.player_rank;
+      const team = Array.isArray(row.teams) ? row.teams[0] : row.teams;
+      const rating = rank?.competitive_rating;
+      const tier =
+        rating != null && tiers.length > 0 ? tierFromRating(rating, tiers) : undefined;
 
-    return {
-      id: row.id,
-      displayName: row.display_name,
-      avatarUrl: row.avatar_url ?? undefined,
-      level: levelFromTotalXp(progress?.total_xp ?? 0),
-      teamName: team?.name ?? 'No team',
-      rankTierId: tier?.id,
-      rankTitle: tier?.displayName,
-      competitiveRating: rating,
-    };
-  });
+      return {
+        id: row.id,
+        displayName: row.display_name,
+        avatarUrl: row.avatar_url ?? undefined,
+        level: levelFromTotalXp(progress?.total_xp ?? 0),
+        teamName: team?.name ?? 'No team',
+        rankTierId: tier?.id,
+        rankTitle: tier?.displayName,
+        competitiveRating: rating,
+      };
+    });
 }

@@ -38,6 +38,11 @@ export type Run = {
   matchId?: string;
   /** Raw ISO timestamp — used only to sort mixed feed item types together. */
   postedAtIso?: string;
+  /** Chart series for whichever of pace/elevation/heart-rate have data — same
+   *  shape as PostRunSummary's, carried straight through from the activity's
+   *  summary_json since the feed query already fetches the whole row. */
+  chartData?: Record<PostRunChartTab, PostRunChartPoint[]>;
+  chartReferenceLines?: Partial<Record<PostRunChartTab, number>>;
 };
 
 export type FeedComment = {

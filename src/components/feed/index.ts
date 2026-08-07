@@ -1,4 +1,5 @@
 export { FeedCommentsDrawer } from './FeedCommentsDrawer';
+export { FeedSkeletonList } from './FeedSkeletonList';
 export { FindFriendsDrawer } from './FindFriendsDrawer';
 export { FriendsFindBar } from './FriendsFindBar';
 export { RunCard } from './RunCard';

@@ -12,10 +12,12 @@ import {
 } from 'react-native';
 
 import type { FeedComment } from '../../mock';
+import { useUserId } from '../../context';
 import { useFeatureGate } from '../../hooks/useFeatureGate';
 import { addFeedComment, fetchFeedComments } from '../../services/feedEngagementService';
 import { colors, spacing } from '../../theme';
 import { BottomSheetDrawer } from '../drawer';
+import { ReportMenu } from '../moderation';
 
 type FeedCommentsDrawerProps = {
   visible: boolean;
@@ -30,12 +32,14 @@ export function FeedCommentsDrawer({
   onClose,
   onCommentAdded,
 }: FeedCommentsDrawerProps) {
+  const viewerUserId = useUserId();
   const commentGate = useFeatureGate('feed_comments');
   const [comments, setComments] = useState<FeedComment[]>([]);
   const [loading, setLoading] = useState(false);
   const [draft, setDraft] = useState('');
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [reportTarget, setReportTarget] = useState<FeedComment | null>(null);
 
   const loadComments = useCallback(async () => {
     if (!postId) {
@@ -86,6 +90,7 @@ export function FeedCommentsDrawer({
   }
 
   return (
+    <>
     <BottomSheetDrawer
       footer={
         commentGate.locked ? (
@@ -156,6 +161,17 @@ export function FeedCommentsDrawer({
                   </View>
                   <Text style={styles.commentText}>{item.body}</Text>
                 </View>
+                {item.userId !== viewerUserId ? (
+                  <Pressable
+                    accessibilityLabel="Report or block"
+                    accessibilityRole="button"
+                    hitSlop={8}
+                    onPress={() => setReportTarget(item)}
+                    style={styles.moreButton}
+                  >
+                    <Ionicons color={colors.textSecondary} name="ellipsis-horizontal" size={14} />
+                  </Pressable>
+                ) : null}
               </View>
             )}
             showsVerticalScrollIndicator={false}
@@ -165,6 +181,15 @@ export function FeedCommentsDrawer({
         {error ? <Text style={styles.error}>{error}</Text> : null}
       </View>
     </BottomSheetDrawer>
+
+    <ReportMenu
+      contentId={reportTarget?.id ?? ''}
+      contentType="feed_comment"
+      onClose={() => setReportTarget(null)}
+      reportedUserId={reportTarget?.userId}
+      visible={reportTarget != null}
+    />
+    </>
   );
 }
 
@@ -214,6 +239,9 @@ const styles = StyleSheet.create({
   commentBody: {
     flex: 1,
     gap: 4,
+  },
+  moreButton: {
+    padding: spacing.xs,
   },
   commentHeader: {
     flexDirection: 'row',

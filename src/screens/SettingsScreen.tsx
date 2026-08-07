@@ -36,6 +36,7 @@ import { colors, spacing } from '../theme';
 
 type SettingsScreenProps = {
   onBack?: () => void;
+  onOpenBlockedUsers?: () => void;
 };
 
 const NOTIFICATION_CATEGORY_LABELS: { category: NotificationCategory; label: string }[] = [
@@ -49,7 +50,7 @@ const NOTIFICATION_CATEGORY_LABELS: { category: NotificationCategory; label: str
   { category: 'friend_activity', label: 'Friend completed a run' },
 ];
 
-export function SettingsScreen({ onBack }: SettingsScreenProps) {
+export function SettingsScreen({ onBack, onOpenBlockedUsers }: SettingsScreenProps) {
   const { session, gameState, signOut, refreshGameState } = useAuth();
   const { preferences, setDistanceUnit } = useUserPreferences();
   const {
@@ -461,6 +462,14 @@ export function SettingsScreen({ onBack }: SettingsScreenProps) {
           label={deletingAccount ? 'Deleting account…' : 'Delete account'}
           onPress={confirmDeleteAccount}
           showChevron={false}
+        />
+      </SettingsSection>
+
+      <SettingsSection title="Safety">
+        <SettingsRow
+          icon="ban-outline"
+          label="Blocked users"
+          onPress={onOpenBlockedUsers}
         />
       </SettingsSection>
 

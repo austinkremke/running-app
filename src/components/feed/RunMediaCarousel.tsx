@@ -1,5 +1,5 @@
 import { Ionicons } from '@expo/vector-icons';
-import { useEffect, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import {
   Image,
   LayoutChangeEvent,
@@ -14,7 +14,9 @@ import {
 
 import { StaticRouteMapPreview } from '../map';
 import type { GpsPoint } from '../../maps/types';
+import type { PostRunChartPoint, PostRunChartTab } from '../../mock';
 import { colors, spacing } from '../../theme';
+import { FeedChartSlide } from './FeedChartSlide';
 
 type RunMediaCarouselProps = {
   photoUrl?: string | null;
@@ -24,11 +26,22 @@ type RunMediaCarouselProps = {
   onPressMap?: () => void;
   /** Shows a small expand icon on the map card — only meaningful when onPressMap opens a fullscreen map, not when it navigates elsewhere. */
   showMapExpandBadge?: boolean;
+  /** Chart series for whichever of pace/elevation/heart-rate have data — each becomes its own swipeable slide. */
+  chartData?: Record<PostRunChartTab, PostRunChartPoint[]>;
+  chartReferenceLines?: Partial<Record<PostRunChartTab, number>>;
+  distanceMiles?: number;
 };
 
+const CHART_TAB_ORDER: PostRunChartTab[] = ['pace', 'elevation', 'heartRate'];
+
 const CARD_GAP = spacing.sm;
-const MIN_MAP_PEEK = 56;
+const MIN_NEXT_PEEK = 56;
 const DEFAULT_ASPECT_RATIO = 4 / 3;
+
+/** Persists resolved photo aspect ratios across renders/scroll-recycling so a
+ *  previously-measured image never flashes at the wrong size while
+ *  Image.getSize resolves again. */
+const aspectRatioCache = new Map<string, number>();
 
 export function RunMediaCarousel({
   photoUrl,
@@ -37,21 +50,39 @@ export function RunMediaCarousel({
   onPressPhoto,
   onPressMap,
   showMapExpandBadge = false,
+  chartData,
+  chartReferenceLines = {},
+  distanceMiles = 0,
 }: RunMediaCarouselProps) {
   const [containerWidth, setContainerWidth] = useState(0);
-  const [photoAspectRatio, setPhotoAspectRatio] = useState(DEFAULT_ASPECT_RATIO);
+  const [photoAspectRatio, setPhotoAspectRatio] = useState(
+    photoUrl && aspectRatioCache.has(photoUrl)
+      ? aspectRatioCache.get(photoUrl)!
+      : DEFAULT_ASPECT_RATIO,
+  );
   const [activeIndex, setActiveIndex] = useState(0);
   const hasRoute = routePoints.length >= 2;
   const hasPhoto = Boolean(photoUrl);
+  const chartTabs = useMemo(
+    () => CHART_TAB_ORDER.filter((tab) => (chartData?.[tab]?.length ?? 0) > 0),
+    [chartData],
+  );
 
   useEffect(() => {
     if (!photoUrl) return;
+    const cached = aspectRatioCache.get(photoUrl);
+    if (cached) {
+      setPhotoAspectRatio(cached);
+      return;
+    }
     let cancelled = false;
     Image.getSize(
       photoUrl,
       (naturalWidth, naturalHeight) => {
         if (!cancelled && naturalWidth > 0 && naturalHeight > 0) {
-          setPhotoAspectRatio(naturalWidth / naturalHeight);
+          const ratio = naturalWidth / naturalHeight;
+          aspectRatioCache.set(photoUrl, ratio);
+          setPhotoAspectRatio(ratio);
         }
       },
       () => {},
@@ -65,17 +96,15 @@ export function RunMediaCarousel({
     setContainerWidth(event.nativeEvent.layout.width);
   }
 
-  if (!hasPhoto && !hasRoute) {
+  const slideCount = (hasPhoto ? 1 : 0) + (hasRoute ? 1 : 0) + chartTabs.length;
+
+  if (slideCount === 0) {
     return null;
   }
 
   function renderMapCard(width: DimensionValue) {
     return (
-      <Pressable
-        disabled={!onPressMap}
-        onPress={onPressMap}
-        style={[styles.card, { height, width }]}
-      >
+      <Pressable disabled={!onPressMap} onPress={onPressMap} style={[styles.card, { height, width }]}>
         <StaticRouteMapPreview routePoints={routePoints} style={styles.fill} />
         {showMapExpandBadge && onPressMap ? (
           <View style={styles.expandBadge}>
@@ -88,35 +117,75 @@ export function RunMediaCarousel({
 
   function renderPhotoCard(width: DimensionValue) {
     return (
-      <Pressable
-        disabled={!onPressPhoto}
-        onPress={onPressPhoto}
-        style={[styles.card, { height, width }]}
-      >
+      <Pressable disabled={!onPressPhoto} onPress={onPressPhoto} style={[styles.card, { height, width }]}>
         <Image resizeMode="cover" source={{ uri: photoUrl! }} style={styles.fill} />
       </Pressable>
     );
   }
 
-  if (hasPhoto && !hasRoute) {
-    const photoWidth = containerWidth
-      ? Math.min(height * photoAspectRatio, containerWidth)
-      : height * photoAspectRatio;
-    return renderPhotoCard(photoWidth);
+  function renderChartCard(tab: PostRunChartTab, width: DimensionValue) {
+    return (
+      <FeedChartSlide
+        data={chartData?.[tab] ?? []}
+        distanceMiles={distanceMiles}
+        height={height}
+        referenceLines={chartReferenceLines}
+        tab={tab}
+        width={width}
+      />
+    );
   }
 
-  if (hasRoute && !hasPhoto) {
-    return renderMapCard('100%');
+  // Single-slide fast path — no layout measurement needed, matches prior behavior exactly.
+  if (slideCount === 1) {
+    if (hasPhoto) {
+      const photoWidth = containerWidth
+        ? Math.min(height * photoAspectRatio, containerWidth)
+        : height * photoAspectRatio;
+      return renderPhotoCard(photoWidth);
+    }
+    if (hasRoute) {
+      return renderMapCard('100%');
+    }
+    return renderChartCard(chartTabs[0], '100%');
   }
 
-  const photoCap = containerWidth ? Math.max(containerWidth - MIN_MAP_PEEK, containerWidth * 0.3) : 0;
+  // Multi-slide path — photo (if present) gets an aspect-ratio width capped
+  // so the next slide peeks at the edge; every other slide is full width.
+  const photoCap = containerWidth ? Math.max(containerWidth - MIN_NEXT_PEEK, containerWidth * 0.3) : 0;
   const photoWidth = containerWidth
     ? Math.min(height * photoAspectRatio, photoCap)
     : height * photoAspectRatio;
-  const snapOffset = photoWidth + CARD_GAP;
+
+  const slides: { key: string; width: number; node: React.ReactNode }[] = [];
+  if (hasPhoto) {
+    slides.push({ key: 'photo', width: photoWidth, node: renderPhotoCard(photoWidth) });
+  }
+  if (hasRoute) {
+    slides.push({ key: 'route', width: containerWidth, node: renderMapCard(containerWidth) });
+  }
+  for (const tab of chartTabs) {
+    slides.push({ key: tab, width: containerWidth, node: renderChartCard(tab, containerWidth) });
+  }
+
+  const snapOffsets = slides.reduce<number[]>((offsets, slide, index) => {
+    if (index === 0) return [0];
+    offsets.push(offsets[index - 1] + slides[index - 1].width + CARD_GAP);
+    return offsets;
+  }, []);
 
   function handleScroll(event: NativeSyntheticEvent<NativeScrollEvent>) {
-    setActiveIndex(event.nativeEvent.contentOffset.x >= snapOffset / 2 ? 1 : 0);
+    const x = event.nativeEvent.contentOffset.x;
+    let nearest = 0;
+    let nearestDistance = Infinity;
+    snapOffsets.forEach((offset, index) => {
+      const distance = Math.abs(offset - x);
+      if (distance < nearestDistance) {
+        nearestDistance = distance;
+        nearest = index;
+      }
+    });
+    setActiveIndex(nearest);
   }
 
   return (
@@ -129,15 +198,16 @@ export function RunMediaCarousel({
             onScroll={handleScroll}
             scrollEventThrottle={16}
             showsHorizontalScrollIndicator={false}
-            snapToOffsets={[0, snapOffset]}
+            snapToOffsets={snapOffsets}
             contentContainerStyle={styles.scrollContent}
           >
-            {renderPhotoCard(photoWidth)}
-            {renderMapCard(containerWidth)}
+            {slides.map((slide) => (
+              <View key={slide.key}>{slide.node}</View>
+            ))}
           </ScrollView>
           <View style={styles.dots}>
-            {[0, 1].map((index) => (
-              <View key={index} style={[styles.dot, index === activeIndex && styles.dotActive]} />
+            {slides.map((slide, index) => (
+              <View key={slide.key} style={[styles.dot, index === activeIndex && styles.dotActive]} />
             ))}
           </View>
         </>

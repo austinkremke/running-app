@@ -1,6 +1,7 @@
 import type { FeedTab, Run } from '../mock';
 import type { Tables } from '../types/database';
 import { syncActivityById } from './activitySync';
+import { toContentFilterFriendlyError } from './contentFilterError';
 import { fetchFeedEngagementSummaries } from './feedEngagementService';
 import { fetchFriendIds } from './friendService';
 import { supabase } from './supabase';
@@ -42,7 +43,7 @@ export async function createFeedPost(input: CreateFeedPostInput): Promise<void> 
     { onConflict: 'activity_id' },
   );
 
-  if (error) throw error;
+  if (error) throw toContentFilterFriendlyError(error);
 }
 
 export async function publishActivityToFeed(input: CreateFeedPostInput): Promise<void> {

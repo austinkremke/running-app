@@ -1,7 +1,7 @@
 import { useCallback, useEffect, useState } from 'react';
 
 import type { FeedTab, Run, SoloMatchFeedPost, TeamMatchFeedPost } from '../mock';
-import { useAuth } from '../context';
+import { useAuth, useBlockedUsers } from '../context';
 import { fetchFeedPosts } from '../services/feedService';
 import { fetchSoloMatchFeedPosts, fetchTeamMatchFeedPosts } from '../services/matchService';
 import { toggleFeedLike } from '../services/feedEngagementService';
@@ -37,6 +37,7 @@ function toFeedItems(
 
 export function useFeed(activeTab: FeedTab) {
   const { session } = useAuth();
+  const { blockedIds } = useBlockedUsers();
   const viewerUserId = session?.user?.id ?? null;
   const [items, setItems] = useState<FeedItem[]>([]);
   const [loading, setLoading] = useState(true);
@@ -126,5 +127,21 @@ export function useFeed(activeTab: FeedTab) {
     );
   }, []);
 
-  return { items, loading, error, refresh, toggleLike, bumpCommentCount, likingPostId };
+  // Defense-in-depth on top of the server-side RLS filter — reacts
+  // immediately to a block/unblock without waiting on a refetch, so
+  // blocking someone removes their posts from the feed instantly.
+  const visibleItems =
+    blockedIds.size === 0
+      ? items
+      : items.filter((item) => item.kind !== 'run' || !blockedIds.has(item.run.user.id));
+
+  return {
+    items: visibleItems,
+    loading,
+    error,
+    refresh,
+    toggleLike,
+    bumpCommentCount,
+    likingPostId,
+  };
 }

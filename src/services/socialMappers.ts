@@ -107,6 +107,8 @@ export function mapFeedPostToRun(
         tab === 'community' || tab === 'friends' || tab === 'team',
     ),
     matchId: activity.match_id ?? undefined,
+    chartData: summary?.chartData,
+    chartReferenceLines: summary?.chartReferenceLines,
   };
 }
 

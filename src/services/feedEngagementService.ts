@@ -1,5 +1,6 @@
 import type { FeedComment } from '../mock';
 import type { Tables } from '../types/database';
+import { toContentFilterFriendlyError } from './contentFilterError';
 import { supabase } from './supabase';
 import { formatRelativeTime } from '../utils/formatRelativeTime';
 
@@ -185,7 +186,7 @@ export async function addFeedComment(postId: string, body: string): Promise<Feed
     .single();
 
   if (error) {
-    throw error;
+    throw toContentFilterFriendlyError(error);
   }
 
   const comment = data as CommentRow;

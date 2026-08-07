@@ -12,14 +12,19 @@ type PostRunLineChartProps = {
   yUnit?: string;
   xMaxMiles: number;
   referenceValue?: number;
+  /** Overrides the default full-detail chart height — used by compact
+   *  contexts (e.g. the feed carousel slide) that don't have room for the
+   *  default size. Without this, a container shorter than the chart's own
+   *  fixed minHeight squeezes/vertically-crops the SVG, which is what made
+   *  the value line overlap the label sitting above it. */
+  height?: number;
 };
 
-const CHART_HEIGHT = 132;
+const DEFAULT_CHART_HEIGHT = 132;
 const PADDING_LEFT = 34;
 const PADDING_RIGHT = 8;
 const PADDING_TOP = 8;
 const PADDING_BOTTOM = 18;
-const PLOT_HEIGHT = CHART_HEIGHT - PADDING_TOP - PADDING_BOTTOM;
 
 export function PostRunLineChart({
   data,
@@ -27,7 +32,10 @@ export function PostRunLineChart({
   yUnit,
   xMaxMiles,
   referenceValue,
+  height = DEFAULT_CHART_HEIGHT,
 }: PostRunLineChartProps) {
+  const chartHeight = height;
+  const plotHeight = chartHeight - PADDING_TOP - PADDING_BOTTOM;
   const [width, setWidth] = useState(0);
   const plotWidth = Math.max(width - PADDING_LEFT - PADDING_RIGHT, 1);
   const xAxisTicks = useMemo(() => buildDistanceAxisTicks(xMaxMiles), [xMaxMiles]);
@@ -51,7 +59,7 @@ export function PostRunLineChart({
     const points = data.map((point) => {
       const x = PADDING_LEFT + (point.distanceMiles / xMax) * plotWidth;
       const normalized = (point.value - minValue) / valueRange;
-      const y = PADDING_TOP + (1 - normalized) * PLOT_HEIGHT;
+      const y = PADDING_TOP + (1 - normalized) * plotHeight;
       return { x, y };
     });
 
@@ -59,21 +67,24 @@ export function PostRunLineChart({
       .map((point, index) => `${index === 0 ? 'M' : 'L'} ${point.x} ${point.y}`)
       .join(' ');
     const area = `${line} L ${points[points.length - 1]?.x ?? PADDING_LEFT} ${
-      PADDING_TOP + PLOT_HEIGHT
-    } L ${points[0]?.x ?? PADDING_LEFT} ${PADDING_TOP + PLOT_HEIGHT} Z`;
+      PADDING_TOP + plotHeight
+    } L ${points[0]?.x ?? PADDING_LEFT} ${PADDING_TOP + plotHeight} Z`;
 
     let refY: number | null = null;
     if (referenceValue != null) {
       const normalized = (referenceValue - minValue) / valueRange;
-      refY = PADDING_TOP + (1 - normalized) * PLOT_HEIGHT;
+      refY = PADDING_TOP + (1 - normalized) * plotHeight;
     }
 
     return { linePath: line, areaPath: area, referenceY: refY };
-  }, [data, plotWidth, referenceValue, width, xMax]);
+  }, [data, plotHeight, plotWidth, referenceValue, width, xMax]);
 
   return (
-    <View onLayout={(event) => setWidth(event.nativeEvent.layout.width)} style={styles.container}>
-      <View style={styles.yAxis}>
+    <View
+      onLayout={(event) => setWidth(event.nativeEvent.layout.width)}
+      style={[styles.container, { minHeight: chartHeight + 24 }]}
+    >
+      <View style={[styles.yAxis, { top: PADDING_TOP, height: plotHeight }]}>
         {yLabels.map((label, index) => (
           <Text key={`y-${index}-${label}`} style={styles.yLabel}>
             {label}
@@ -83,7 +94,7 @@ export function PostRunLineChart({
       </View>
 
       {width > 0 ? (
-        <Svg height={CHART_HEIGHT} width={width}>
+        <Svg height={chartHeight} width={width}>
           <Defs>
             <LinearGradient id="postRunChartFill" x1="0" x2="0" y1="0" y2="1">
               <Stop offset="0%" stopColor={colors.accentLime} stopOpacity={0.28} />
@@ -128,19 +139,22 @@ export function formatPaceSeconds(totalSeconds: number): string {
 }
 
 export function buildPaceYLabels(minSeconds: number, maxSeconds: number): string[] {
-  const step = (maxSeconds - minSeconds) / 3;
-  return [0, 1, 2, 3].map((index) => formatPaceSeconds(maxSeconds - step * index));
+  if (minSeconds === maxSeconds) {
+    // Genuinely flat (e.g. an imported run with only one real data point) —
+    // showing the same value 3 times over implies variation that isn't there.
+    return [formatPaceSeconds(maxSeconds)];
+  }
+
+  const step = (maxSeconds - minSeconds) / 2;
+  const labels = [0, 1, 2].map((index) => formatPaceSeconds(maxSeconds - step * index));
+  return labels.filter((label, index) => index === 0 || label !== labels[index - 1]);
 }
 
 const styles = StyleSheet.create({
-  container: {
-    minHeight: CHART_HEIGHT + 24,
-  },
+  container: {},
   yAxis: {
     position: 'absolute',
     left: 0,
-    top: PADDING_TOP,
-    height: PLOT_HEIGHT,
     justifyContent: 'space-between',
     zIndex: 1,
   },

@@ -1,5 +1,6 @@
 import type { TeamChatMessage } from '../mock';
 import type { Tables } from '../types/database';
+import { toContentFilterFriendlyError } from './contentFilterError';
 import { supabase } from './supabase';
 
 export type MatchMessageRow = Tables<'match_messages'> & {
@@ -76,6 +77,6 @@ export async function sendMatchMessage(matchId: string, userId: string, body: st
   });
 
   if (error) {
-    throw error;
+    throw toContentFilterFriendlyError(error);
   }
 }

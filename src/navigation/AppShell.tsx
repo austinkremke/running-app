@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { lazy, Suspense, useEffect, useState } from 'react';
 import { StyleSheet, View } from 'react-native';
 // Alert kept for Level 10 Boost promo CTA when re-enabled
 // import { Alert, StyleSheet, View } from 'react-native';
@@ -39,6 +39,7 @@ import { MatchScreen } from '../screens/MatchScreen';
 import { MeScreen } from '../screens/MeScreen';
 import { PublicTeamScreen } from '../screens/PublicTeamScreen';
 import { RunScreen } from '../screens/RunScreen';
+import { BlockedUsersScreen } from '../screens/BlockedUsersScreen';
 import { SettingsScreen } from '../screens/SettingsScreen';
 import { SoloMatchScreen } from '../screens/SoloMatchScreen';
 import { TeamMatchScreen } from '../screens/TeamMatchScreen';
@@ -46,6 +47,15 @@ import { TeamScreen } from '../screens/TeamScreen';
 import { UserProfileScreen } from '../screens/UserProfileScreen';
 import { colors } from '../theme';
 import { isAppRoute, ROUTES, type AppRoute } from './routes';
+
+// Lazy — pulls in @react-three/fiber/three/expo-gl, which we don't want
+// evaluated at app boot for every user just because this dev-only screen
+// exists somewhere in the route table.
+const DevRankMedalScreen = lazy(() =>
+  import('../screens/DevRankMedalScreen').then((module) => ({
+    default: module.DevRankMedalScreen,
+  })),
+);
 
 const SOCIAL_TABS = [
   { key: 'feed', label: 'FEED' },
@@ -342,6 +352,7 @@ export function AppShell() {
     if (activeRoute === 'me') {
       return (
         <MeScreen
+          onOpenDevRankMedalMock={__DEV__ ? () => setActiveRoute('devRankMedal') : undefined}
           onOpenDevScreenshotMock={__DEV__ ? () => setActiveRoute('devSoloMatchScreenshot') : undefined}
           onOpenDevTeamScreenshotMock={__DEV__ ? () => setActiveRoute('devTeamScreenshot') : undefined}
           onOpenMatch={openSoloMatchDetail}
@@ -352,7 +363,16 @@ export function AppShell() {
     }
 
     if (activeRoute === 'settings') {
-      return <SettingsScreen onBack={() => setActiveRoute(settingsReturnRoute)} />;
+      return (
+        <SettingsScreen
+          onBack={() => setActiveRoute(settingsReturnRoute)}
+          onOpenBlockedUsers={() => setActiveRoute('blockedUsers')}
+        />
+      );
+    }
+
+    if (activeRoute === 'blockedUsers') {
+      return <BlockedUsersScreen onBack={() => setActiveRoute('settings')} />;
     }
 
     if (activeRoute === 'devSoloMatchScreenshot') {
@@ -361,6 +381,14 @@ export function AppShell() {
 
     if (activeRoute === 'devTeamScreenshot') {
       return <DevTeamScreenshotScreen onBack={() => setActiveRoute('me')} />;
+    }
+
+    if (activeRoute === 'devRankMedal') {
+      return (
+        <Suspense fallback={null}>
+          <DevRankMedalScreen onBack={() => setActiveRoute('me')} />
+        </Suspense>
+      );
     }
 
     return RouteScreen ? <RouteScreen /> : null;

@@ -1,8 +1,9 @@
-import { ActivityIndicator, Alert, FlatList, StyleSheet, Text, View } from 'react-native';
+import { Alert, FlatList, StyleSheet, Text, View } from 'react-native';
 import { useEffect, useState } from 'react';
 
 import {
   FeedCommentsDrawer,
+  FeedSkeletonList,
   FindFriendsDrawer,
   FriendsFindBar,
   RunCard,
@@ -113,11 +114,7 @@ export function FeedScreen({
   }
 
   if (loading) {
-    return (
-      <View style={styles.centered}>
-        <ActivityIndicator color={colors.accentLime} />
-      </View>
-    );
+    return <FeedSkeletonList />;
   }
 
   if (error) {
