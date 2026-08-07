@@ -14,6 +14,7 @@
     "@rnmapbox/maps": "^10.3.1",
     "@supabase/supabase-js": "^2.108.2",
     "@types/jest": "29.5.14",
+    "country-flag-icons": "^1.6.20",
     "expo": "~56.0.9",
     "expo-apple-authentication": "~56.0.4",
     "expo-asset": "~56.0.21",
@@ -26,6 +27,7 @@
     "expo-gl": "~56.0.6",
     "expo-image-picker": "~56.0.18",
     "expo-linear-gradient": "~56.0.4",
+    "expo-localization": "~56.0.6",
     "expo-location": "~56.0.16",
     "expo-notifications": "~56.0.21",
     "expo-splash-screen": "~56.0.12",
@@ -51,6 +53,7 @@
     "@types/react": "~19.2.2",
     "@types/three": "^0.185.1",
     "babel-preset-expo": "^56.0.14",
+    "react-native-svg-transformer": "^1.5.3",
     "ts-jest": "^29.4.11",
     "typescript": "~6.0.3"
   },

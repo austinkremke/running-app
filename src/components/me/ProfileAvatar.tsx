@@ -10,6 +10,8 @@ type ProfileAvatarProps = {
   onEditPress?: () => void;
   rankBorderTierId?: string | null;
   size?: number;
+  /** Ring thickness as a fraction of `size`; defaults to the standard app-wide ratio. */
+  ringRatio?: number;
 };
 
 const DEFAULT_SIZE = 72;
@@ -19,6 +21,7 @@ export function ProfileAvatar({
   onEditPress,
   rankBorderTierId,
   size = DEFAULT_SIZE,
+  ringRatio,
 }: ProfileAvatarProps) {
   const editSize = size * 0.28;
   const hasRankBorder = rankBorderSourceForTier(rankBorderTierId) != null;
@@ -26,7 +29,12 @@ export function ProfileAvatar({
   return (
     <View style={[styles.wrapper, { width: size, height: size }]}>
       {hasRankBorder ? (
-        <RankBorderAvatar avatarUrl={avatarUrl} rankTierId={rankBorderTierId} size={size} />
+        <RankBorderAvatar
+          avatarUrl={avatarUrl}
+          rankTierId={rankBorderTierId}
+          ringRatio={ringRatio}
+          size={size}
+        />
       ) : (
         <View style={[styles.ring, { width: size, height: size, borderRadius: size / 2 }]}>
           <View style={styles.inner}>

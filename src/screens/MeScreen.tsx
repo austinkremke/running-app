@@ -9,19 +9,19 @@ import {
   CompetitiveHistoryModal,
   CompetitiveHistorySection,
   CompetitiveStatsSection,
-  ExperienceCard,
+  MePillHeader,
   OverallStatsRangeTabs,
   OverallStatsSection,
   PersonalRecordsSection,
-  ProfileTopSection,
+  ProfileHeaderCentered,
   RankProgressCard,
   RankUpCelebrationDrawer,
   SectionHeader,
   StatDetailDrawer,
+  TopographyBackground,
   type StatDetailTarget,
 } from '../components/me';
 import { useAuth, usePlayerProgress, useUserId, useXpGain } from '../context';
-import { TabAppHeader } from '../components/header';
 import { useAchievements } from '../hooks/useAchievements';
 import { useAchievementUnlockPresentation } from '../hooks/useAchievementUnlockPresentation';
 import { useRankDisplay } from '../hooks/useRankDisplay';
@@ -34,7 +34,12 @@ import { fetchCompetitiveStats, type CompetitiveStats } from '../services/compet
 import type { DistanceMilestoneKey } from '../services/activityStreams';
 import { fetchPersonalRecords, type PersonalRecord } from '../services/distanceRecords';
 import { fetchRunByActivityId } from '../services/feedService';
-import { fetchSoloRatingHistory, type SoloRatingHistoryEntry } from '../services/rank';
+import {
+  fetchSoloRankPosition,
+  fetchSoloRatingHistory,
+  type SoloRankPosition,
+  type SoloRatingHistoryEntry,
+} from '../services/rank';
 import type { Run } from '../mock';
 import {
   fetchProfileOverallStats,
@@ -45,16 +50,14 @@ import {
 import { fetchTeamNameById } from '../services/teamService';
 import { fetchWeeklyProgressSummary, type WeeklyProgressSummary } from '../services/weeklyProgressService';
 import { colors, spacing } from '../theme';
+import { deviceRegionCode } from '../utils/deviceRegion';
 
 /** How far the scrollable card's rounded top rides up over the static header. */
 const SCROLL_OVERLAP = -8;
+/** Low opacity so the artwork reads as a subtle wash behind the header, not a loud graphic. */
+const TOPOGRAPHY_OPACITY = 0.16;
 
 type MeTab = 'progress' | 'competitive';
-
-const ME_TABS = [
-  { key: 'progress', label: 'PROGRESS' },
-  { key: 'competitive', label: 'COMPETITIVE' },
-] as const;
 
 type MeScreenProps = {
   onOpenDevRankMedalMock?: () => void;
@@ -97,12 +100,17 @@ export function MeScreen({
   const [personalRecords, setPersonalRecords] = useState<PersonalRecord[]>([]);
   const [statDetailTarget, setStatDetailTarget] = useState<StatDetailTarget | null>(null);
   const [weeklySummary, setWeeklySummary] = useState<WeeklyProgressSummary | null>(null);
+  const [soloRankPosition, setSoloRankPosition] = useState<SoloRankPosition | null>(null);
   const [headerHeight, setHeaderHeight] = useState(0);
-  const [tabBarHeight, setTabBarHeight] = useState(0);
+  const [pillHeaderHeight, setPillHeaderHeight] = useState(0);
   const carouselAchievements = useMemo(
     () => sortAchievementsForMeCarousel(allAchievements),
     [allAchievements],
   );
+  // Global solo-leaderboard placement paired with the device-locale region — there's
+  // no `profiles.country_code` yet, so this isn't a true per-country rank. See
+  // deviceRegion.ts and soloRankPositionService.ts.
+  const regionCode = useMemo(() => deviceRegionCode(), []);
 
   const teamId = gameState?.profile.team_id ?? null;
 
@@ -217,6 +225,29 @@ export function MeScreen({
   }, [userId, totalXp]);
 
   useEffect(() => {
+    const rating = profileRank.competitiveRating;
+    if (rating == null) {
+      setSoloRankPosition(null);
+      return;
+    }
+
+    let cancelled = false;
+
+    fetchSoloRankPosition(rating)
+      .then((position) => {
+        if (!cancelled) setSoloRankPosition(position);
+      })
+      .catch((error) => {
+        console.warn('Failed to load solo rank position', error);
+        if (!cancelled) setSoloRankPosition(null);
+      });
+
+    return () => {
+      cancelled = true;
+    };
+  }, [profileRank.competitiveRating]);
+
+  useEffect(() => {
     if (!teamId) {
       setTeamName('');
       return;
@@ -285,36 +316,27 @@ export function MeScreen({
   return (
     <>
       <View style={styles.container}>
-        <View onLayout={(event) => setTabBarHeight(event.nativeEvent.layout.height)} style={styles.header}>
-          <TabAppHeader
-            accentActive
-            activeTab={activeMeTab}
-            compact
-            onTabPress={(key) => setActiveMeTab(key as MeTab)}
-            tabs={[...ME_TABS]}
-          />
+        <View onLayout={(event) => setPillHeaderHeight(event.nativeEvent.layout.height)} style={styles.header}>
+          <MePillHeader activeMode={activeMeTab} onModeChange={setActiveMeTab} onOpenSettings={onOpenSettings} />
         </View>
 
         <View onLayout={(event) => setHeaderHeight(event.nativeEvent.layout.height)} style={styles.profileGroup}>
-          <ProfileTopSection
-            competitiveStats={competitiveStats}
-            mode={activeMeTab}
+          <TopographyBackground color={colors.accentLime} opacity={TOPOGRAPHY_OPACITY} style={styles.topography} />
+
+          <ProfileHeaderCentered
+            regionCode={regionCode}
             profile={profile}
-            weeklySummary={weeklySummary}
+            soloRankPosition={soloRankPosition}
           />
 
-          {activeMeTab === 'progress' ? (
-            <ExperienceCard experience={profile.experience} />
-          ) : (
-            <RankProgressCard rank={profileRank} />
-          )}
+          <RankProgressCard rank={profileRank} />
         </View>
 
         {headerHeight > 0 ? (
           <ScrollView
             contentContainerStyle={[
               styles.content,
-              { paddingTop: Math.max(tabBarHeight + headerHeight - SCROLL_OVERLAP, 0) },
+              { paddingTop: Math.max(pillHeaderHeight + headerHeight - SCROLL_OVERLAP, 0) },
             ]}
             showsVerticalScrollIndicator={false}
             style={styles.scroll}
@@ -489,11 +511,15 @@ const styles = StyleSheet.create({
     backgroundColor: colors.background,
   },
   profileGroup: {
+    position: 'relative',
     zIndex: 0,
     gap: spacing.md,
     paddingHorizontal: spacing.sm,
     paddingTop: spacing.md,
     paddingBottom: spacing.md,
+  },
+  topography: {
+    ...StyleSheet.absoluteFill,
   },
   scrollCard: {
     flexGrow: 1,

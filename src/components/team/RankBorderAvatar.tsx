@@ -14,11 +14,13 @@ type RankBorderAvatarProps = {
   rankTierId?: string | null;
   /** Rendered instead of the plain placeholder when there's no avatarUrl (e.g. a team icon badge). */
   fallback?: ReactNode;
+  /** Ring thickness as a fraction of `size`; defaults to the standard app-wide ratio. */
+  ringRatio?: number;
 };
 
-export function RankBorderAvatar({ avatarUrl, size, rankTierId, fallback }: RankBorderAvatarProps) {
+export function RankBorderAvatar({ avatarUrl, size, rankTierId, fallback, ringRatio }: RankBorderAvatarProps) {
   const gradientStops = rankBorderGradientStopsForTier(rankTierId);
-  const { avatarDiameter, avatarLeft, avatarTop, ringWidth } = rankBorderAvatarLayout(size, rankTierId);
+  const { avatarDiameter, avatarLeft, avatarTop, ringWidth } = rankBorderAvatarLayout(size, rankTierId, ringRatio);
   const gradientId = `rank-border-${rankTierId ?? 'none'}-${size}`;
   const ringRadius = (size - ringWidth) / 2;
 

@@ -167,16 +167,6 @@ function MeTabScreen() {
 
   return (
     <View style={styles.screen}>
-      <AppHeader
-        right={
-          <HeaderIconButton
-            accessibilityLabel="Settings"
-            icon="settings-outline"
-            onPress={() => navigation.navigate('Settings')}
-          />
-        }
-        title="ME"
-      />
       <MeScreen
         onOpenDevRankMedalMock={__DEV__ ? () => navigation.navigate('DevRankMedal') : undefined}
         onOpenDevScreenshotMock={__DEV__ ? () => navigation.navigate('DevSoloMatchScreenshot') : undefined}

@@ -62,7 +62,7 @@ export const ROUTES: Record<AppRoute, RouteConfig> = {
   },
   team: { title: 'TEAM', screen: TeamScreen, showFeedTabs: false, showHeaderBorder: true },
   teamDetail: { title: 'TEAM', showFeedTabs: false, hideChrome: true },
-  me: { title: 'ME', screen: MeScreen, showFeedTabs: false, showHeaderBorder: false },
+  me: { title: 'ME', screen: MeScreen, showFeedTabs: false, showHeaderBorder: false, hideChrome: true },
   settings: { title: 'SETTINGS', showFeedTabs: false, showHeaderBorder: true },
   userProfile: { title: 'PROFILE', showFeedTabs: false, hideChrome: true },
   devSoloMatchScreenshot: { title: '1V1 MATCH', showFeedTabs: false, hideChrome: true },
