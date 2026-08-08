@@ -393,12 +393,9 @@ export function MeScreen({
 
         {headerHeight > 0 ? (
           <ScrollView
-            contentContainerStyle={[
-              styles.content,
-              { paddingTop: Math.max(pillHeaderHeight + headerHeight - SCROLL_OVERLAP, 0) },
-            ]}
+            contentContainerStyle={styles.content}
             showsVerticalScrollIndicator={false}
-            style={styles.scroll}
+            style={[styles.scroll, { top: Math.max(pillHeaderHeight + headerHeight - SCROLL_OVERLAP, 0) }]}
           >
           <View style={styles.scrollCard}>
             {isOwnProfile && activeMeTab === 'progress' ? (
@@ -561,8 +558,13 @@ const styles = StyleSheet.create({
     backgroundColor: colors.background,
   },
   scroll: {
+    // `top` is set inline once headerHeight/pillHeaderHeight are measured, so this
+    // view's own bounds start right where the card visually appears (rather than
+    // covering the full screen with a big top padding) — otherwise its native
+    // scroll responder claims every touch above that point too, even though
+    // nothing is painted there, making anything interactive in the header
+    // (e.g. the Follow button) untappable despite the correct zIndex.
     position: 'absolute',
-    top: 0,
     left: 0,
     right: 0,
     bottom: 0,
@@ -579,12 +581,7 @@ const styles = StyleSheet.create({
   },
   profileGroup: {
     position: 'relative',
-    // Higher than `scroll` (10) — that ScrollView is absolutely positioned to
-    // cover the full screen (its content is just padded down to sit below this
-    // section), so without a higher zIndex here it silently swallows touches
-    // meant for anything interactive in this area, like the Follow button.
-    zIndex: 15,
-    elevation: 15,
+    zIndex: 0,
     gap: spacing.md,
     paddingHorizontal: spacing.sm,
     paddingTop: spacing.md,
