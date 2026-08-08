@@ -366,7 +366,11 @@ export function MeScreen({
             topRightSlot={
               isOwnProfile ? (
                 <MiniXpBar experience={profile.experience} level={profile.level} />
-              ) : !following ? (
+              ) : following ? (
+                <View style={styles.followingBadge}>
+                  <Text style={styles.followingBadgeLabel}>Following</Text>
+                </View>
+              ) : (
                 <Pressable
                   accessibilityLabel="Follow"
                   accessibilityRole="button"
@@ -380,11 +384,11 @@ export function MeScreen({
                 >
                   <Text style={styles.addFriendLabel}>{followActionBusy ? 'Following…' : 'Follow'}</Text>
                 </Pressable>
-              ) : undefined
+              )
             }
           />
 
-          <RankProgressCard rank={profileRank} />
+          {isOwnProfile ? <RankProgressCard rank={profileRank} /> : null}
         </View>
 
         {headerHeight > 0 ? (
@@ -645,6 +649,21 @@ const styles = StyleSheet.create({
   },
   addFriendLabel: {
     color: colors.background,
+    fontSize: 11,
+    fontWeight: '800',
+    fontStyle: 'italic',
+    letterSpacing: 0.4,
+    textTransform: 'uppercase',
+  },
+  followingBadge: {
+    borderRadius: 999,
+    borderWidth: 1,
+    borderColor: colors.accentLime,
+    paddingHorizontal: spacing.sm,
+    paddingVertical: 6,
+  },
+  followingBadgeLabel: {
+    color: colors.accentLime,
     fontSize: 11,
     fontWeight: '800',
     fontStyle: 'italic',
