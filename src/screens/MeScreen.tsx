@@ -579,7 +579,12 @@ const styles = StyleSheet.create({
   },
   profileGroup: {
     position: 'relative',
-    zIndex: 0,
+    // Higher than `scroll` (10) — that ScrollView is absolutely positioned to
+    // cover the full screen (its content is just padded down to sit below this
+    // section), so without a higher zIndex here it silently swallows touches
+    // meant for anything interactive in this area, like the Follow button.
+    zIndex: 15,
+    elevation: 15,
     gap: spacing.md,
     paddingHorizontal: spacing.sm,
     paddingTop: spacing.md,
