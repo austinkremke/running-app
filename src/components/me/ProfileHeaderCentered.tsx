@@ -1,5 +1,6 @@
 import type { ReactNode } from 'react';
 import { StyleSheet, Text, View } from 'react-native';
+import Svg, { Defs, RadialGradient, Rect, Stop } from 'react-native-svg';
 
 import type { UserProfile } from '../../mock';
 import type { SoloRankPosition } from '../../services/rank';
@@ -23,6 +24,8 @@ const AVATAR_SIZE = 128;
 /** Thinner than the app-wide default (0.065) — this avatar is much larger, so the
  * standard ring reads as too heavy at this scale. */
 const AVATAR_RING_RATIO = 0.035;
+/** Glow circle is larger than the avatar so it reads as a soft halo behind the ring. */
+const GLOW_SIZE_RATIO = 1.5;
 
 /**
  * Centered v2 header layout: country/global solo rank top-left (owner only —
@@ -71,6 +74,22 @@ export function ProfileHeaderCentered({
       </View>
 
       <View style={styles.avatarRow}>
+        <Svg
+          height={AVATAR_SIZE * GLOW_SIZE_RATIO}
+          pointerEvents="none"
+          style={styles.avatarGlow}
+          width={AVATAR_SIZE * GLOW_SIZE_RATIO}
+        >
+          <Defs>
+            <RadialGradient cx="50%" cy="50%" id="avatarGlowGradient" r="50%">
+              <Stop offset="0%" stopColor={rankColor} stopOpacity={0.55} />
+              <Stop offset="45%" stopColor={rankColor} stopOpacity={0.32} />
+              <Stop offset="75%" stopColor={rankColor} stopOpacity={0.1} />
+              <Stop offset="100%" stopColor={rankColor} stopOpacity={0} />
+            </RadialGradient>
+          </Defs>
+          <Rect fill="url(#avatarGlowGradient)" height="100%" width="100%" x="0" y="0" />
+        </Svg>
         <ProfileAvatar
           avatarUrl={profile.avatarUrl}
           onEditPress={onEditAvatar}
@@ -163,6 +182,9 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
     paddingTop: spacing.xs,
+  },
+  avatarGlow: {
+    position: 'absolute',
   },
   name: {
     color: colors.textPrimary,

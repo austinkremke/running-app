@@ -538,75 +538,33 @@ export type Database = {
           },
         ]
       }
-      friend_requests: {
+      follows: {
         Row: {
           created_at: string
-          from_user_id: string
-          id: string
-          status: string
-          to_user_id: string
-          updated_at: string
+          followed_id: string
+          follower_id: string
         }
         Insert: {
           created_at?: string
-          from_user_id: string
-          id?: string
-          status?: string
-          to_user_id: string
-          updated_at?: string
+          followed_id: string
+          follower_id: string
         }
         Update: {
           created_at?: string
-          from_user_id?: string
-          id?: string
-          status?: string
-          to_user_id?: string
-          updated_at?: string
-        }
-        Relationships: [
-          {
-            foreignKeyName: "friend_requests_from_user_id_fkey"
-            columns: ["from_user_id"]
-            isOneToOne: false
-            referencedRelation: "profiles"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "friend_requests_to_user_id_fkey"
-            columns: ["to_user_id"]
-            isOneToOne: false
-            referencedRelation: "profiles"
-            referencedColumns: ["id"]
-          },
-        ]
-      }
-      friendships: {
-        Row: {
-          created_at: string
-          friend_user_id: string
-          user_id: string
-        }
-        Insert: {
-          created_at?: string
-          friend_user_id: string
-          user_id: string
-        }
-        Update: {
-          created_at?: string
-          friend_user_id?: string
-          user_id?: string
+          followed_id?: string
+          follower_id?: string
         }
         Relationships: [
           {
             foreignKeyName: "friendships_friend_user_id_fkey"
-            columns: ["friend_user_id"]
+            columns: ["followed_id"]
             isOneToOne: false
             referencedRelation: "profiles"
             referencedColumns: ["id"]
           },
           {
             foreignKeyName: "friendships_user_id_fkey"
-            columns: ["user_id"]
+            columns: ["follower_id"]
             isOneToOne: false
             referencedRelation: "profiles"
             referencedColumns: ["id"]
@@ -1001,11 +959,11 @@ export type Database = {
           comments: boolean
           friend_activity: boolean
           friend_challenge: boolean
-          friend_requests: boolean
           likes: boolean
           match_complete: boolean
           match_found: boolean
           match_reminders: boolean
+          new_follower: boolean
           updated_at: string
           user_id: string
         }
@@ -1013,11 +971,11 @@ export type Database = {
           comments?: boolean
           friend_activity?: boolean
           friend_challenge?: boolean
-          friend_requests?: boolean
           likes?: boolean
           match_complete?: boolean
           match_found?: boolean
           match_reminders?: boolean
+          new_follower?: boolean
           updated_at?: string
           user_id: string
         }
@@ -1025,11 +983,11 @@ export type Database = {
           comments?: boolean
           friend_activity?: boolean
           friend_challenge?: boolean
-          friend_requests?: boolean
           likes?: boolean
           match_complete?: boolean
           match_found?: boolean
           match_reminders?: boolean
+          new_follower?: boolean
           updated_at?: string
           user_id?: string
         }
@@ -1631,7 +1589,6 @@ export type Database = {
         Args: { p_activity_id: string }
         Returns: boolean
       }
-      add_friend: { Args: { p_friend_user_id: string }; Returns: undefined }
       apply_elo_match_result: {
         Args: {
           p_k_factor?: number
@@ -1677,7 +1634,6 @@ export type Database = {
       }
       can_view_feed_post: { Args: { p_post_id: string }; Returns: boolean }
       can_view_match: { Args: { p_match_id: string }; Returns: boolean }
-      cancel_friend_request: { Args: { p_request_id: string }; Returns: Json }
       cancel_solo_match_challenge: {
         Args: { p_challenge_id: string }
         Returns: Json
@@ -1756,6 +1712,7 @@ export type Database = {
         Args: { p_team_id: string; p_user_id: string }
         Returns: undefined
       }
+      follow_user: { Args: { p_followed_id: string }; Returns: undefined }
       forfeit_solo_match: { Args: { p_match_id: string }; Returns: Json }
       get_all_time_bests: {
         Args: { p_distance_key?: string; p_user_id?: string }
@@ -1773,18 +1730,17 @@ export type Database = {
           rnk: number
         }[]
       }
-      get_friend_notifications: { Args: never; Returns: Json }
       get_my_notification_preferences: {
         Args: never
         Returns: {
           comments: boolean
           friend_activity: boolean
           friend_challenge: boolean
-          friend_requests: boolean
           likes: boolean
           match_complete: boolean
           match_found: boolean
           match_reminders: boolean
+          new_follower: boolean
           updated_at: string
           user_id: string
         }
@@ -1840,7 +1796,6 @@ export type Database = {
         Args: { p_achievement_id: string; p_user_id: string }
         Returns: Json
       }
-      has_friend_notifications: { Args: never; Returns: boolean }
       has_incoming_solo_match_challenge: {
         Args: { p_user_id?: string }
         Returns: boolean
@@ -1905,7 +1860,6 @@ export type Database = {
         }
         Returns: undefined
       }
-      remove_friend: { Args: { p_friend_user_id: string }; Returns: undefined }
       repair_solo_match_activity_credits: { Args: never; Returns: Json }
       report_content: {
         Args: {
@@ -1917,10 +1871,6 @@ export type Database = {
         Returns: string
       }
       request_to_join_team: { Args: { p_team_id: string }; Returns: Json }
-      respond_to_friend_request: {
-        Args: { p_accept: boolean; p_request_id: string }
-        Returns: Json
-      }
       respond_to_join_request: {
         Args: { p_accept: boolean; p_request_id: string }
         Returns: Json
@@ -1929,7 +1879,6 @@ export type Database = {
         Args: { p_accept: boolean; p_request_id: string }
         Returns: Json
       }
-      send_friend_request: { Args: { p_to_user_id: string }; Returns: Json }
       send_solo_match_challenge: {
         Args: { p_challenged_user_id: string; p_match_type_id?: string }
         Returns: Json
@@ -1949,6 +1898,7 @@ export type Database = {
       try_pair_solo_queue: { Args: never; Returns: string }
       try_pair_team_queue: { Args: never; Returns: string }
       unblock_user: { Args: { p_blocked_id: string }; Returns: undefined }
+      unfollow_user: { Args: { p_followed_id: string }; Returns: undefined }
       update_notification_preference: {
         Args: { p_category: string; p_enabled: boolean }
         Returns: undefined

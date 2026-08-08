@@ -11,9 +11,9 @@ import {
 } from 'react-native';
 
 import { useUserId } from '../../context';
-import type { FriendSearchResult } from '../../services/friendService';
+import type { FollowSearchResult } from '../../services/followService';
 import {
-  fetchInvitableFriends,
+  fetchInvitableFollowing,
   inviteToTeam,
   searchInvitableUsers,
 } from '../../services/teamMembershipService';
@@ -31,14 +31,14 @@ type InviteToTeamDrawerProps = {
 export function InviteToTeamDrawer({ visible, onClose }: InviteToTeamDrawerProps) {
   const userId = useUserId();
   const [query, setQuery] = useState('');
-  const [friends, setFriends] = useState<FriendSearchResult[]>([]);
-  const [results, setResults] = useState<FriendSearchResult[]>([]);
+  const [following, setFollowing] = useState<FollowSearchResult[]>([]);
+  const [results, setResults] = useState<FollowSearchResult[]>([]);
   const [loading, setLoading] = useState(false);
   const [invitedIds, setInvitedIds] = useState<Set<string>>(new Set());
   const [pendingId, setPendingId] = useState<string | null>(null);
 
   const searching = query.trim().length >= SEARCH_MIN_CHARS;
-  const shown = searching ? results : friends;
+  const shown = searching ? results : following;
 
   useEffect(() => {
     if (!visible) {
@@ -51,9 +51,9 @@ export function InviteToTeamDrawer({ visible, onClose }: InviteToTeamDrawerProps
     if (!userId) return;
 
     setLoading(true);
-    fetchInvitableFriends(userId)
-      .then(setFriends)
-      .catch(() => setFriends([]))
+    fetchInvitableFollowing(userId)
+      .then(setFollowing)
+      .catch(() => setFollowing([]))
       .finally(() => setLoading(false));
   }, [userId, visible]);
 
@@ -112,7 +112,7 @@ export function InviteToTeamDrawer({ visible, onClose }: InviteToTeamDrawerProps
         />
 
         <Text style={styles.sectionLabel}>
-          {searching ? 'Search results' : 'Friends not on a team'}
+          {searching ? 'Search results' : 'People you follow, not on a team'}
         </Text>
 
         {loading && shown.length === 0 ? (
@@ -123,7 +123,7 @@ export function InviteToTeamDrawer({ visible, onClose }: InviteToTeamDrawerProps
           <Text style={styles.empty}>
             {searching
               ? 'No teamless runners match that name.'
-              : 'All your friends are already on a team. Search to invite anyone.'}
+              : 'Everyone you follow is already on a team. Search to invite anyone.'}
           </Text>
         ) : (
           <ScrollView keyboardShouldPersistTaps="handled" showsVerticalScrollIndicator={false}>

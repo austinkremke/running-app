@@ -4,7 +4,7 @@ import { fetchRankTiers } from './rank/rankService';
 import { mapRankTierRow, tierFromRating } from './rank/tierFromRating';
 import { supabase } from './supabase';
 
-export type FriendProfile = {
+export type FollowedProfile = {
   id: string;
   displayName: string;
   avatarUrl?: string;
@@ -12,40 +12,41 @@ export type FriendProfile = {
   teamName: string;
 };
 
-export type FriendSearchResult = FriendProfile & {
+export type FollowSearchResult = FollowedProfile & {
   rankTierId?: string;
   rankTitle?: string;
   competitiveRating?: number;
 };
 
-export function sanitizeFriendSearchQuery(query: string): string {
+export function sanitizeFollowSearchQuery(query: string): string {
   return query.trim().replace(/[%_]/g, '').slice(0, 40);
 }
 
-export async function fetchFriendIds(userId: string): Promise<string[]> {
+/** IDs of the runners this user follows. */
+export async function fetchFollowingIds(userId: string): Promise<string[]> {
   if (!supabase) {
     return [];
   }
 
   const { data, error } = await supabase
-    .from('friendships')
-    .select('friend_user_id')
-    .eq('user_id', userId);
+    .from('follows')
+    .select('followed_id')
+    .eq('follower_id', userId);
 
   if (error) {
     throw error;
   }
 
-  return (data ?? []).map((row) => row.friend_user_id);
+  return (data ?? []).map((row) => row.followed_id);
 }
 
-export async function fetchFriendProfilesForChallenge(userId: string): Promise<FriendSearchResult[]> {
+export async function fetchFollowingProfilesForChallenge(userId: string): Promise<FollowSearchResult[]> {
   if (!supabase) {
     return [];
   }
 
-  const friendIds = await fetchFriendIds(userId);
-  if (friendIds.length === 0) {
+  const followingIds = await fetchFollowingIds(userId);
+  if (followingIds.length === 0) {
     return [];
   }
 
@@ -63,7 +64,7 @@ export async function fetchFriendProfilesForChallenge(userId: string): Promise<F
       teams:team_id (name)
     `,
     )
-    .in('id', friendIds)
+    .in('id', followingIds)
     .order('display_name');
 
   if (error) {
@@ -93,13 +94,14 @@ export async function fetchFriendProfilesForChallenge(userId: string): Promise<F
   });
 }
 
-export async function addFriend(friendUserId: string): Promise<void> {
+/** Instant, one-directional follow — no request/approval step. */
+export async function followUser(followedUserId: string): Promise<void> {
   if (!supabase) {
     throw new Error('Supabase is not configured.');
   }
 
-  const { error } = await supabase.rpc('add_friend', {
-    p_friend_user_id: friendUserId,
+  const { error } = await supabase.rpc('follow_user', {
+    p_followed_id: followedUserId,
   });
 
   if (error) {
@@ -107,13 +109,13 @@ export async function addFriend(friendUserId: string): Promise<void> {
   }
 }
 
-export async function removeFriend(friendUserId: string): Promise<void> {
+export async function unfollowUser(followedUserId: string): Promise<void> {
   if (!supabase) {
     throw new Error('Supabase is not configured.');
   }
 
-  const { error } = await supabase.rpc('remove_friend', {
-    p_friend_user_id: friendUserId,
+  const { error } = await supabase.rpc('unfollow_user', {
+    p_followed_id: followedUserId,
   });
 
   if (error) {
@@ -121,16 +123,16 @@ export async function removeFriend(friendUserId: string): Promise<void> {
   }
 }
 
-export async function isFriend(userId: string, otherUserId: string): Promise<boolean> {
+export async function isFollowing(userId: string, otherUserId: string): Promise<boolean> {
   if (!supabase || userId === otherUserId) {
     return false;
   }
 
   const { data, error } = await supabase
-    .from('friendships')
-    .select('friend_user_id')
-    .eq('user_id', userId)
-    .eq('friend_user_id', otherUserId)
+    .from('follows')
+    .select('followed_id')
+    .eq('follower_id', userId)
+    .eq('followed_id', otherUserId)
     .maybeSingle();
 
   if (error) {
@@ -146,12 +148,12 @@ export async function searchProfiles(
   rankTiers: ResolvedRankTier[] = [],
   limit = 20,
   blockedUserIds: ReadonlySet<string> = new Set(),
-): Promise<FriendSearchResult[]> {
+): Promise<FollowSearchResult[]> {
   if (!supabase) {
     return [];
   }
 
-  const sanitized = sanitizeFriendSearchQuery(query);
+  const sanitized = sanitizeFollowSearchQuery(query);
   if (sanitized.length < 2) {
     return [];
   }

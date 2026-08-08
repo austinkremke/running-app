@@ -42,7 +42,7 @@ type SettingsScreenProps = {
 const NOTIFICATION_CATEGORY_LABELS: { category: NotificationCategory; label: string }[] = [
   { category: 'likes', label: 'Likes on your runs' },
   { category: 'comments', label: 'Comments on your runs' },
-  { category: 'friend_requests', label: 'Friend requests' },
+  { category: 'new_follower', label: 'New followers' },
   { category: 'friend_challenge', label: 'Friend challenges' },
   { category: 'match_found', label: 'Match found' },
   { category: 'match_reminders', label: 'Time left in match' },

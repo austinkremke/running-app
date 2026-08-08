@@ -4,33 +4,23 @@ import { colors, spacing } from '../../theme';
 
 type RunCardAddFriendButtonProps = {
   disabled?: boolean;
-  /** A request is already outstanding — shows "Pending" and blocks another tap. */
-  pending?: boolean;
   onPress: () => void;
 };
 
-export function RunCardAddFriendButton({
-  disabled = false,
-  pending = false,
-  onPress,
-}: RunCardAddFriendButtonProps) {
-  const isDisabled = disabled || pending;
-
+export function RunCardAddFriendButton({ disabled = false, onPress }: RunCardAddFriendButtonProps) {
   return (
     <Pressable
-      accessibilityLabel={pending ? 'Friend request pending' : 'Add friend'}
+      accessibilityLabel="Follow"
       accessibilityRole="button"
-      disabled={isDisabled}
+      disabled={disabled}
       onPress={onPress}
       style={({ pressed }) => [
         styles.button,
-        isDisabled && styles.buttonDisabled,
-        pressed && !isDisabled && styles.pressed,
+        disabled && styles.buttonDisabled,
+        pressed && !disabled && styles.pressed,
       ]}
     >
-      <Text style={[styles.label, isDisabled && styles.labelDisabled]}>
-        {pending ? 'Pending' : 'Add Friend'}
-      </Text>
+      <Text style={[styles.label, disabled && styles.labelDisabled]}>Follow</Text>
     </Pressable>
   );
 }

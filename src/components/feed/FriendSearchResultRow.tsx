@@ -1,19 +1,18 @@
 import { Pressable, StyleSheet, Text, View } from 'react-native';
 
-import type { FriendSearchResult } from '../../services/friendService';
+import type { FollowSearchResult } from '../../services/followService';
 import { colors, spacing } from '../../theme';
 import { RankBorderAvatar } from '../team/RankBorderAvatar';
 import { rankTierColorForTier } from '../team/rankAvatarBorderTheme';
 import { RunCardAddFriendButton } from './RunCardAddFriendButton';
 
 type FriendSearchResultRowProps = {
-  result: FriendSearchResult;
-  isFriend: boolean;
-  isFriendPending?: boolean;
+  result: FollowSearchResult;
+  isFollowing: boolean;
   adding?: boolean;
-  onAddFriend?: () => void;
+  onFollow?: () => void;
   showDivider?: boolean;
-  /** Opens this runner's profile — the avatar/name area, separate from the add-friend button. */
+  /** Opens this runner's profile — the avatar/name area, separate from the follow button. */
   onOpenProfile?: () => void;
 };
 
@@ -21,10 +20,9 @@ const AVATAR_FRAME_SIZE = 44;
 
 export function FriendSearchResultRow({
   result,
-  isFriend,
-  isFriendPending = false,
+  isFollowing,
   adding = false,
-  onAddFriend,
+  onFollow,
   showDivider = true,
   onOpenProfile,
 }: FriendSearchResultRowProps) {
@@ -65,10 +63,10 @@ export function FriendSearchResultRow({
           </View>
         </Pressable>
 
-        {isFriend ? (
-          <Text style={styles.friendsLabel}>Friends</Text>
-        ) : onAddFriend ? (
-          <RunCardAddFriendButton disabled={adding} onPress={onAddFriend} pending={isFriendPending} />
+        {isFollowing ? (
+          <Text style={styles.friendsLabel}>Following</Text>
+        ) : onFollow ? (
+          <RunCardAddFriendButton disabled={adding} onPress={onFollow} />
         ) : null}
       </View>
 

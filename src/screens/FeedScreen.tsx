@@ -14,8 +14,8 @@ import { useAuth } from '../context';
 import type { FeedTab, Run } from '../mock';
 import { useAchievementUnlockPresentation } from '../hooks/useAchievementUnlockPresentation';
 import { useFeed } from '../hooks/useFeed';
-import { useFriends } from '../hooks/useFriends';
-import type { FriendSearchResult } from '../services/friendService';
+import { useFollows } from '../hooks/useFollows';
+import type { FollowSearchResult } from '../services/followService';
 import { fetchDistanceBadges, type DistanceBadge } from '../services/distanceRecords';
 import { colors, spacing } from '../theme';
 import { formatRelativeTime } from '../utils/formatRelativeTime';
@@ -39,10 +39,10 @@ export function FeedScreen({
   const viewerUserId = session?.user?.id ?? null;
   const { items, loading, error, refresh, toggleLike, bumpCommentCount, likingPostId } =
     useFeed(activeTab);
-  const { isFriend, isPending, sendFriendRequestTo } = useFriends();
+  const { isFollowing, follow } = useFollows();
   const { runEvaluation } = useAchievementUnlockPresentation();
   const [commentsPostId, setCommentsPostId] = useState<string | null>(null);
-  const [addingFriendId, setAddingFriendId] = useState<string | null>(null);
+  const [followingBusyId, setFollowingBusyId] = useState<string | null>(null);
   const [findFriendsVisible, setFindFriendsVisible] = useState(false);
   const [distanceBadges, setDistanceBadges] = useState<Record<string, DistanceBadge[]>>({});
 
@@ -72,7 +72,7 @@ export function FeedScreen({
 
   const emptyMessage =
     activeTab === 'friends'
-      ? 'No friend runs yet. Search for runners above or add friends from the Community feed.'
+      ? 'No runs from people you follow yet. Search for runners above or follow them from the Community feed.'
       : 'No runs here yet. Finish a run and tap Lock In Your Run.';
 
   async function handleToggleLike(postId: string) {
@@ -87,30 +87,30 @@ export function FeedScreen({
     }
   }
 
-  async function addFriendForUser(friendUserId: string) {
-    if (addingFriendId) {
+  async function followUserFromFeed(followedUserId: string) {
+    if (followingBusyId) {
       return;
     }
 
-    setAddingFriendId(friendUserId);
+    setFollowingBusyId(followedUserId);
     try {
-      await sendFriendRequestTo(friendUserId);
+      await follow(followedUserId);
       await runEvaluation();
       if (activeTab === 'friends') {
         await refresh();
       }
-    } catch (addError) {
+    } catch (followError) {
       Alert.alert(
-        'Friend request failed',
-        addError instanceof Error ? addError.message : 'Could not send friend request.',
+        'Follow failed',
+        followError instanceof Error ? followError.message : 'Could not follow that runner.',
       );
     } finally {
-      setAddingFriendId(null);
+      setFollowingBusyId(null);
     }
   }
 
-  async function handleAddFriendFromSearch(result: FriendSearchResult) {
-    await addFriendForUser(result.id);
+  async function handleFollowFromSearch(result: FollowSearchResult) {
+    await followUserFromFeed(result.id);
   }
 
   if (loading) {
@@ -188,11 +188,10 @@ export function FeedScreen({
       />
 
       <FindFriendsDrawer
-        addingFriendId={addingFriendId}
-        isFriend={isFriend}
-        isFriendPending={isPending}
-        onAddFriend={(result) => {
-          void handleAddFriendFromSearch(result);
+        busyUserId={followingBusyId}
+        isFollowing={isFollowing}
+        onFollow={(result) => {
+          void handleFollowFromSearch(result);
         }}
         onClose={() => {
           setFindFriendsVisible(false);

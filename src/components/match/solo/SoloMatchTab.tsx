@@ -10,7 +10,7 @@ import { useFeatureGate } from '../../../hooks/useFeatureGate';
 import { useRankDisplay } from '../../../hooks/useRankDisplay';
 import { useSoloMatchChallenges } from '../../../hooks/useSoloMatchChallenges';
 import { useSoloMatchmaking } from '../../../hooks/useSoloMatchmaking';
-import { fetchFriendProfilesForChallenge } from '../../../services/friendService';
+import { fetchFollowingProfilesForChallenge } from '../../../services/followService';
 import { fetchSoloMatchType } from '../../../services/matchService';
 import { colors, spacing } from '../../../theme';
 import { ChallengeFriendDrawer } from './ChallengeFriendDrawer';
@@ -95,7 +95,7 @@ export function SoloMatchTab({ onViewActiveMatch }: SoloMatchTabProps) {
     }
 
     try {
-      const profiles = await fetchFriendProfilesForChallenge(userId);
+      const profiles = await fetchFollowingProfilesForChallenge(userId);
       setChallengeFriends(
         profiles.map((profile) => ({
           id: profile.id,

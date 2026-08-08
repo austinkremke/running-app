@@ -10,7 +10,7 @@ const EXPO_PROJECT_ID = Constants.expoConfig?.extra?.eas?.projectId as string | 
 export type NotificationCategory =
   | 'likes'
   | 'comments'
-  | 'friend_requests'
+  | 'new_follower'
   | 'friend_challenge'
   | 'match_found'
   | 'match_reminders'
@@ -104,7 +104,7 @@ export async function fetchNotificationPreferences(): Promise<NotificationPrefer
   return {
     likes: data.likes,
     comments: data.comments,
-    friend_requests: data.friend_requests,
+    new_follower: data.new_follower,
     friend_challenge: data.friend_challenge,
     match_found: data.match_found,
     match_reminders: data.match_reminders,

@@ -3,7 +3,7 @@ import type { Tables } from '../types/database';
 import { syncActivityById } from './activitySync';
 import { toContentFilterFriendlyError } from './contentFilterError';
 import { fetchFeedEngagementSummaries } from './feedEngagementService';
-import { fetchFriendIds } from './friendService';
+import { fetchFollowingIds } from './followService';
 import { supabase } from './supabase';
 import { fetchTeammateIds } from './teamService';
 import { fetchRankTiers } from './rank/rankService';
@@ -135,7 +135,7 @@ export async function fetchFeedPosts(
       return [];
     }
 
-    scopedUserIds = await fetchFriendIds(viewerUserId);
+    scopedUserIds = await fetchFollowingIds(viewerUserId);
     if (scopedUserIds.length === 0) {
       return [];
     }

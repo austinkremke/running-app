@@ -8,7 +8,7 @@ import {
 } from 'react-native';
 
 import { useFriendSearch } from '../../hooks/useFriendSearch';
-import type { FriendSearchResult } from '../../services/friendService';
+import type { FollowSearchResult } from '../../services/followService';
 import { colors, spacing } from '../../theme';
 import { BottomSheetDrawer } from '../drawer';
 import { FriendSearchResultRow } from './FriendSearchResultRow';
@@ -16,21 +16,20 @@ import { FriendSearchResultRow } from './FriendSearchResultRow';
 type FindFriendsDrawerProps = {
   visible: boolean;
   viewerUserId: string | null;
-  isFriend: (userId: string) => boolean;
-  isFriendPending?: (userId: string) => boolean;
-  addingFriendId?: string | null;
-  onAddFriend: (result: FriendSearchResult) => void;
+  isFollowing: (userId: string) => boolean;
+  /** id of the runner currently being followed — mid-request, so the row shows a busy state. */
+  busyUserId?: string | null;
+  onFollow: (result: FollowSearchResult) => void;
   onClose: () => void;
-  onOpenProfile?: (result: FriendSearchResult) => void;
+  onOpenProfile?: (result: FollowSearchResult) => void;
 };
 
 export function FindFriendsDrawer({
   visible,
   viewerUserId,
-  isFriend,
-  isFriendPending,
-  addingFriendId = null,
-  onAddFriend,
+  isFollowing,
+  busyUserId = null,
+  onFollow,
   onClose,
   onOpenProfile,
 }: FindFriendsDrawerProps) {
@@ -42,15 +41,15 @@ export function FindFriendsDrawer({
 
   return (
     <BottomSheetDrawer
-      accessibilityLabel="Close find friends"
+      accessibilityLabel="Close find runners"
       heightRatio={0.72}
       keyboardAvoiding
       onClose={onClose}
       visible={visible}
     >
       <View style={styles.container}>
-        <Text style={styles.title}>Find Friends</Text>
-        <Text style={styles.subtitle}>Search by display name to add runners you know.</Text>
+        <Text style={styles.title}>Find Runners</Text>
+        <Text style={styles.subtitle}>Search by display name to follow runners you know.</Text>
 
         <View style={styles.searchField}>
           <TextInput
@@ -84,10 +83,9 @@ export function FindFriendsDrawer({
             keyboardShouldPersistTaps="handled"
             renderItem={({ item, index }) => (
               <FriendSearchResultRow
-                adding={addingFriendId === item.id}
-                isFriend={isFriend(item.id)}
-                isFriendPending={isFriendPending?.(item.id)}
-                onAddFriend={() => onAddFriend(item)}
+                adding={busyUserId === item.id}
+                isFollowing={isFollowing(item.id)}
+                onFollow={() => onFollow(item)}
                 onOpenProfile={onOpenProfile ? () => onOpenProfile(item) : undefined}
                 result={item}
                 showDivider={index < results.length - 1}

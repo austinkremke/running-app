@@ -1,7 +1,7 @@
 import { useEffect, useRef, useState } from 'react';
 
 import { useBlockedUsers } from '../context';
-import { searchProfiles, type FriendSearchResult } from '../services/friendService';
+import { searchProfiles, type FollowSearchResult } from '../services/followService';
 import { fetchRankTiers } from '../services/rank';
 import { mapRankTierRow } from '../services/rank/tierFromRating';
 import type { ResolvedRankTier } from '../types/rank';
@@ -11,7 +11,7 @@ const SEARCH_DEBOUNCE_MS = 300;
 export function useFriendSearch(viewerUserId: string | null, enabled: boolean) {
   const { blockedIds } = useBlockedUsers();
   const [query, setQuery] = useState('');
-  const [results, setResults] = useState<FriendSearchResult[]>([]);
+  const [results, setResults] = useState<FollowSearchResult[]>([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [rankTiers, setRankTiers] = useState<ResolvedRankTier[]>([]);

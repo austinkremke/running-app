@@ -26,7 +26,7 @@ import { HeaderIconButton } from '../components/header';
 import { useAuth, usePlayerProgress, useUserId, useXpGain } from '../context';
 import { useAchievements } from '../hooks/useAchievements';
 import { useAchievementUnlockPresentation } from '../hooks/useAchievementUnlockPresentation';
-import { useFriends } from '../hooks/useFriends';
+import { useFollows } from '../hooks/useFollows';
 import { useOtherUserProfile } from '../hooks/useOtherUserProfile';
 import { useRankDisplay } from '../hooks/useRankDisplay';
 import { MOCK_PROFILE, type OverallStat } from '../mock';
@@ -106,7 +106,7 @@ export function MeScreen({
     evaluateOnMount: isOwnProfile,
     onUnlock: showAchievementUnlocks,
   });
-  const { isFriend, isPending, sendFriendRequestTo, removeFriendById } = useFriends();
+  const { isFollowing, follow, unfollow } = useFollows();
   const [activeMeTab, setActiveMeTab] = useState<MeTab>('progress');
   const [viewAllVisible, setViewAllVisible] = useState(false);
   const [allTimeBestsVisible, setAllTimeBestsVisible] = useState(false);
@@ -120,7 +120,7 @@ export function MeScreen({
   const [personalRecords, setPersonalRecords] = useState<PersonalRecord[]>([]);
   const [statDetailTarget, setStatDetailTarget] = useState<StatDetailTarget | null>(null);
   const [soloRankPosition, setSoloRankPosition] = useState<SoloRankPosition | null>(null);
-  const [friendActionBusy, setFriendActionBusy] = useState(false);
+  const [followActionBusy, setFollowActionBusy] = useState(false);
   const [headerHeight, setHeaderHeight] = useState(0);
   const [pillHeaderHeight, setPillHeaderHeight] = useState(0);
   const carouselAchievements = useMemo(
@@ -135,8 +135,7 @@ export function MeScreen({
   const regionCode = useMemo(() => deviceRegionCode(), []);
 
   const profileRank = isOwnProfile ? ownProfileRank : (otherProfile?.rank ?? MOCK_PROFILE.rank);
-  const friends = !isOwnProfile && !!viewedUserId && isFriend(viewedUserId);
-  const pending = !isOwnProfile && !friends && !!viewedUserId && isPending(viewedUserId);
+  const following = !isOwnProfile && !!viewedUserId && isFollowing(viewedUserId);
 
   useEffect(() => {
     if (!targetUserId) {
@@ -282,34 +281,34 @@ export function MeScreen({
     }
   }
 
-  async function handleAddFriend() {
+  async function handleFollow() {
     if (!viewedUserId) return;
-    setFriendActionBusy(true);
+    setFollowActionBusy(true);
     try {
-      await sendFriendRequestTo(viewedUserId);
+      await follow(viewedUserId);
     } catch (error) {
-      Alert.alert('Could not send friend request', getErrorMessage(error, 'Something went wrong.'));
+      Alert.alert('Could not follow', getErrorMessage(error, 'Something went wrong.'));
     } finally {
-      setFriendActionBusy(false);
+      setFollowActionBusy(false);
     }
   }
 
-  function confirmRemoveFriend() {
+  function confirmUnfollow() {
     if (!viewedUserId) return;
-    Alert.alert('Remove friend', `Remove ${profile.name} as a friend?`, [
+    Alert.alert('Unfollow', `Unfollow ${profile.name}?`, [
       { text: 'Cancel', style: 'cancel' },
       {
-        text: 'Remove',
+        text: 'Unfollow',
         style: 'destructive',
         onPress: () => {
           void (async () => {
-            setFriendActionBusy(true);
+            setFollowActionBusy(true);
             try {
-              await removeFriendById(viewedUserId);
+              await unfollow(viewedUserId);
             } catch (error) {
-              Alert.alert('Could not remove friend', getErrorMessage(error, 'Something went wrong.'));
+              Alert.alert('Could not unfollow', getErrorMessage(error, 'Something went wrong.'));
             } finally {
-              setFriendActionBusy(false);
+              setFollowActionBusy(false);
             }
           })();
         },
@@ -319,7 +318,7 @@ export function MeScreen({
 
   function handleOpenProfileMenu() {
     Alert.alert(profile.name, undefined, [
-      { text: 'Remove Friend', style: 'destructive', onPress: confirmRemoveFriend },
+      { text: 'Unfollow', style: 'destructive', onPress: confirmUnfollow },
       { text: 'Cancel', style: 'cancel' },
     ]);
   }
@@ -345,7 +344,7 @@ export function MeScreen({
             onModeChange={setActiveMeTab}
             onOpenSettings={isOwnProfile ? onOpenSettings : undefined}
             rightAccessory={
-              !isOwnProfile && friends ? (
+              !isOwnProfile && following ? (
                 <HeaderIconButton
                   accessibilityLabel="Profile options"
                   icon="ellipsis-vertical"
@@ -367,21 +366,19 @@ export function MeScreen({
             topRightSlot={
               isOwnProfile ? (
                 <MiniXpBar experience={profile.experience} level={profile.level} />
-              ) : !friends ? (
+              ) : !following ? (
                 <Pressable
-                  accessibilityLabel={pending ? 'Friend request pending' : 'Add friend'}
+                  accessibilityLabel="Follow"
                   accessibilityRole="button"
-                  disabled={friendActionBusy || pending}
-                  onPress={friendActionBusy || pending ? undefined : () => void handleAddFriend()}
+                  disabled={followActionBusy}
+                  onPress={followActionBusy ? undefined : () => void handleFollow()}
                   style={({ pressed }) => [
                     styles.addFriendButton,
-                    (friendActionBusy || pending) && styles.addFriendButtonDisabled,
-                    pressed && !friendActionBusy && !pending && styles.pressed,
+                    followActionBusy && styles.addFriendButtonDisabled,
+                    pressed && !followActionBusy && styles.pressed,
                   ]}
                 >
-                  <Text style={styles.addFriendLabel}>
-                    {pending ? 'Pending' : friendActionBusy ? 'Sending…' : 'Add Friend'}
-                  </Text>
+                  <Text style={styles.addFriendLabel}>{followActionBusy ? 'Following…' : 'Follow'}</Text>
                 </Pressable>
               ) : undefined
             }
@@ -586,6 +583,13 @@ const styles = StyleSheet.create({
   },
   topography: {
     ...StyleSheet.absoluteFill,
+  },
+  bottomShadow: {
+    position: 'absolute',
+    left: 0,
+    right: 0,
+    bottom: 0,
+    height: 20,
   },
   scrollCard: {
     flexGrow: 1,

@@ -11,17 +11,11 @@ import {
   type TeamNotification,
 } from '../services/teamMembershipService';
 import {
-  fetchFriendRequestNotifications,
-  hasFriendRequestNotifications,
-  respondToFriendRequest,
-  type FriendRequestNotification,
-} from '../services/friendRequestService';
-import {
   notifyTeamNotificationsChanged,
   subscribeTeamNotifications,
 } from '../services/teamNotificationBus';
 
-export type AppNotification = TeamNotification | FriendRequestNotification;
+export type AppNotification = TeamNotification;
 
 const POLL_INTERVAL_MS = 15_000;
 
@@ -39,14 +33,11 @@ export function useTeamNotifications() {
     }
 
     try {
-      const [team, friend] = await Promise.all([
-        fetchTeamNotifications(),
-        fetchFriendRequestNotifications(),
-      ]);
-      const merged: AppNotification[] = [...team, ...friend].sort(
+      const team = await fetchTeamNotifications();
+      const sorted = [...team].sort(
         (a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime(),
       );
-      setNotifications(merged);
+      setNotifications(sorted);
     } catch (error) {
       console.warn('Failed to load notifications', error);
     } finally {
@@ -84,10 +75,8 @@ export function useTeamNotifications() {
       try {
         if (notification.kind === 'invite') {
           await respondToTeamInvite(notification.id, accept);
-        } else if (notification.kind === 'request') {
-          await respondToJoinRequest(notification.id, accept);
         } else {
-          await respondToFriendRequest(notification.id, accept);
+          await respondToJoinRequest(notification.id, accept);
         }
         notifyTeamNotificationsChanged();
         await refresh();
@@ -135,11 +124,8 @@ export function useHasTeamNotifications(): boolean {
     }
 
     try {
-      const [team, friend] = await Promise.all([
-        hasTeamNotifications(),
-        hasFriendRequestNotifications(),
-      ]);
-      setHasUnread(team || friend);
+      const team = await hasTeamNotifications();
+      setHasUnread(team);
     } catch (error) {
       console.warn('Failed to check notification indicator', error);
     }

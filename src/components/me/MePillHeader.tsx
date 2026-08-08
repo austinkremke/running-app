@@ -102,6 +102,8 @@ const styles = StyleSheet.create({
   wrapper: {
     width: '100%',
     backgroundColor: colors.background,
+    borderBottomWidth: 1,
+    borderBottomColor: colors.border,
   },
   row: {
     flexDirection: 'row',

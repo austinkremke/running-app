@@ -1,8 +1,8 @@
 import type { TeamLogoAccent } from '../mock';
 import { levelFromTotalXp } from './levelCurve';
 import { supabase } from './supabase';
-import type { FriendSearchResult } from './friendService';
-import { fetchFriendIds } from './friendService';
+import type { FollowSearchResult } from './followService';
+import { fetchFollowingIds } from './followService';
 import { fetchRankTiers } from './rank/rankService';
 import { mapRankTierRow, tierFromRating } from './rank/tierFromRating';
 
@@ -157,7 +157,7 @@ export async function cancelTeamMembershipRequest(requestId: string): Promise<vo
   }
 }
 
-function mapProfileRow(row: Record<string, unknown>, tiers: ReturnType<typeof mapRankTierRow>[]): FriendSearchResult {
+function mapProfileRow(row: Record<string, unknown>, tiers: ReturnType<typeof mapRankTierRow>[]): FollowSearchResult {
   const progress = Array.isArray(row.player_progress) ? row.player_progress[0] : row.player_progress;
   const rank = Array.isArray(row.player_rank) ? row.player_rank[0] : row.player_rank;
   const rating = (rank as { competitive_rating?: number } | null)?.competitive_rating;
@@ -175,14 +175,14 @@ function mapProfileRow(row: Record<string, unknown>, tiers: ReturnType<typeof ma
   };
 }
 
-/** Friends who are not currently on any team — the default invite candidates. */
-export async function fetchInvitableFriends(userId: string): Promise<FriendSearchResult[]> {
+/** People this user follows who aren't currently on any team — the default invite candidates. */
+export async function fetchInvitableFollowing(userId: string): Promise<FollowSearchResult[]> {
   if (!supabase) {
     return [];
   }
 
-  const friendIds = await fetchFriendIds(userId);
-  if (friendIds.length === 0) {
+  const followingIds = await fetchFollowingIds(userId);
+  if (followingIds.length === 0) {
     return [];
   }
 
@@ -200,7 +200,7 @@ export async function fetchInvitableFriends(userId: string): Promise<FriendSearc
       player_rank (competitive_rating)
     `,
     )
-    .in('id', friendIds)
+    .in('id', followingIds)
     .is('team_id', null)
     .order('display_name');
 
@@ -216,7 +216,7 @@ export async function searchInvitableUsers(
   query: string,
   viewerUserId: string,
   limit = 20,
-): Promise<FriendSearchResult[]> {
+): Promise<FollowSearchResult[]> {
   if (!supabase) {
     return [];
   }

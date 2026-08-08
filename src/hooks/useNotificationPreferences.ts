@@ -10,7 +10,7 @@ import {
 const DEFAULT_PREFERENCES: NotificationPreferences = {
   likes: true,
   comments: true,
-  friend_requests: true,
+  new_follower: true,
   friend_challenge: true,
   match_found: true,
   match_reminders: true,

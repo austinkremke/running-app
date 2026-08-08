@@ -1,4 +1,4 @@
-import { Image, Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
+import { Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
 
 import type { AppNotification } from '../../hooks/useTeamNotifications';
 import { colors, spacing } from '../../theme';
@@ -15,9 +15,7 @@ type NotificationCenterDrawerProps = {
 };
 
 function primaryLabel(notification: AppNotification): string {
-  if (notification.kind === 'invite') return 'Join';
-  if (notification.kind === 'request') return 'Approve';
-  return 'Accept';
+  return notification.kind === 'invite' ? 'Join' : 'Approve';
 }
 
 export function NotificationCenterDrawer({
@@ -43,33 +41,19 @@ export function NotificationCenterDrawer({
               {notifications.map((notification) => {
                 const busy = actionLoadingId === notification.id;
                 const isInvite = notification.kind === 'invite';
-                const isFriendRequest = notification.kind === 'friend_request';
 
                 return (
                   <View key={notification.id} style={styles.row}>
-                    {isFriendRequest ? (
-                      notification.actorAvatarUrl ? (
-                        <Image source={{ uri: notification.actorAvatarUrl }} style={styles.friendAvatar} />
-                      ) : (
-                        <View style={[styles.friendAvatar, styles.friendAvatarPlaceholder]} />
-                      )
-                    ) : (
-                      <TeamAvatar
-                        accent={notification.teamLogoAccent}
-                        icon={notification.teamLogoIcon}
-                        imageUrl={notification.teamLogoUrl}
-                        size={34}
-                      />
-                    )}
+                    <TeamAvatar
+                      accent={notification.teamLogoAccent}
+                      icon={notification.teamLogoIcon}
+                      imageUrl={notification.teamLogoUrl}
+                      size={34}
+                    />
 
                     <View style={styles.meta}>
                       <Text numberOfLines={2} style={styles.message}>
-                        {isFriendRequest ? (
-                          <>
-                            <Text style={styles.strong}>{notification.actorName}</Text> wants to be your
-                            friend
-                          </>
-                        ) : isInvite ? (
+                        {isInvite ? (
                           <>
                             <Text style={styles.strong}>{notification.teamName}</Text> invited you to
                             join
@@ -82,11 +66,9 @@ export function NotificationCenterDrawer({
                         )}
                       </Text>
                       <Text style={styles.sub}>
-                        {isFriendRequest
-                          ? `Level ${notification.actorLevel}`
-                          : isInvite
-                            ? `From ${notification.actorName} · Lvl ${notification.actorLevel}`
-                            : `Level ${notification.actorLevel}`}
+                        {isInvite
+                          ? `From ${notification.actorName} · Lvl ${notification.actorLevel}`
+                          : `Level ${notification.actorLevel}`}
                       </Text>
                     </View>
 
@@ -161,14 +143,6 @@ const styles = StyleSheet.create({
     borderWidth: 1,
     borderColor: colors.border,
     padding: spacing.md,
-  },
-  friendAvatar: {
-    width: 34,
-    height: 34,
-    borderRadius: 17,
-  },
-  friendAvatarPlaceholder: {
-    backgroundColor: colors.surfaceElevated,
   },
   meta: {
     flex: 1,
