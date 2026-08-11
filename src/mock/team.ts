@@ -33,6 +33,7 @@ export const MOCK_TEAM: Team = {
     tierId: 'gold',
     tierTitle: 'Gold Grinder',
   },
+  seasonWins: 14,
   shieldIcon: 'paw',
   shieldAccent: 'lime',
   stats: [

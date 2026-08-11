@@ -55,6 +55,7 @@
     "@types/react": "~19.2.2",
     "@types/three": "^0.185.1",
     "babel-preset-expo": "^56.0.14",
+    "country-list": "^2.4.1",
     "react-native-svg-transformer": "^1.5.3",
     "ts-jest": "^29.4.11",
     "typescript": "~6.0.3"

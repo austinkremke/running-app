@@ -13,7 +13,14 @@ import {
   View,
 } from 'react-native';
 
-import { NotificationPreferenceRow, SettingsRow, SettingsSection, UnitToggle } from '../components/settings';
+import { FlagIcon } from '../components/me/FlagIcon';
+import {
+  CountryPickerDrawer,
+  NotificationPreferenceRow,
+  SettingsRow,
+  SettingsSection,
+  UnitToggle,
+} from '../components/settings';
 import { APP_VERSION, LEGAL_LINKS } from '../config/appMeta';
 import { useAuth, usePendingActivityConfirmation, usePlayerProgress, usePurchases } from '../context';
 import { useNotificationPreferences } from '../hooks/useNotificationPreferences';
@@ -30,7 +37,9 @@ import {
 } from '../services/healthKitService';
 import { syncHealthKitWorkouts } from '../services/healthKitSyncService';
 import { initialsFromDisplayName, pickProfilePhotoUri, uploadProfileAvatar } from '../services/profileAvatar';
-import { updateDisplayName } from '../services/profileService';
+import { updateDisplayName, updateMyCountry } from '../services/profileService';
+import { COUNTRY_OPTIONS } from '../utils/countryOptions.generated';
+import { deviceRegionCode } from '../utils/deviceRegion';
 import { clearProgression } from '../storage/progressionStorage';
 import { colors, spacing } from '../theme';
 
@@ -180,6 +189,8 @@ export function SettingsScreen({ onBack, onOpenBlockedUsers }: SettingsScreenPro
   const [savingName, setSavingName] = useState(false);
   const [uploadingAvatar, setUploadingAvatar] = useState(false);
   const [deletingAccount, setDeletingAccount] = useState(false);
+  const [countryPickerVisible, setCountryPickerVisible] = useState(false);
+  const [savingCountry, setSavingCountry] = useState(false);
 
   const linkedProviders = getLinkedProviders(session);
   const avatarUrl = gameState?.profile.avatar_url ?? undefined;
@@ -201,6 +212,26 @@ export function SettingsScreen({ onBack, onOpenBlockedUsers }: SettingsScreenPro
       );
     } finally {
       setSavingName(false);
+    }
+  }
+
+  async function handleSelectCountry(code: string) {
+    if (!userId) {
+      return;
+    }
+
+    setSavingCountry(true);
+    try {
+      await updateMyCountry(code);
+      await refreshGameState();
+      setCountryPickerVisible(false);
+    } catch (error) {
+      Alert.alert(
+        'Could not save country',
+        error instanceof Error ? error.message : 'Try again.',
+      );
+    } finally {
+      setSavingCountry(false);
     }
   }
 
@@ -285,11 +316,12 @@ export function SettingsScreen({ onBack, onOpenBlockedUsers }: SettingsScreenPro
     displayName.trim() !== (gameState?.profile.display_name ?? '').trim() && displayName.trim().length > 0;
 
   return (
-    <ScrollView
-      contentContainerStyle={styles.content}
-      showsVerticalScrollIndicator={false}
-      style={styles.scroll}
-    >
+    <>
+      <ScrollView
+        contentContainerStyle={styles.content}
+        showsVerticalScrollIndicator={false}
+        style={styles.scroll}
+      >
       <SettingsSection title="Profile">
         <View style={styles.profileBlock}>
           <Pressable
@@ -348,6 +380,20 @@ export function SettingsScreen({ onBack, onOpenBlockedUsers }: SettingsScreenPro
             </Pressable>
           </View>
         </View>
+
+        <SettingsRow
+          label="Country"
+          leftAccessory={
+            <FlagIcon regionCode={gameState?.profile.country_code ?? deviceRegionCode()} width={22} />
+          }
+          onPress={() => setCountryPickerVisible(true)}
+          value={
+            gameState?.profile.country_code
+              ? (COUNTRY_OPTIONS.find((option) => option.code === gameState.profile.country_code)?.name ??
+                gameState.profile.country_code)
+              : 'Not set'
+          }
+        />
       </SettingsSection>
 
       <SettingsSection title="Preferences">
@@ -500,7 +546,18 @@ export function SettingsScreen({ onBack, onOpenBlockedUsers }: SettingsScreenPro
       </SettingsSection>
 
       <View style={styles.bottomSpacer} />
-    </ScrollView>
+      </ScrollView>
+
+      <CountryPickerDrawer
+        currentCode={gameState?.profile.country_code}
+        onClose={() => setCountryPickerVisible(false)}
+        onSelect={(code) => {
+          void handleSelectCountry(code);
+        }}
+        saving={savingCountry}
+        visible={countryPickerVisible}
+      />
+    </>
   );
 }
 

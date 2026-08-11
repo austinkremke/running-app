@@ -18,4 +18,3 @@ export { SoloMatchStatRow } from './SoloMatchStatRow';
 export { SoloMatchStatsSection } from './SoloMatchStatsSection';
 export { SoloMatchTab } from './SoloMatchTab';
 export { SoloProfileCard } from './SoloProfileCard';
-export { SoloSeasonRecordCard } from './SoloSeasonRecordCard';

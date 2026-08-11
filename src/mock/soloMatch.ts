@@ -8,7 +8,7 @@ export const MOCK_SOLO_MATCHMAKING: SoloMatchmaking = {
   rankTitle: 'ELITE RUNNER',
   rankIcon: 'star',
   matchFormat: {
-    title: '3 Day Challenge',
+    title: 'Solo Match',
     durationLabel: '3 Days',
     winCondition: 'Highest score wins',
     overview:

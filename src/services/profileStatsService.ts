@@ -20,6 +20,47 @@ const EMPTY_STATS: ProfileOverallStats = {
   avgPaceSecondsPerMile: 0,
 };
 
+export type ProfileHeaderCounts = {
+  followers: number;
+  following: number;
+  activities: number;
+};
+
+const EMPTY_HEADER_COUNTS: ProfileHeaderCounts = {
+  followers: 0,
+  following: 0,
+  activities: 0,
+};
+
+/** Lifetime follower / following / activity totals for the Me header social row. */
+export async function fetchProfileHeaderCounts(userId: string): Promise<ProfileHeaderCounts> {
+  if (!supabase) {
+    return EMPTY_HEADER_COUNTS;
+  }
+
+  const [followers, following, activities] = await Promise.all([
+    supabase
+      .from('follows')
+      .select('follower_id', { count: 'exact', head: true })
+      .eq('followed_id', userId),
+    supabase
+      .from('follows')
+      .select('followed_id', { count: 'exact', head: true })
+      .eq('follower_id', userId),
+    supabase.from('activities').select('id', { count: 'exact', head: true }).eq('user_id', userId),
+  ]);
+
+  if (followers.error) throw followers.error;
+  if (following.error) throw following.error;
+  if (activities.error) throw activities.error;
+
+  return {
+    followers: followers.count ?? 0,
+    following: following.count ?? 0,
+    activities: activities.count ?? 0,
+  };
+}
+
 export type OverallStatsRange = 'all' | 'week' | 'month' | 'year';
 
 /** Start-of-range cutoff for a rolling window ending now; `null` for all-time (no filter). */

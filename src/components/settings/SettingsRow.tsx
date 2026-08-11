@@ -1,10 +1,13 @@
 import { Ionicons } from '@expo/vector-icons';
+import type { ReactNode } from 'react';
 import { Pressable, StyleSheet, Text, View } from 'react-native';
 
 import { colors, spacing } from '../../theme';
 
 type SettingsRowProps = {
-  icon: keyof typeof Ionicons.glyphMap;
+  icon?: keyof typeof Ionicons.glyphMap;
+  /** Replaces the Ionicons `icon` entirely — e.g. a country flag instead of a generic glyph. */
+  leftAccessory?: ReactNode;
   label: string;
   value?: string;
   destructive?: boolean;
@@ -15,6 +18,7 @@ type SettingsRowProps = {
 
 export function SettingsRow({
   icon,
+  leftAccessory,
   label,
   value,
   destructive = false,
@@ -25,11 +29,14 @@ export function SettingsRow({
   const content = (
     <>
       <View style={styles.left}>
-        <Ionicons
-          color={destructive ? colors.accentOrange : colors.textPrimary}
-          name={icon}
-          size={18}
-        />
+        {leftAccessory ??
+          (icon ? (
+            <Ionicons
+              color={destructive ? colors.accentOrange : colors.textPrimary}
+              name={icon}
+              size={18}
+            />
+          ) : null)}
         <View style={styles.copy}>
           <Text style={[styles.label, destructive && styles.destructiveLabel]}>{label}</Text>
           {value ? <Text style={styles.value}>{value}</Text> : null}

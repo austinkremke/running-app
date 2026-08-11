@@ -223,6 +223,7 @@ export function mapTeamRow(
           tierTitle: tier?.displayName,
         }
       : { rank: 0, topPercent: '—', subtitle: 'of all teams', tierId: tier?.id, tierTitle: tier?.displayName },
+    seasonWins: overview?.seasonWins ?? 0,
     shieldIcon: team.logo_icon,
     shieldAccent: asLogoAccent(team.logo_accent),
     logoUrl: team.logo_url ?? undefined,

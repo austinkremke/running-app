@@ -32,6 +32,7 @@ export const MOCK_TEAM_SCREENSHOT: Team = {
     tierId: 'gold',
     tierTitle: 'Gold',
   },
+  seasonWins: 58,
   shieldIcon: 'flash',
   shieldAccent: 'lime',
   stats: [

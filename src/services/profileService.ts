@@ -95,3 +95,16 @@ export async function updateDisplayName(userId: string, displayName: string): Pr
     throw error;
   }
 }
+
+/** Self-serve, optional — powers real per-country solo rank; never forced during onboarding. */
+export async function updateMyCountry(countryCode: string): Promise<void> {
+  if (!supabase) {
+    throw new Error('Supabase is not configured.');
+  }
+
+  const { error } = await supabase.rpc('set_my_country', { p_country_code: countryCode });
+
+  if (error) {
+    throw error;
+  }
+}

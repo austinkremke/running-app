@@ -1,9 +1,15 @@
 import { Ionicons } from '@expo/vector-icons';
-import { StyleSheet, Text, View } from 'react-native';
+import { LinearGradient } from 'expo-linear-gradient';
+import { Image, StyleSheet, Text, View } from 'react-native';
 
 import type { TeamMatchFormat } from '../../../mock';
 import { colors, spacing } from '../../../theme';
-import { HexBadge } from '../../me/HexBadge';
+
+const CARD_BACKGROUND = require('../../../../assets/solo-match-card-1.png');
+// Native size of solo-match-card-1.png — pins the image's aspect ratio so it's
+// sized by width alone (see cardBackgroundImage) rather than stretched to fill
+// whatever height the card's text content happens to produce.
+const CARD_BACKGROUND_ASPECT_RATIO = 1672 / 941;
 
 type SoloMatchFormatCardProps = {
   format: TeamMatchFormat;
@@ -12,53 +18,68 @@ type SoloMatchFormatCardProps = {
 export function SoloMatchFormatCard({ format }: SoloMatchFormatCardProps) {
   return (
     <View style={styles.card}>
-      <View style={styles.header}>
-        <Text style={styles.headerLabel}>Match Format</Text>
-        <View style={styles.durationBadge}>
-          <Ionicons color={colors.accentLime} name="calendar-outline" size={10} />
-          <Text style={styles.durationText}>{format.durationLabel}</Text>
-        </View>
+      <Image resizeMode="cover" source={CARD_BACKGROUND} style={styles.cardBackgroundImage} />
+
+      <LinearGradient
+        colors={['transparent', 'rgba(5, 7, 11, 0.55)', 'rgba(5, 7, 11, 0.92)']}
+        end={{ x: 1, y: 0 }}
+        locations={[0.35, 0.6, 1]}
+        start={{ x: 0, y: 0 }}
+        style={styles.cardOverlay}
+      />
+
+      <View style={styles.durationBadge}>
+        <Ionicons color={colors.accentLime} name="calendar-outline" size={10} />
+        <Text style={styles.durationText}>{format.durationLabel}</Text>
       </View>
 
-      <View style={styles.heroRow}>
-        <HexBadge badgeText="1v1" size={44} stroked variant="lime" />
-
+      <View style={styles.contentColumn}>
         <View style={styles.heroMeta}>
           <Text style={styles.title}>{format.title}</Text>
           <Text style={styles.winCondition}>{format.winCondition}</Text>
         </View>
+
+        <View style={styles.divider} />
+
+        <Text style={styles.overview}>{format.overview}</Text>
       </View>
-
-      <View style={styles.divider} />
-
-      <Text style={styles.overview}>{format.overview}</Text>
-      <Text style={styles.scoringDetails}>{format.scoringDetails}</Text>
     </View>
   );
 }
 
 const styles = StyleSheet.create({
   card: {
+    position: 'relative',
     backgroundColor: colors.surface,
     borderRadius: 14,
     borderWidth: 1,
     borderColor: colors.border,
+    overflow: 'hidden',
+  },
+  cardBackgroundImage: {
+    // Full card width, natural aspect ratio, top-aligned. RN Image keeps its
+    // intrinsic pixel height unless `height` is cleared, which made `cover`
+    // center-crop and cut off the runners. Excess height clips at the bottom.
+    position: 'absolute',
+    top: 0,
+    left: 0,
+    width: '100%',
+    height: undefined,
+    aspectRatio: CARD_BACKGROUND_ASPECT_RATIO,
+  },
+  cardOverlay: {
+    ...StyleSheet.absoluteFill,
+  },
+  contentColumn: {
+    alignSelf: 'flex-end',
+    width: '40%',
     padding: spacing.md,
     gap: spacing.sm,
   },
-  header: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
-  },
-  headerLabel: {
-    color: colors.textSecondary,
-    fontSize: 9,
-    fontWeight: '700',
-    letterSpacing: 0.6,
-    textTransform: 'uppercase',
-  },
   durationBadge: {
+    position: 'absolute',
+    top: spacing.md,
+    left: spacing.md,
     flexDirection: 'row',
     alignItems: 'center',
     gap: 4,
@@ -76,13 +97,7 @@ const styles = StyleSheet.create({
     letterSpacing: 0.4,
     textTransform: 'uppercase',
   },
-  heroRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: spacing.md,
-  },
   heroMeta: {
-    flex: 1,
     gap: 4,
   },
   title: {
@@ -110,10 +125,5 @@ const styles = StyleSheet.create({
     color: colors.textPrimary,
     fontSize: 11,
     lineHeight: 16,
-  },
-  scoringDetails: {
-    color: colors.textSecondary,
-    fontSize: 10,
-    lineHeight: 15,
   },
 });

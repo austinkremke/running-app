@@ -1071,6 +1071,7 @@ export type Database = {
       profiles: {
         Row: {
           avatar_url: string | null
+          country_code: string | null
           created_at: string
           display_name: string
           id: string
@@ -1081,6 +1082,7 @@ export type Database = {
         }
         Insert: {
           avatar_url?: string | null
+          country_code?: string | null
           created_at?: string
           display_name: string
           id: string
@@ -1091,6 +1093,7 @@ export type Database = {
         }
         Update: {
           avatar_url?: string | null
+          country_code?: string | null
           created_at?: string
           display_name?: string
           id?: string
@@ -1773,6 +1776,10 @@ export type Database = {
       get_public_run_share: { Args: { p_feed_post_id: string }; Returns: Json }
       get_solo_match_challenge_status: { Args: never; Returns: Json }
       get_solo_matchmaking_status: { Args: never; Returns: Json }
+      get_solo_rank_position: {
+        Args: { p_country_code?: string; p_rating: number }
+        Returns: Json
+      }
       get_solo_rating_history: {
         Args: { p_limit?: number; p_user_id?: string }
         Returns: {
@@ -1883,6 +1890,7 @@ export type Database = {
         Args: { p_challenged_user_id: string; p_match_type_id?: string }
         Returns: Json
       }
+      set_my_country: { Args: { p_country_code: string }; Returns: undefined }
       solo_match_duration_interval: {
         Args: { p_match_type_id: string }
         Returns: string

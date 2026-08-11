@@ -28,7 +28,7 @@ export const MOCK_MATCHMAKING: Matchmaking = {
   shieldIcon: 'paw',
   shieldAccent: 'lime',
   matchFormat: {
-    title: '3 Day Challenge',
+    title: 'Team Match',
     durationLabel: '3 Days',
     winCondition: 'Highest team score wins',
     overview:

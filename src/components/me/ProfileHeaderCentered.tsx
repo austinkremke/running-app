@@ -3,6 +3,7 @@ import { StyleSheet, Text, View } from 'react-native';
 import Svg, { Defs, RadialGradient, Rect, Stop } from 'react-native-svg';
 
 import type { UserProfile } from '../../mock';
+import type { ProfileHeaderCounts } from '../../services/profileStatsService';
 import type { SoloRankPosition } from '../../services/rank';
 import { colors, spacing } from '../../theme';
 import { RANK_TIER_COLORS, rankTierColorForTier, shortRankTierName } from '../team/rankAvatarBorderTheme';
@@ -18,6 +19,7 @@ type ProfileHeaderCenteredProps = {
   /** Rendered in the top-right slot — `MiniXpBar` on the owner's Me tab, omitted (or a
    * different action, e.g. Add Friend) when viewing another user's read-only profile. */
   topRightSlot?: ReactNode;
+  socialCounts?: ProfileHeaderCounts | null;
 };
 
 const AVATAR_SIZE = 128;
@@ -42,6 +44,7 @@ export function ProfileHeaderCentered({
   soloRankPosition,
   onEditAvatar,
   topRightSlot,
+  socialCounts,
 }: ProfileHeaderCenteredProps) {
   const rankColor = rankTierColorForTier(profile.rank.tierId);
   const rankLabel = shortRankTierName(profile.rank.tierId, profile.rank.title);
@@ -104,7 +107,34 @@ export function ProfileHeaderCentered({
         <Text style={styles.rankPrefix}>Rank: </Text>
         <Text style={[styles.rankValue, { color: rankColor }]}>{rankLabel}</Text>
       </Text>
+      {socialCounts ? (
+        <View style={styles.socialRow}>
+          <SocialCount label="Followers" singular="Follower" value={socialCounts.followers} />
+          <Text style={styles.socialDot}>·</Text>
+          <SocialCount label="Following" value={socialCounts.following} />
+          <Text style={styles.socialDot}>·</Text>
+          <SocialCount label="Activities" singular="Activity" value={socialCounts.activities} />
+        </View>
+      ) : null}
     </View>
+  );
+}
+
+function SocialCount({
+  label,
+  singular,
+  value,
+}: {
+  label: string;
+  singular?: string;
+  value: number;
+}) {
+  const suffix = value === 1 ? (singular ?? label) : label;
+  return (
+    <Text style={styles.socialItem}>
+      <Text style={styles.socialValue}>{value.toLocaleString()}</Text>
+      {` ${suffix}`}
+    </Text>
   );
 }
 
@@ -205,5 +235,27 @@ const styles = StyleSheet.create({
     fontWeight: '800',
     fontStyle: 'italic',
     letterSpacing: 0.3,
+  },
+  socialRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    flexWrap: 'wrap',
+    gap: 6,
+    marginTop: spacing.xs,
+  },
+  socialItem: {
+    color: colors.textSecondary,
+    fontSize: 12,
+    fontWeight: '600',
+  },
+  socialValue: {
+    color: colors.textPrimary,
+    fontWeight: '800',
+  },
+  socialDot: {
+    color: colors.textSecondary,
+    fontSize: 12,
+    fontWeight: '700',
   },
 });

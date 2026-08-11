@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import { ActivityIndicator, ScrollView, StyleSheet, Text, View } from 'react-native';
 
 import type { TeamMatchFormat } from '../../mock';
@@ -8,6 +8,7 @@ import { useMyTeam } from '../../hooks/useMyTeam';
 import { useTeamMatchmaking } from '../../hooks/useTeamMatchmaking';
 import { fetchTeamMatchType } from '../../services/matchService';
 import { colors, spacing } from '../../theme';
+import { deviceRegionCode } from '../../utils/deviceRegion';
 import { FindMatchButton } from './FindMatchButton';
 import { MatchFormatCard } from './MatchFormatCard';
 import { MatchTeamSummaryCard } from './MatchTeamSummaryCard';
@@ -39,6 +40,7 @@ export function TeamMatchTab({ onViewActiveMatch }: TeamMatchTabProps) {
   } = useTeamMatchmaking();
   const { match: activeMatch } = useActiveTeamMatch();
   const [matchFormat, setMatchFormat] = useState<TeamMatchFormat | null>(null);
+  const regionCode = useMemo(() => deviceRegionCode(), []);
 
   useEffect(() => {
     void (async () => {
@@ -101,11 +103,12 @@ export function TeamMatchTab({ onViewActiveMatch }: TeamMatchTabProps) {
         <MatchTeamSummaryCard
           logoUrl={team.logoUrl}
           powerRating={team.competitiveRating}
+          rankPosition={team.teamRank.rank}
           rankTierId={team.teamRank.tierId}
+          regionCode={regionCode}
           shieldAccent={team.shieldAccent}
           shieldIcon={team.shieldIcon}
-          teamLevel={team.level}
-          teamName={team.name}
+          wins={team.seasonWins}
         />
 
         {showActiveMatchButton && activeMatch ? (

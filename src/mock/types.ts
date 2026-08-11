@@ -397,6 +397,7 @@ export type Team = {
   level: number;
   competitiveRating: number;
   teamRank: TeamRank;
+  seasonWins: number;
   shieldIcon: string;
   shieldAccent: TeamLogoAccent;
   logoUrl?: string;

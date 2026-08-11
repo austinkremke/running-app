@@ -4,7 +4,7 @@ import { Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
 import type { ChallengeFriend } from '../../../mock';
 import { MOCK_SOLO_MATCHMAKING } from '../../../mock';
 import type { TeamMatchFormat } from '../../../mock';
-import { useAuth, usePlayerProgress } from '../../../context';
+import { useAuth } from '../../../context';
 import { useActiveSoloMatch } from '../../../hooks/useActiveSoloMatch';
 import { useFeatureGate } from '../../../hooks/useFeatureGate';
 import { useRankDisplay } from '../../../hooks/useRankDisplay';
@@ -12,6 +12,7 @@ import { useSoloMatchChallenges } from '../../../hooks/useSoloMatchChallenges';
 import { useSoloMatchmaking } from '../../../hooks/useSoloMatchmaking';
 import { fetchFollowingProfilesForChallenge } from '../../../services/followService';
 import { fetchSoloMatchType } from '../../../services/matchService';
+import { fetchCountryRankPosition, type SoloRankPosition } from '../../../services/rank';
 import { colors, spacing } from '../../../theme';
 import { ChallengeFriendDrawer } from './ChallengeFriendDrawer';
 import { IncomingChallengeCard } from './IncomingChallengeCard';
@@ -20,7 +21,6 @@ import { SearchingForOpponentCard } from './SearchingForOpponentCard';
 import { SoloMatchActions } from './SoloMatchActions';
 import { SoloMatchFormatCard } from './SoloMatchFormatCard';
 import { SoloProfileCard } from './SoloProfileCard';
-import { SoloSeasonRecordCard } from './SoloSeasonRecordCard';
 
 type SoloMatchTabProps = {
   onViewActiveMatch?: () => void;
@@ -31,8 +31,9 @@ const DEFAULT_FORMAT: TeamMatchFormat = MOCK_SOLO_MATCHMAKING.matchFormat;
 export function SoloMatchTab({ onViewActiveMatch }: SoloMatchTabProps) {
   const soloConfig = MOCK_SOLO_MATCHMAKING;
   const { gameState, session } = useAuth();
-  const { level } = usePlayerProgress();
   const { profileRank, seasonRecord } = useRankDisplay();
+  const [countryRankPosition, setCountryRankPosition] = useState<SoloRankPosition | null>(null);
+  const countryCode = gameState?.profile.country_code ?? null;
   const { match: activeMatch, refresh: refreshActiveMatch } = useActiveSoloMatch();
   const {
     isSearching,
@@ -86,6 +87,29 @@ export function SoloMatchTab({ onViewActiveMatch }: SoloMatchTabProps) {
       void refreshActiveMatch();
     }
   }, [hasActiveMatch, refreshActiveMatch]);
+
+  useEffect(() => {
+    const rating = profileRank.competitiveRating;
+    if (rating == null || !countryCode) {
+      setCountryRankPosition(null);
+      return;
+    }
+
+    let cancelled = false;
+
+    fetchCountryRankPosition(rating, countryCode)
+      .then((position) => {
+        if (!cancelled) setCountryRankPosition(position);
+      })
+      .catch((error) => {
+        console.warn('Failed to load country rank position', error);
+        if (!cancelled) setCountryRankPosition(null);
+      });
+
+    return () => {
+      cancelled = true;
+    };
+  }, [profileRank.competitiveRating, countryCode]);
 
   async function loadChallengeFriends() {
     const userId = session?.user?.id;
@@ -205,18 +229,17 @@ export function SoloMatchTab({ onViewActiveMatch }: SoloMatchTabProps) {
         <SoloProfileCard
           avatarUrl={gameState?.profile.avatar_url ?? soloConfig.avatarUrl}
           competitiveRating={profileRank.competitiveRating}
-          level={level}
-          name={gameState?.profile.display_name ?? soloConfig.name}
           rankTierId={profileRank.tierId}
-          rankTitle={profileRank.title}
+          regionCode={countryCode}
+          soloRankPosition={countryRankPosition}
+          wins={seasonRecord.wins}
         />
+
         {isSearching ? (
           <SearchingForOpponentCard onCancel={() => void handleCancelSearch()} />
         ) : (
           <SoloMatchFormatCard format={matchFormat} />
         )}
-
-        <SoloSeasonRecordCard record={seasonRecord} />
 
         <View style={styles.bottomSpacer} />
       </ScrollView>

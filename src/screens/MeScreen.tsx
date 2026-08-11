@@ -39,20 +39,21 @@ import type { DistanceMilestoneKey } from '../services/activityStreams';
 import { fetchPersonalRecords, type PersonalRecord } from '../services/distanceRecords';
 import { fetchRunByActivityId } from '../services/feedService';
 import {
-  fetchSoloRankPosition,
+  fetchCountryRankPosition,
   fetchSoloRatingHistory,
   type SoloRankPosition,
   type SoloRatingHistoryEntry,
 } from '../services/rank';
 import type { Run } from '../mock';
 import {
+  fetchProfileHeaderCounts,
   fetchProfileOverallStats,
   rangeSinceDate,
   type OverallStatsRange,
+  type ProfileHeaderCounts,
   type ProfileOverallStats,
 } from '../services/profileStatsService';
 import { colors, spacing } from '../theme';
-import { deviceRegionCode } from '../utils/deviceRegion';
 import { getErrorMessage } from '../utils/errors';
 
 /** How far the scrollable card's rounded top rides up over the static header. */
@@ -106,7 +107,7 @@ export function MeScreen({
     evaluateOnMount: isOwnProfile,
     onUnlock: showAchievementUnlocks,
   });
-  const { isFollowing, follow, unfollow } = useFollows();
+  const { isFollowing, follow, unfollow, followingIds } = useFollows();
   const [activeMeTab, setActiveMeTab] = useState<MeTab>('progress');
   const [viewAllVisible, setViewAllVisible] = useState(false);
   const [allTimeBestsVisible, setAllTimeBestsVisible] = useState(false);
@@ -119,7 +120,8 @@ export function MeScreen({
   const [competitiveHistoryVisible, setCompetitiveHistoryVisible] = useState(false);
   const [personalRecords, setPersonalRecords] = useState<PersonalRecord[]>([]);
   const [statDetailTarget, setStatDetailTarget] = useState<StatDetailTarget | null>(null);
-  const [soloRankPosition, setSoloRankPosition] = useState<SoloRankPosition | null>(null);
+  const [countryRankPosition, setCountryRankPosition] = useState<SoloRankPosition | null>(null);
+  const [socialCounts, setSocialCounts] = useState<ProfileHeaderCounts | null>(null);
   const [followActionBusy, setFollowActionBusy] = useState(false);
   const [headerHeight, setHeaderHeight] = useState(0);
   const [pillHeaderHeight, setPillHeaderHeight] = useState(0);
@@ -127,12 +129,9 @@ export function MeScreen({
     () => sortAchievementsForMeCarousel(allAchievements),
     [allAchievements],
   );
-  // Global solo-leaderboard placement paired with the device-locale region — there's
-  // no `profiles.country_code` yet, so this isn't a true per-country rank, and it's
-  // the *viewer's* device region regardless of whose profile is shown, so it's only
-  // meaningful (and only rendered) on the viewer's own profile. See deviceRegion.ts
-  // and soloRankPositionService.ts.
-  const regionCode = useMemo(() => deviceRegionCode(), []);
+  // Real per-country placement — only meaningful (and only rendered) for the
+  // viewer's own profile, using their own stored country, not a guess.
+  const countryCode = isOwnProfile ? (gameState?.profile.country_code ?? null) : null;
 
   const profileRank = isOwnProfile ? ownProfileRank : (otherProfile?.rank ?? MOCK_PROFILE.rank);
   const following = !isOwnProfile && !!viewedUserId && isFollowing(viewedUserId);
@@ -227,26 +226,48 @@ export function MeScreen({
 
   useEffect(() => {
     const rating = profileRank.competitiveRating;
-    if (rating == null) {
-      setSoloRankPosition(null);
+    if (rating == null || !countryCode) {
+      setCountryRankPosition(null);
       return;
     }
 
     let cancelled = false;
 
-    fetchSoloRankPosition(rating)
+    fetchCountryRankPosition(rating, countryCode)
       .then((position) => {
-        if (!cancelled) setSoloRankPosition(position);
+        if (!cancelled) setCountryRankPosition(position);
       })
       .catch((error) => {
-        console.warn('Failed to load solo rank position', error);
-        if (!cancelled) setSoloRankPosition(null);
+        console.warn('Failed to load country rank position', error);
+        if (!cancelled) setCountryRankPosition(null);
       });
 
     return () => {
       cancelled = true;
     };
-  }, [profileRank.competitiveRating]);
+  }, [profileRank.competitiveRating, countryCode]);
+
+  useEffect(() => {
+    if (!targetUserId) {
+      setSocialCounts(null);
+      return;
+    }
+
+    let cancelled = false;
+
+    fetchProfileHeaderCounts(targetUserId)
+      .then((counts) => {
+        if (!cancelled) setSocialCounts(counts);
+      })
+      .catch((error) => {
+        console.warn('Failed to load profile social counts', error);
+        if (!cancelled) setSocialCounts(null);
+      });
+
+    return () => {
+      cancelled = true;
+    };
+  }, [targetUserId, followingIds.length]);
 
   const handleAchievementPress = useCallback(
     async (achievement: AchievementListItem) => {
@@ -360,9 +381,10 @@ export function MeScreen({
           <TopographyBackground color={colors.accentLime} opacity={TOPOGRAPHY_OPACITY} style={styles.topography} />
 
           <ProfileHeaderCentered
-            regionCode={isOwnProfile ? regionCode : null}
+            regionCode={countryCode}
             profile={profile}
-            soloRankPosition={soloRankPosition}
+            socialCounts={socialCounts}
+            soloRankPosition={countryRankPosition}
             topRightSlot={
               isOwnProfile ? (
                 <MiniXpBar experience={profile.experience} level={profile.level} />
@@ -587,7 +609,7 @@ const styles = StyleSheet.create({
   profileGroup: {
     position: 'relative',
     zIndex: 0,
-    gap: spacing.md,
+    gap: spacing.lg,
     paddingHorizontal: spacing.sm,
     paddingTop: spacing.md,
     paddingBottom: spacing.md,

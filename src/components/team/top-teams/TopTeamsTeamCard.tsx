@@ -3,7 +3,6 @@ import { Pressable, StyleSheet, Text, View } from 'react-native';
 
 import type { TopTeamListing } from '../../../mock';
 import { colors, spacing } from '../../../theme';
-import { HexBadge } from '../../me/HexBadge';
 import { TeamAvatar } from '../TeamAvatar';
 
 type TopTeamsTeamCardProps = {
@@ -48,14 +47,6 @@ export function TopTeamsTeamCard({ team, onPress }: TopTeamsTeamCardProps) {
           <Text numberOfLines={2} style={styles.motto}>
             {team.motto}
           </Text>
-
-          <View style={styles.levelRow}>
-            <HexBadge icon="paw" iconSize={11} size={26} variant="purple" />
-            <View style={styles.levelMeta}>
-              <Text style={styles.levelLabel}>LEVEL</Text>
-              <Text style={styles.levelValue}>{team.level}</Text>
-            </View>
-          </View>
         </View>
 
         <View style={styles.trailing}>
@@ -71,7 +62,7 @@ export function TopTeamsTeamCard({ team, onPress }: TopTeamsTeamCardProps) {
 
           <View style={styles.pointsBlock}>
             <Text style={styles.pointsValue}>{formatPoints(team.totalPoints)}</Text>
-            <Text style={styles.pointsLabel}>Total Points</Text>
+            <Text style={styles.pointsLabel}>Power Rating</Text>
           </View>
         </View>
       </View>
@@ -138,28 +129,6 @@ const styles = StyleSheet.create({
     color: colors.textSecondary,
     fontSize: 10,
     lineHeight: 13,
-  },
-  levelRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 6,
-    marginTop: 2,
-  },
-  levelMeta: {
-    gap: 0,
-  },
-  levelLabel: {
-    color: colors.accentPurple,
-    fontSize: 8,
-    fontWeight: '700',
-    letterSpacing: 0.5,
-  },
-  levelValue: {
-    color: colors.accentPurple,
-    fontSize: 16,
-    fontWeight: '800',
-    fontStyle: 'italic',
-    lineHeight: 18,
   },
   trailing: {
     flexShrink: 0,
