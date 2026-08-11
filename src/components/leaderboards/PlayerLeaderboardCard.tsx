@@ -2,6 +2,7 @@ import { Pressable, StyleSheet, Text, View } from 'react-native';
 
 import type { TopPlayerListing } from '../../mock';
 import { colors, spacing } from '../../theme';
+import { FlagIcon } from '../me/FlagIcon';
 import { RankBorderAvatar } from '../team/RankBorderAvatar';
 
 type PlayerLeaderboardCardProps = {
@@ -32,6 +33,9 @@ export function PlayerLeaderboardCard({ player, onPress }: PlayerLeaderboardCard
           >
             {player.rank}
           </Text>
+          <View style={styles.flagSlot}>
+            <FlagIcon regionCode={player.countryCode} width={FLAG_WIDTH} />
+          </View>
           <RankBorderAvatar avatarUrl={player.avatarUrl} rankTierId={player.rankTierId} size={52} />
         </View>
 
@@ -54,6 +58,7 @@ export function PlayerLeaderboardCard({ player, onPress }: PlayerLeaderboardCard
 }
 
 const LEADING_INSET = spacing.md;
+const FLAG_WIDTH = 24;
 
 const styles = StyleSheet.create({
   card: {
@@ -94,6 +99,11 @@ const styles = StyleSheet.create({
   },
   rankDefault: {
     color: colors.textPrimary,
+  },
+  flagSlot: {
+    width: FLAG_WIDTH,
+    alignItems: 'center',
+    justifyContent: 'center',
   },
   identity: {
     flex: 1,

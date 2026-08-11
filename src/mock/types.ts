@@ -435,6 +435,8 @@ export type TopPlayerListing = {
   wins: number;
   losses: number;
   rankTierId?: string;
+  /** ISO-3166-1 alpha-2; omitted when the runner hasn't set a country. */
+  countryCode?: string | null;
 };
 
 export type PostRunChartTab = 'pace' | 'elevation' | 'heartRate';
