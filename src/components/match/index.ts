@@ -1,4 +1,5 @@
 export { AvailableRunnersSection } from './AvailableRunnersSection';
+export { EarlyLeadCard } from './EarlyLeadCard';
 export { FindMatchButton } from './FindMatchButton';
 export { LineupSection } from './LineupSection';
 export { MatchmakingLoader } from './MatchmakingLoader';

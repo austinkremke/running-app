@@ -3,7 +3,6 @@ import { StyleSheet, Text, View } from 'react-native';
 
 import type { TeamLogoAccent } from '../../mock';
 import { colors, spacing } from '../../theme';
-import { FlagIcon } from '../me/FlagIcon';
 import { RANK_TIER_COLORS } from '../team/rankAvatarBorderTheme';
 import { TeamAvatar } from '../team/TeamAvatar';
 
@@ -15,8 +14,6 @@ type MatchTeamSummaryCardProps = {
   rankTierId?: string | null;
   /** Global leaderboard placement (`team.teamRank.rank`) — 0/undefined shows a placeholder. */
   rankPosition?: number;
-  /** Device-locale ISO-3166-1 alpha-2 region code for the country-rank flag; null hides the flag. */
-  regionCode?: string | null;
   wins: number;
 };
 
@@ -27,7 +24,6 @@ export function MatchTeamSummaryCard({
   logoUrl,
   rankTierId,
   rankPosition,
-  regionCode,
   wins,
 }: MatchTeamSummaryCardProps) {
   return (
@@ -55,23 +51,6 @@ export function MatchTeamSummaryCard({
             {rankPosition ? `#${rankPosition}` : '—'}
           </Text>
           <Text style={styles.statLabel}>GLOBAL RANK</Text>
-        </View>
-
-        <View style={styles.divider} />
-
-        <View style={styles.statCol}>
-          <View style={styles.statIconSlot}>
-            <FlagIcon regionCode={regionCode} width={22} />
-          </View>
-          <Text
-            adjustsFontSizeToFit
-            minimumFontScale={0.65}
-            numberOfLines={1}
-            style={styles.statValue}
-          >
-            {rankPosition ? `#${rankPosition}` : '—'}
-          </Text>
-          <Text style={styles.statLabel}>COUNTRY RANK</Text>
         </View>
 
         <View style={styles.divider} />

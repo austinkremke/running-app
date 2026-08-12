@@ -24,6 +24,8 @@ export function useFollows() {
     try {
       const ids = await fetchFollowingIds(userId);
       setFollowingIds(ids);
+    } catch (error) {
+      console.warn('Failed to load following list', error);
     } finally {
       setLoading(false);
     }
@@ -37,7 +39,10 @@ export function useFollows() {
 
   const follow = useCallback(
     async (followedUserId: string) => {
-      if (!userId || followedUserId === userId) {
+      if (!userId) {
+        throw new Error('You need to be signed in to follow someone.');
+      }
+      if (followedUserId === userId) {
         return;
       }
 

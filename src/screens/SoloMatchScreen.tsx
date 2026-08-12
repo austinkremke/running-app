@@ -1,6 +1,7 @@
 import { useCallback, useEffect, useState } from 'react';
 import { ActivityIndicator, Alert, ScrollView, Share, StyleSheet, Text, View } from 'react-native';
 
+import { EarlyLeadCard } from '../components/match/EarlyLeadCard';
 import {
   SoloActiveMatchActions,
   SoloMatchActivityFeedModal,
@@ -209,11 +210,18 @@ export function SoloMatchScreen({
         />
 
         <SoloMatchStatsSection match={match} />
-        <SoloMatchActivitySection
-          activities={match.activities}
-          onSelectActivity={(activity) => handleSelectActivity(activity.run)}
-          onViewAll={() => setActivityFeedVisible(true)}
-        />
+        {!readOnly &&
+        match.status === 'active' &&
+        match.homeRunner.totalPoints === 0 &&
+        match.awayRunner.totalPoints === 0 ? (
+          <EarlyLeadCard />
+        ) : (
+          <SoloMatchActivitySection
+            activities={match.activities}
+            onSelectActivity={(activity) => handleSelectActivity(activity.run)}
+            onViewAll={() => setActivityFeedVisible(true)}
+          />
+        )}
 
         <View style={styles.bottomSpacer} />
       </ScrollView>

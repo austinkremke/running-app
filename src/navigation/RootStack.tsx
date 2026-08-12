@@ -96,10 +96,7 @@ function SoloMatchRoute() {
           readOnly ? (
             <HeaderIconButton accessibilityLabel="Share match" icon="share-outline" onPress={triggerMatchDetailShare} />
           ) : (
-            <View style={styles.headerActions}>
-              <HeaderIconButton accessibilityLabel="Share match" icon="share-outline" onPress={() => {}} />
-              <HeaderIconButton accessibilityLabel="More options" icon="ellipsis-vertical" onPress={openSoloMatchMenu} />
-            </View>
+            <HeaderIconButton accessibilityLabel="More options" icon="ellipsis-vertical" onPress={openSoloMatchMenu} />
           )
         }
         title="SOLO MATCH"

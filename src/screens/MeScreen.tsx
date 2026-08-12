@@ -416,6 +416,7 @@ export function MeScreen({
         {headerHeight > 0 ? (
           <ScrollView
             contentContainerStyle={styles.content}
+            pointerEvents="box-none"
             showsVerticalScrollIndicator={false}
             style={styles.scroll}
           >
@@ -423,7 +424,7 @@ export function MeScreen({
             pointerEvents="none"
             style={{ height: Math.max(pillHeaderHeight + headerHeight - SCROLL_OVERLAP, 0) }}
           />
-          <View style={styles.scrollCard}>
+          <View pointerEvents="auto" style={styles.scrollCard}>
             {isOwnProfile && activeMeTab === 'progress' ? (
               loading ? (
                 <AchievementsSkeleton />
@@ -584,12 +585,11 @@ const styles = StyleSheet.create({
     backgroundColor: colors.background,
   },
   scroll: {
-    // Covers the full screen (not just below the header) so the rounded scrollCard
-    // can slide up and visually cover the header/profile section as the user
-    // scrolls — that's the intended effect. The leading gap before scrollCard is a
-    // pointerEvents="none" spacer (not padding) specifically so taps in that gap
-    // fall through to whatever's interactive underneath (e.g. the Follow button)
-    // instead of being swallowed by this view's own touch bounds.
+    // Covers the full screen so the rounded scrollCard can slide up over the
+    // header. `pointerEvents="box-none"` on the ScrollView + content container
+    // is required: a `pointerEvents="none"` spacer alone is not enough — the
+    // native scroll responder still claims every touch in its bounds, which
+    // made the Follow button (in profileGroup, zIndex 0) untappable.
     position: 'absolute',
     top: 0,
     left: 0,
@@ -600,6 +600,7 @@ const styles = StyleSheet.create({
   },
   content: {
     flexGrow: 1,
+    pointerEvents: 'box-none',
   },
   header: {
     zIndex: 20,

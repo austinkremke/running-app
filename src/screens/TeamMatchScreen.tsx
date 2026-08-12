@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react';
 import { ActivityIndicator, ScrollView, Share, StyleSheet, Text, View } from 'react-native';
 
+import { EarlyLeadCard } from '../components/match/EarlyLeadCard';
 import {
   TeamChatDrawer,
   TeamMatchActions,
@@ -113,11 +114,18 @@ export function TeamMatchScreen({ onRunPress, onOpenRunDetail, matchId }: TeamMa
           <TeamMatchScoreboard match={match} />
           <TeamMatchRosters awayTeam={match.awayTeam} homeTeam={match.homeTeam} />
         </View>
-        <TeamMatchLiveActivitySection
-          activities={match.activities}
-          onSelectActivity={(activity) => handleSelectActivity(activity.run)}
-          onViewAll={() => setActivityFeedVisible(true)}
-        />
+        {!readOnly &&
+        match.status === 'active' &&
+        match.homeTeam.totalPoints === 0 &&
+        match.awayTeam.totalPoints === 0 ? (
+          <EarlyLeadCard />
+        ) : (
+          <TeamMatchLiveActivitySection
+            activities={match.activities}
+            onSelectActivity={(activity) => handleSelectActivity(activity.run)}
+            onViewAll={() => setActivityFeedVisible(true)}
+          />
+        )}
         <View style={styles.bottomSpacer} />
       </ScrollView>
 

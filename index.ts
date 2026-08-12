@@ -7,6 +7,12 @@ import App from './App';
 
 enableScreens();
 
+const defaultHandler = ErrorUtils.getGlobalHandler();
+ErrorUtils.setGlobalHandler((error, isFatal) => {
+  console.error(`[GlobalError] isFatal=${isFatal}`, error?.stack ?? error);
+  defaultHandler(error, isFatal);
+});
+
 // registerRootComponent calls AppRegistry.registerComponent('main', () => App);
 // It also ensures that whether you load the app in Expo Go or in a native build,
 // the environment is set up appropriately
